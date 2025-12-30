@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "composition",
+      "title": "Vue Composition API",
+      "description": "Vue 3 Composition API コア概念とリアクティブシステム",
+      "href": "/frontend/vue/composition",
+      "order": 1
+    },
+    {
+      "slug": "pinia",
+      "title": "Pinia 状態管理",
+      "description": "Vue 公式状態管理ライブラリ Pinia のコア機能とベストプラクティス",
+      "href": "/frontend/vue/pinia",
+      "order": 2
+    }
+  ]
+}

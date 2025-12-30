@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "mysql",
+      "title": "MySQL",
+      "description": "MySQL 数据库核心概念、查询优化与高可用架构",
+      "href": "/database/relational/mysql",
+      "order": 1
+    },
+    {
+      "slug": "postgresql",
+      "title": "PostgreSQL",
+      "description": "PostgreSQL 高级特性、JSON 支持与扩展功能",
+      "href": "/database/relational/postgresql",
+      "order": 2
+    }
+  ]
+}

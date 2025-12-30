@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "restful",
+      "title": "RESTful API 设计",
+      "description": "RESTful API 设计原则、最佳实践与规范",
+      "href": "/backend/api/restful",
+      "order": 1
+    },
+    {
+      "slug": "graphql",
+      "title": "GraphQL",
+      "description": "GraphQL 查询语言、Schema 设计与最佳实践",
+      "href": "/backend/api/graphql",
+      "order": 2
+    },
+    {
+      "slug": "grpc",
+      "title": "gRPC",
+      "description": "gRPC 协议、Protocol Buffers 与服务间通信",
+      "href": "/backend/api/grpc",
+      "order": 3
+    }
+  ]
+}

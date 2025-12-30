@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Web 言語",
+    "description": "TypeScript と JavaScript の現代 Web 開発における応用",
+    "keyPoints": [
+      "ES6+ モダン構文機能",
+      "TypeScript 型システム",
+      "非同期プログラミングパターン",
+      "フロントエンド・バックエンドフルスタック開発"
+    ],
+    "relatedTopics": [
+      "React フレームワーク",
+      "Node.js バックエンド",
+      "フロントエンドエンジニアリング"
+    ]
+  },
+  "content": "<h1>Web 言語知識体系</h1>\n<h2>核心概念</h2>\n<p>JavaScript は Web 開発の核心言語で、TypeScript は型システムを追加することで大規模プロジェクトの保守性を向上させます。</p>\n<h3>言語の進化</h3>\n<pre><code>JavaScript 進化の歴史\n┌─────────────────────────────────────────────┐\n│ ES5 (2009)    │ 厳格モード、配列メソッド      │\n├───────────────┼─────────────────────────────┤\n│ ES6 (2015)    │ クラス、モジュール、アロー関数、Promise │\n├───────────────┼─────────────────────────────┤\n│ ES7-ES12      │ async/await、スプレッド演算子 │\n├───────────────┼─────────────────────────────┤\n│ TypeScript    │ 型システム、インターフェース、ジェネリクス │\n└───────────────┴─────────────────────────────┘\n\nTypeScript の価値\n┌──────────────────────────────────────────────┐\n│  型安全性    →  コンパイル時にエラー発見      │\n│  IDE サポート →  より良い自動補完             │\n│  リファクタ力 →  安全なコードリファクタリング  │\n│  ドキュメント →  型はドキュメント             │\n└──────────────────────────────────────────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>JavaScript</h3>\n<ul>\n<li><strong>基本構文</strong> - データ型、関数、スコープ</li>\n<li><strong>ES6+ 機能</strong> - 分割代入、モジュール、クラス</li>\n<li><strong>非同期</strong> - Promise、async/await</li>\n<li><strong>DOM/BOM</strong> - ブラウザ API</li>\n</ul>\n<h3>TypeScript</h3>\n<ul>\n<li><strong>型基礎</strong> - 基本型、ユニオン型</li>\n<li><strong>高度な型</strong> - ジェネリクス、マップ型</li>\n<li><strong>型ユーティリティ</strong> - Partial、Pick、Omit</li>\n<li><strong>エンジニアリング設定</strong> - tsconfig、モジュール解決</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>TypeScript</strong> - strictモード、any を避ける</li>\n<li><strong>非同期処理</strong> - async/await 優先</li>\n<li><strong>モジュール化</strong> - ES Modules 規範</li>\n<li><strong>コード品質</strong> - ESLint + Prettier</li>\n</ol>\n"
+}

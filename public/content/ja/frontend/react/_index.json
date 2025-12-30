@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "components",
+      "title": "React コンポーネント開発",
+      "description": "React コンポーネント設計パターン、コンポーネント間通信とベストプラクティス",
+      "href": "/frontend/react/components",
+      "order": 1
+    },
+    {
+      "slug": "hooks",
+      "title": "React Hooks",
+      "description": "React Hooks 完全ガイド、カスタム Hooks とベストプラクティス",
+      "href": "/frontend/react/hooks",
+      "order": 2
+    },
+    {
+      "slug": "ssr",
+      "title": "SSR/SSG レンダリング",
+      "description": "Next.js サーバーサイドレンダリング、静的生成と App Router",
+      "href": "/frontend/react/ssr",
+      "order": 3
+    }
+  ]
+}

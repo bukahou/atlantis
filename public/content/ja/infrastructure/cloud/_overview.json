@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "クラウドプラットフォーム",
+    "description": "主要クラウドサービスの核心サービス、アーキテクチャ設計とベストプラクティス",
+    "keyPoints": [
+      "コンピュート、ストレージ、ネットワークの核心サービス",
+      "クラウドネイティブアーキテクチャ設計",
+      "マルチクラウドとハイブリッドクラウド戦略",
+      "コスト最適化とセキュリティコンプライアンス"
+    ],
+    "relatedTopics": [
+      "コンテナオーケストレーション",
+      "マイクロサービスアーキテクチャ",
+      "DevOps 実践"
+    ]
+  },
+  "content": "<h1>クラウドプラットフォーム知識体系</h1>\n<h2>核心概念</h2>\n<p>クラウドコンピューティングはソフトウェアのデリバリーと運用方法を変革しました。</p>\n<h3>クラウドサービスモデル</h3>\n<pre><code>サービス階層\n┌─────────────────────────────────────┐\n│           SaaS (Software as a Service) │\n│       例: Gmail, Salesforce         │\n├─────────────────────────────────────┤\n│           PaaS (Platform as a Service) │\n│    例: Heroku, Cloud Functions      │\n├─────────────────────────────────────┤\n│          IaaS (Infrastructure as a Service) │\n│        例: EC2, GCE, Azure VM       │\n└─────────────────────────────────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>1. 核心サービス</h3>\n<ul>\n<li><strong>コンピュートサービス</strong> - EC2, Lambda, ECS</li>\n<li><strong>ストレージサービス</strong> - S3, EBS, EFS</li>\n<li><strong>データベース</strong> - RDS, DynamoDB</li>\n</ul>\n<h3>2. ネットワークとセキュリティ</h3>\n<ul>\n<li><strong>VPC</strong> - 仮想プライベートクラウド設定</li>\n<li><strong>IAM</strong> - ID とアクセス管理</li>\n<li><strong>セキュリティグループ</strong> - ネットワークアクセス制御</li>\n</ul>\n<h3>3. 高度なサービス</h3>\n<ul>\n<li><strong>コンテナサービス</strong> - EKS, GKE, AKS</li>\n<li><strong>サーバーレス</strong> - Lambda, Cloud Functions</li>\n<li><strong>メッセージキュー</strong> - SQS, SNS, Pub/Sub</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>高可用性設計</strong> - マルチ AZ デプロイ</li>\n<li><strong>コスト最適化</strong> - リザーブドインスタンス、Spot インスタンス</li>\n<li><strong>セキュリティ優先</strong> - 最小権限原則</li>\n<li><strong>監視アラート</strong> - 完全な可観測性の確立</li>\n</ol>\n"
+}

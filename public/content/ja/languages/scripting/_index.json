@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "python",
+      "title": "Python 言語基礎",
+      "description": "Python のコア構文、よく使うライブラリとベストプラクティス",
+      "href": "/languages/scripting/python",
+      "order": 1
+    },
+    {
+      "slug": "shell",
+      "title": "Shell スクリプト基礎",
+      "description": "Bash/Shell スクリプトプログラミング、よく使うコマンドと自動化運用",
+      "href": "/languages/scripting/shell",
+      "order": 2
+    }
+  ]
+}

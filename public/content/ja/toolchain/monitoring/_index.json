@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "prometheus",
+      "title": "Prometheus",
+      "description": "Prometheus 監視システム、メトリクス収集とアラート設定",
+      "href": "/toolchain/monitoring/prometheus",
+      "order": 1
+    },
+    {
+      "slug": "grafana",
+      "title": "Grafana",
+      "description": "Grafana 可視化プラットフォーム、ダッシュボード設計とアラート設定",
+      "href": "/toolchain/monitoring/grafana",
+      "order": 2
+    },
+    {
+      "slug": "logging",
+      "title": "ロギングシステム",
+      "description": "ログ収集、ELK Stack と分散トレーシング",
+      "href": "/toolchain/monitoring/logging",
+      "order": 3
+    }
+  ]
+}

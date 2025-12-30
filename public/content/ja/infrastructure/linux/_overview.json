@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Linux システム",
+    "description": "Linux OS の核心概念、システム管理と運用実践",
+    "keyPoints": [
+      "Linux ファイルシステムと権限管理",
+      "プロセス管理とシステム監視",
+      "Shell スクリプトと自動化",
+      "システムパフォーマンスチューニング"
+    ],
+    "relatedTopics": [
+      "コンテナ技術",
+      "クラウドネイティブアーキテクチャ",
+      "DevOps 実践"
+    ]
+  },
+  "content": "<h1>Linux システム知識体系</h1>\n<h2>核心概念</h2>\n<p>Linux はサーバーサイドで最も主流な OS です。Linux の習得はバックエンド開発と運用の必須スキルです。</p>\n<h3>システムアーキテクチャ</h3>\n<pre><code>ユーザー空間 (User Space)\n┌────────────────────────────────────┐\n│  アプリケーション │ Shell │ システムツール │\n├────────────────────────────────────┤\n│           C 標準ライブラリ (glibc)  │\n├────────────────────────────────────┤\n│           システムコールインターフェース │\n└────────────────────────────────────┘\n─────────────────────────────────────\nカーネル空間 (Kernel Space)\n┌────────────────────────────────────┐\n│ プロセス │ メモリ管理 │ ファイルシステム │\n├────────────────────────────────────┤\n│ ネットワーク │ デバイスドライバ │ セキュリティ │\n└────────────────────────────────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>1. 基本操作</h3>\n<ul>\n<li><strong>ファイル管理</strong> - ls, cp, mv, rm, find</li>\n<li><strong>権限制御</strong> - chmod, chown, ACL</li>\n<li><strong>ユーザー管理</strong> - useradd, usermod</li>\n</ul>\n<h3>2. システム管理</h3>\n<ul>\n<li><strong>プロセス管理</strong> - ps, top, kill, systemctl</li>\n<li><strong>メモリ管理</strong> - free, vmstat</li>\n<li><strong>ディスク管理</strong> - df, du, fdisk</li>\n</ul>\n<h3>3. 高度な運用</h3>\n<ul>\n<li><strong>パフォーマンス分析</strong> - perf, strace</li>\n<li><strong>ログ管理</strong> - journalctl, rsyslog</li>\n<li><strong>自動化</strong> - cron, systemd timer</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>最小権限</strong> - root 使用を避け、sudo を活用</li>\n<li><strong>ログ分析</strong> - 定期的なシステムログ確認</li>\n<li><strong>バックアップ</strong> - 重要データの定期バックアップ</li>\n<li><strong>セキュリティ強化</strong> - 不要サービス停止、ファイアウォール設定</li>\n</ol>\n"
+}

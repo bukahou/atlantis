@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "slug": "tcp-ip",
+      "title": "TCP/IP プロトコル基礎",
+      "description": "ネットワーク通信の核心プロトコルスタックを理解する",
+      "href": "/infrastructure/network/tcp-ip",
+      "order": 1
+    },
+    {
+      "slug": "dns",
+      "title": "DNS ドメインネームシステム",
+      "description": "ドメイン名解決の仕組みと DNS 設定を理解する",
+      "href": "/infrastructure/network/dns",
+      "order": 2
+    },
+    {
+      "slug": "http",
+      "title": "HTTP プロトコル詳解",
+      "description": "HTTP/HTTPS プロトコルの原理と実践を深く理解する",
+      "href": "/infrastructure/network/http",
+      "order": 3
+    },
+    {
+      "slug": "load-balancer",
+      "title": "ロードバランシング",
+      "description": "ロードバランシングの原理、アルゴリズム、実践設定",
+      "href": "/infrastructure/network/load-balancer",
+      "order": 4
+    }
+  ]
+}

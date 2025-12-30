@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Docker 容器",
+    "description": "Docker 容器技术核心概念、镜像管理与容器编排",
+    "keyPoints": [
+      "容器与虚拟机的区别",
+      "Dockerfile 与镜像构建",
+      "容器网络与存储",
+      "Docker Compose 多容器编排"
+    ],
+    "relatedTopics": [
+      "Kubernetes 编排",
+      "微服务架构",
+      "CI/CD 流水线"
+    ]
+  },
+  "content": "<h1>Docker 容器知识体系</h1>\n<h2>核心概念</h2>\n<p>Docker 是最流行的容器化平台，通过容器技术实现应用的快速部署和一致性运行环境。</p>\n<h3>容器 vs 虚拟机</h3>\n<pre><code>虚拟机架构                    容器架构\n┌─────┬─────┬─────┐         ┌─────┬─────┬─────┐\n│App A│App B│App C│         │App A│App B│App C│\n├─────┼─────┼─────┤         ├─────┴─────┴─────┤\n│Guest│Guest│Guest│         │  Docker Engine  │\n│ OS  │ OS  │ OS  │         ├─────────────────┤\n├─────┴─────┴─────┤         │    Host OS      │\n│   Hypervisor    │         ├─────────────────┤\n├─────────────────┤         │   Hardware      │\n│    Host OS      │         └─────────────────┘\n├─────────────────┤\n│    Hardware     │         ✓ 更轻量\n└─────────────────┘         ✓ 启动更快\n                            ✓ 资源利用率更高\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础操作</h3>\n<ul>\n<li><strong>镜像管理</strong> - pull, build, push, tag</li>\n<li><strong>容器生命周期</strong> - run, stop, start, rm</li>\n<li><strong>资源查看</strong> - ps, logs, inspect, stats</li>\n</ul>\n<h3>2. 镜像构建</h3>\n<ul>\n<li><strong>Dockerfile</strong> - 多阶段构建</li>\n<li><strong>镜像优化</strong> - 层缓存、体积优化</li>\n<li><strong>镜像仓库</strong> - Registry, Harbor</li>\n</ul>\n<h3>3. 容器编排</h3>\n<ul>\n<li><strong>Docker Compose</strong> - 多容器应用</li>\n<li><strong>网络模式</strong> - bridge, host, overlay</li>\n<li><strong>数据持久化</strong> - volumes, bind mounts</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>镜像构建</td>\n<td>Dockerfile, 多阶段</td>\n<td>CI/CD</td>\n</tr>\n<tr>\n<td>容器调试</td>\n<td>exec, logs, attach</td>\n<td>问题排查</td>\n</tr>\n<tr>\n<td>网络配置</td>\n<td>网络模式, DNS</td>\n<td>服务通信</td>\n</tr>\n<tr>\n<td>存储管理</td>\n<td>Volume, Mount</td>\n<td>数据持久化</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>最小镜像</strong> - 使用 Alpine 或 distroless</li>\n<li><strong>非 root 运行</strong> - 提升容器安全性</li>\n<li><strong>健康检查</strong> - 配置 HEALTHCHECK</li>\n<li><strong>日志管理</strong> - 使用日志驱动收集日志</li>\n</ol>\n"
+}

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "patterns",
+      "title": "微服务架构模式",
+      "description": "微服务设计模式、架构原则与最佳实践",
+      "href": "/backend/microservices/patterns",
+      "order": 1
+    },
+    {
+      "slug": "discovery",
+      "title": "服务发现",
+      "description": "微服务服务发现机制、注册中心与负载均衡",
+      "href": "/backend/microservices/discovery",
+      "order": 2
+    },
+    {
+      "slug": "circuit-breaker",
+      "title": "熔断与降级",
+      "description": "微服务熔断器模式、服务降级与容错机制",
+      "href": "/backend/microservices/circuit-breaker",
+      "order": 3
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "NoSQL データベース",
+    "description": "MongoDB、Redis と Elasticsearch 非リレーショナルデータベース",
+    "keyPoints": [
+      "ドキュメント型、キーバリュー型、検索エンジン",
+      "CAP 理論と一貫性選択",
+      "データモデル設計",
+      "クラスタとシャーディング"
+    ],
+    "relatedTopics": [
+      "キャッシュ戦略",
+      "全文検索",
+      "分散システム"
+    ]
+  },
+  "content": "<h1>NoSQL データベース知識体系</h1>\n<h2>核心概念</h2>\n<p>NoSQL データベースはリレーショナル特性の一部を放棄し、より良いスケーラビリティと柔軟性を獲得します。</p>\n<h3>NoSQL タイプ</h3>\n<pre><code>NoSQL 分類\n┌─────────────────────────────────────────┐\n│  キーバリュー型 │  Redis, Memcached        │\n│             │  シンプル高速、キャッシュシーン │\n├─────────────┼───────────────────────────┤\n│  ドキュメント型 │  MongoDB, CouchDB        │\n│             │  柔軟なスキーマ、ネスト構造  │\n├─────────────┼───────────────────────────┤\n│  カラム指向型  │  HBase, Cassandra        │\n│             │  ビッグデータ、高書き込み   │\n├─────────────┼───────────────────────────┤\n│  検索エンジン  │  Elasticsearch           │\n│             │  全文検索、ログ分析       │\n└─────────────┴───────────────────────────┘\n\nCAP 理論\n    Consistency (一貫性)\n           /\\\n          /  \\\n         /    \\\n        /  2つ選択 \\\n       /________\\\n  Availability   Partition\n  (可用性)       Tolerance\n                 (分断耐性)\n</code></pre>\n<h2>学習パス</h2>\n<h3>MongoDB</h3>\n<ul>\n<li><strong>ドキュメントモデル</strong> - BSON、ネストドキュメント</li>\n<li><strong>クエリ構文</strong> - CRUD、集約パイプライン</li>\n<li><strong>インデックス</strong> - 単一フィールド、複合、地理インデックス</li>\n<li><strong>クラスタ</strong> - レプリカセット、シャーディング</li>\n</ul>\n<h3>Redis</h3>\n<ul>\n<li><strong>データ構造</strong> - String, Hash, List, Set, ZSet</li>\n<li><strong>永続化</strong> - RDB、AOF</li>\n<li><strong>高可用性</strong> - マスタースレーブ、センチネル、Cluster</li>\n<li><strong>応用</strong> - キャッシュ、分散ロック、メッセージ</li>\n</ul>\n<h3>Elasticsearch</h3>\n<ul>\n<li><strong>転置インデックス</strong> - 全文検索原理</li>\n<li><strong>マッピング</strong> - フィールド型定義</li>\n<li><strong>クエリ DSL</strong> - 複雑なクエリ</li>\n<li><strong>集約</strong> - データ分析</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>選定マッチング</strong> - シーンに合った適切なタイプを選択</li>\n<li><strong>データモデリング</strong> - NoSQL 特性に適応</li>\n<li><strong>一貫性選択</strong> - ビジネス要件に基づいてトレードオフ</li>\n<li><strong>監視運用</strong> - クラスタ状態監視</li>\n</ol>\n"
+}

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "restful",
+      "title": "RESTful API 設計",
+      "description": "RESTful API 設計原則、ベストプラクティスと規約",
+      "href": "/backend/api/restful",
+      "order": 1
+    },
+    {
+      "slug": "graphql",
+      "title": "GraphQL",
+      "description": "GraphQL クエリ言語、Schema 設計とベストプラクティス",
+      "href": "/backend/api/graphql",
+      "order": 2
+    },
+    {
+      "slug": "grpc",
+      "title": "gRPC",
+      "description": "gRPC プロトコル、Protocol Buffers とサービス間通信",
+      "href": "/backend/api/grpc",
+      "order": 3
+    }
+  ]
+}

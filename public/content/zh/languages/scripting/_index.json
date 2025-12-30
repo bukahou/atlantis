@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "python",
+      "title": "Python 语言基础",
+      "description": "Python 核心语法、常用库与最佳实践",
+      "href": "/languages/scripting/python",
+      "order": 1
+    },
+    {
+      "slug": "shell",
+      "title": "Shell 脚本基础",
+      "description": "Bash/Shell 脚本编程、常用命令与自动化运维",
+      "href": "/languages/scripting/shell",
+      "order": 2
+    }
+  ]
+}

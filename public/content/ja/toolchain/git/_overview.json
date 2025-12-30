@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Git バージョン管理",
+    "description": "Git ワークフロー、ブランチ戦略とチーム協調規範",
+    "keyPoints": [
+      "Git 核心概念とコマンド",
+      "ブランチ戦略とワークフロー",
+      "コードレビュープロセス",
+      "コンフリクト解決テクニック"
+    ],
+    "relatedTopics": [
+      "CI/CD パイプライン",
+      "チーム協調",
+      "DevOps 実践"
+    ]
+  },
+  "content": "<h1>Git バージョン管理知識体系</h1>\n<h2>核心概念</h2>\n<p>Git は分散バージョン管理システムで、現代ソフトウェア開発の基盤ツールです。</p>\n<h3>Git データモデル</h3>\n<pre><code>Git オブジェクトモデル\n┌─────────────────────────────────────────┐\n│  Commit    │  コミット、Tree と親コミットを指す│\n├────────────┼────────────────────────────┤\n│  Tree      │  ディレクトリ構造、Blob/Tree を含む│\n├────────────┼────────────────────────────┤\n│  Blob      │  ファイル内容、バイナリデータ   │\n├────────────┼────────────────────────────┤\n│  Tag       │  タグ、特定の Commit を指す    │\n└────────────┴────────────────────────────┘\n\n作業領域\n┌──────────┐  add   ┌──────────┐ commit ┌──────────┐\n│ Working  │ ────→  │ Staging  │ ────→  │  Local   │\n│ Directory│        │  Area    │        │  Repo    │\n└──────────┘        └──────────┘        └──────────┘\n                                              │\n                                              │ push\n                                              ▼\n                                        ┌──────────┐\n                                        │  Remote  │\n                                        │  Repo    │\n                                        └──────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>1. 基本操作</h3>\n<ul>\n<li><strong>初期化</strong> - init, clone</li>\n<li><strong>日常操作</strong> - add, commit, push, pull</li>\n<li><strong>履歴確認</strong> - log, diff, show</li>\n</ul>\n<h3>2. ブランチ管理</h3>\n<ul>\n<li><strong>ブランチ操作</strong> - branch, checkout, merge</li>\n<li><strong>リモートブランチ</strong> - fetch, push, track</li>\n<li><strong>リベース</strong> - rebase, cherry-pick</li>\n</ul>\n<h3>3. ワークフロー</h3>\n<ul>\n<li><strong>Git Flow</strong> - feature/release/hotfix</li>\n<li><strong>GitHub Flow</strong> - 簡略化ワークフロー</li>\n<li><strong>Trunk Based</strong> - トランクベース開発</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>コミット規約</strong> - Conventional Commits</li>\n<li><strong>小さなコミット</strong> - 原子化コミット</li>\n<li><strong>コードレビュー</strong> - PR/MR プロセス</li>\n<li><strong>ブランチ保護</strong> - メインブランチ保護ルール</li>\n</ol>\n"
+}

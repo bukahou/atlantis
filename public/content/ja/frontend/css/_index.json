@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "tailwind",
+      "title": "Tailwind CSS",
+      "description": "Tailwind CSS ユーティリティファーストフレームワークのコア機能",
+      "href": "/frontend/css/tailwind",
+      "order": 1
+    },
+    {
+      "slug": "animation",
+      "title": "CSS アニメーション効果",
+      "description": "CSS トランジション、アニメーションとインタラクション効果",
+      "href": "/frontend/css/animation",
+      "order": 2
+    },
+    {
+      "slug": "responsive",
+      "title": "レスポンシブデザイン",
+      "description": "CSS レスポンシブレイアウト、メディアクエリとモバイルファースト戦略",
+      "href": "/frontend/css/responsive",
+      "order": 3
+    }
+  ]
+}

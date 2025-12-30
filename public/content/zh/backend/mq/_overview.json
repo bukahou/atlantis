@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "消息队列",
+    "description": "Kafka、RabbitMQ 与 Redis 消息中间件技术",
+    "keyPoints": [
+      "消息模式与语义保证",
+      "发布订阅与点对点",
+      "消息可靠性与幂等",
+      "消息积压与性能优化"
+    ],
+    "relatedTopics": [
+      "微服务架构",
+      "事件驱动设计",
+      "分布式系统"
+    ]
+  },
+  "content": "<h1>消息队列知识体系</h1>\n<h2>核心概念</h2>\n<p>消息队列是分布式系统中实现异步通信和解耦的核心组件。</p>\n<h3>消息队列价值</h3>\n<pre><code>核心能力\n┌─────────────────────────────────────────┐\n│  异步解耦  │  服务间不直接依赖          │\n├────────────┼────────────────────────────┤\n│  削峰填谷  │  缓冲突发流量              │\n├────────────┼────────────────────────────┤\n│  可靠传递  │  保证消息不丢失            │\n├────────────┼────────────────────────────┤\n│  广播通知  │  一对多消息分发            │\n└────────────┴────────────────────────────┘\n\n消息模式\n┌──────────────────────────────────────────┐\n│   点对点 (P2P)                           │\n│   Producer → Queue → Consumer            │\n│   一条消息只被一个消费者处理              │\n├──────────────────────────────────────────┤\n│   发布订阅 (Pub/Sub)                     │\n│   Publisher → Topic → Subscriber1        │\n│                    → Subscriber2         │\n│   一条消息被多个订阅者接收                │\n└──────────────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>Kafka</h3>\n<ul>\n<li><strong>核心概念</strong> - Topic, Partition, Consumer Group</li>\n<li><strong>消息模型</strong> - 日志型消息存储</li>\n<li><strong>性能优化</strong> - 批量、压缩、零拷贝</li>\n<li><strong>应用场景</strong> - 日志收集、流处理</li>\n</ul>\n<h3>RabbitMQ</h3>\n<ul>\n<li><strong>核心概念</strong> - Exchange, Queue, Binding</li>\n<li><strong>消息确认</strong> - ACK 机制</li>\n<li><strong>高可用</strong> - 镜像队列、集群</li>\n<li><strong>应用场景</strong> - 任务队列、RPC</li>\n</ul>\n<h3>Redis 消息</h3>\n<ul>\n<li><strong>List</strong> - 简单队列</li>\n<li><strong>Pub/Sub</strong> - 发布订阅</li>\n<li><strong>Stream</strong> - 持久化消息流</li>\n</ul>\n<h2>选型指南</h2>\n<table>\n<thead>\n<tr>\n<th>场景</th>\n<th>推荐方案</th>\n<th>原因</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>日志收集</td>\n<td>Kafka</td>\n<td>高吞吐、持久化</td>\n</tr>\n<tr>\n<td>任务队列</td>\n<td>RabbitMQ</td>\n<td>灵活路由、ACK</td>\n</tr>\n<tr>\n<td>简单消息</td>\n<td>Redis</td>\n<td>轻量、低延迟</td>\n</tr>\n<tr>\n<td>事件溯源</td>\n<td>Kafka</td>\n<td>日志保留</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>幂等消费</strong> - 处理消息重复</li>\n<li><strong>消息顺序</strong> - 单分区保序</li>\n<li><strong>监控告警</strong> - 积压监控</li>\n<li><strong>死信处理</strong> - 失败消息处理</li>\n</ol>\n"
+}

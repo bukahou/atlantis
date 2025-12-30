@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "patterns",
+      "title": "マイクロサービスアーキテクチャパターン",
+      "description": "マイクロサービス設計パターン、アーキテクチャ原則とベストプラクティス",
+      "href": "/backend/microservices/patterns",
+      "order": 1
+    },
+    {
+      "slug": "discovery",
+      "title": "サービスディスカバリ",
+      "description": "マイクロサービスのサービスディスカバリ機構、レジストリとロードバランシング",
+      "href": "/backend/microservices/discovery",
+      "order": 2
+    },
+    {
+      "slug": "circuit-breaker",
+      "title": "サーキットブレーカーとフォールバック",
+      "description": "マイクロサービスのサーキットブレーカーパターン、サービス降格と耐障害メカニズム",
+      "href": "/backend/microservices/circuit-breaker",
+      "order": 3
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "slug": "pod",
+      "title": "Kubernetes Pod 详解",
+      "description": "Pod 概念、生命周期、配置与最佳实践",
+      "href": "/container/kubernetes/pod",
+      "order": 1
+    },
+    {
+      "slug": "service",
+      "title": "Kubernetes Service 详解",
+      "description": "Service 类型、服务发现与负载均衡配置",
+      "href": "/container/kubernetes/service",
+      "order": 2
+    },
+    {
+      "slug": "deployment",
+      "title": "Kubernetes Deployment 详解",
+      "description": "Deployment 配置、更新策略与滚动发布实践",
+      "href": "/container/kubernetes/deployment",
+      "order": 3
+    },
+    {
+      "slug": "helm",
+      "title": "Helm 包管理详解",
+      "description": "Helm Chart 开发、仓库管理与最佳实践",
+      "href": "/container/kubernetes/helm",
+      "order": 4
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "API 设计",
+    "description": "RESTful API、GraphQL 与 gRPC 接口设计规范",
+    "keyPoints": [
+      "RESTful 设计原则",
+      "GraphQL 查询语言",
+      "gRPC 高性能通信",
+      "API 版本管理"
+    ],
+    "relatedTopics": [
+      "微服务架构",
+      "网关设计",
+      "接口安全"
+    ]
+  },
+  "content": "<h1>API 设计知识体系</h1>\n<h2>核心概念</h2>\n<p>API 是系统间通信的契约，良好的 API 设计决定了系统的可用性和可维护性。</p>\n<h3>API 风格对比</h3>\n<pre><code>三种主流 API 风格\n┌─────────────────────────────────────────────┐\n│           REST                              │\n│  • 资源导向，HTTP 语义                       │\n│  • 简单直观，广泛支持                        │\n│  • 适合 CRUD 操作                           │\n├─────────────────────────────────────────────┤\n│           GraphQL                           │\n│  • 查询语言，按需获取                        │\n│  • 单一端点，减少请求                        │\n│  • 适合复杂数据关系                          │\n├─────────────────────────────────────────────┤\n│           gRPC                              │\n│  • Protocol Buffers，二进制                 │\n│  • 双向流，高性能                            │\n│  • 适合微服务内部通信                        │\n└─────────────────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>RESTful API</h3>\n<ul>\n<li><strong>资源设计</strong> - URI 规范、命名约定</li>\n<li><strong>HTTP 方法</strong> - GET, POST, PUT, DELETE</li>\n<li><strong>状态码</strong> - 2xx, 4xx, 5xx 语义</li>\n<li><strong>版本控制</strong> - URL 版本、Header 版本</li>\n</ul>\n<h3>GraphQL</h3>\n<ul>\n<li><strong>Schema 定义</strong> - Type, Query, Mutation</li>\n<li><strong>查询语法</strong> - 字段选择、嵌套查询</li>\n<li><strong>解析器</strong> - Resolver 实现</li>\n<li><strong>优化</strong> - DataLoader, 缓存</li>\n</ul>\n<h3>gRPC</h3>\n<ul>\n<li><strong>Protobuf</strong> - 消息定义</li>\n<li><strong>服务定义</strong> - RPC 方法</li>\n<li><strong>流式通信</strong> - 单向流、双向流</li>\n<li><strong>拦截器</strong> - 中间件模式</li>\n</ul>\n<h2>选型指南</h2>\n<table>\n<thead>\n<tr>\n<th>场景</th>\n<th>推荐方案</th>\n<th>原因</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>公开 API</td>\n<td>REST</td>\n<td>简单、标准化</td>\n</tr>\n<tr>\n<td>移动应用</td>\n<td>GraphQL</td>\n<td>按需获取、减少流量</td>\n</tr>\n<tr>\n<td>微服务内部</td>\n<td>gRPC</td>\n<td>高性能、强类型</td>\n</tr>\n<tr>\n<td>实时通信</td>\n<td>WebSocket/gRPC</td>\n<td>双向通信</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>一致性</strong> - 统一的命名和响应格式</li>\n<li><strong>文档化</strong> - OpenAPI/Swagger 规范</li>\n<li><strong>版本管理</strong> - 兼容性与演进</li>\n<li><strong>错误处理</strong> - 清晰的错误信息</li>\n</ol>\n"
+}

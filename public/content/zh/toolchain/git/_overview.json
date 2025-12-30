@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Git 版本控制",
+    "description": "Git 工作流、分支策略与团队协作规范",
+    "keyPoints": [
+      "Git 核心概念与命令",
+      "分支策略与工作流",
+      "代码审查流程",
+      "冲突解决技巧"
+    ],
+    "relatedTopics": [
+      "CI/CD 流水线",
+      "团队协作",
+      "DevOps 实践"
+    ]
+  },
+  "content": "<h1>Git 版本控制知识体系</h1>\n<h2>核心概念</h2>\n<p>Git 是分布式版本控制系统，是现代软件开发的基础工具。</p>\n<h3>Git 数据模型</h3>\n<pre><code>Git 对象模型\n┌─────────────────────────────────────────┐\n│  Commit    │  提交，指向 Tree 和父提交  │\n├────────────┼────────────────────────────┤\n│  Tree      │  目录结构，包含 Blob/Tree  │\n├────────────┼────────────────────────────┤\n│  Blob      │  文件内容，二进制数据      │\n├────────────┼────────────────────────────┤\n│  Tag       │  标签，指向特定 Commit     │\n└────────────┴────────────────────────────┘\n\n工作区域\n┌──────────┐  add   ┌──────────┐ commit ┌──────────┐\n│ Working  │ ────→  │ Staging  │ ────→  │  Local   │\n│ Directory│        │  Area    │        │  Repo    │\n└──────────┘        └──────────┘        └──────────┘\n                                              │\n                                              │ push\n                                              ▼\n                                        ┌──────────┐\n                                        │  Remote  │\n                                        │  Repo    │\n                                        └──────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础操作</h3>\n<ul>\n<li><strong>初始化</strong> - init, clone</li>\n<li><strong>日常操作</strong> - add, commit, push, pull</li>\n<li><strong>查看历史</strong> - log, diff, show</li>\n</ul>\n<h3>2. 分支管理</h3>\n<ul>\n<li><strong>分支操作</strong> - branch, checkout, merge</li>\n<li><strong>远程分支</strong> - fetch, push, track</li>\n<li><strong>变基</strong> - rebase, cherry-pick</li>\n</ul>\n<h3>3. 工作流</h3>\n<ul>\n<li><strong>Git Flow</strong> - feature/release/hotfix</li>\n<li><strong>GitHub Flow</strong> - 简化工作流</li>\n<li><strong>Trunk Based</strong> - 主干开发</li>\n</ul>\n<h2>分支策略</h2>\n<table>\n<thead>\n<tr>\n<th>策略</th>\n<th>特点</th>\n<th>适用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Git Flow</td>\n<td>分支完整</td>\n<td>版本发布项目</td>\n</tr>\n<tr>\n<td>GitHub Flow</td>\n<td>简单</td>\n<td>持续部署</td>\n</tr>\n<tr>\n<td>Trunk Based</td>\n<td>主干开发</td>\n<td>高频发布</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>提交规范</strong> - Conventional Commits</li>\n<li><strong>小步提交</strong> - 原子化提交</li>\n<li><strong>代码审查</strong> - PR/MR 流程</li>\n<li><strong>保护分支</strong> - 主分支保护规则</li>\n</ol>\n"
+}

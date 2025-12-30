@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "aws",
+      "title": "AWS クラウドサービス基礎",
+      "description": "Amazon Web Services コアサービスの紹介と実践ガイド",
+      "href": "/infrastructure/cloud/aws",
+      "order": 1
+    },
+    {
+      "slug": "gcp",
+      "title": "GCP クラウドサービス基礎",
+      "description": "Google Cloud Platform コアサービスの紹介と実践ガイド",
+      "href": "/infrastructure/cloud/gcp",
+      "order": 2
+    },
+    {
+      "slug": "azure",
+      "title": "Azure クラウドサービス基礎",
+      "description": "Microsoft Azure コアサービスの紹介と実践ガイド",
+      "href": "/infrastructure/cloud/azure",
+      "order": 3
+    }
+  ]
+}

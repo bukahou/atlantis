@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "kafka",
+      "title": "Kafka",
+      "description": "Apache Kafka 分散メッセージストリーミングプラットフォーム、プロデューサー/コンシューマーとストリーム処理",
+      "href": "/backend/mq/kafka",
+      "order": 1
+    },
+    {
+      "slug": "rabbitmq",
+      "title": "RabbitMQ",
+      "description": "RabbitMQ メッセージキュー、AMQP プロトコルとメッセージパターン",
+      "href": "/backend/mq/rabbitmq",
+      "order": 2
+    },
+    {
+      "slug": "redis-mq",
+      "title": "Redis メッセージキュー",
+      "description": "Redis によるメッセージキュー実装、Pub/Sub と Stream データ構造",
+      "href": "/backend/mq/redis-mq",
+      "order": 3
+    }
+  ]
+}

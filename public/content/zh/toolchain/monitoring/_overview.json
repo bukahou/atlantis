@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "监控告警",
+    "description": "Prometheus、Grafana 与日志系统的可观测性实践",
+    "keyPoints": [
+      "指标采集与存储",
+      "可视化仪表盘",
+      "日志聚合分析",
+      "告警规则配置"
+    ],
+    "relatedTopics": [
+      "分布式追踪",
+      "SRE 实践",
+      "故障排查"
+    ]
+  },
+  "content": "<h1>监控告警知识体系</h1>\n<h2>核心概念</h2>\n<p>可观测性包括指标、日志和追踪，是保障系统稳定性的关键能力。</p>\n<h3>可观测性三支柱</h3>\n<pre><code>可观测性三支柱\n┌─────────────────────────────────────────┐\n│  Metrics    │  指标，量化系统状态       │\n│  (指标)     │  CPU、内存、QPS、延迟     │\n├─────────────┼───────────────────────────┤\n│  Logs       │  日志，详细事件记录       │\n│  (日志)     │  错误信息、调试日志       │\n├─────────────┼───────────────────────────┤\n│  Traces     │  追踪，请求链路           │\n│  (追踪)     │  跨服务调用关系           │\n└─────────────┴───────────────────────────┘\n\n监控架构\n┌────────────┐     ┌────────────┐\n│  应用服务   │────→│ Prometheus │\n│  Exporter  │     │  (存储)    │\n└────────────┘     └─────┬──────┘\n                         │\n┌────────────┐     ┌─────▼──────┐\n│  应用日志   │────→│  Grafana   │\n│   (ELK)    │     │  (展示)    │\n└────────────┘     └─────┬──────┘\n                         │\n                   ┌─────▼──────┐\n                   │ AlertManager│\n                   │  (告警)     │\n                   └────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 指标监控</h3>\n<ul>\n<li><strong>Prometheus</strong> - 指标采集、PromQL</li>\n<li><strong>Exporter</strong> - 应用指标暴露</li>\n<li><strong>告警规则</strong> - AlertManager 配置</li>\n</ul>\n<h3>2. 日志系统</h3>\n<ul>\n<li><strong>收集</strong> - Filebeat、Fluentd</li>\n<li><strong>存储</strong> - Elasticsearch</li>\n<li><strong>展示</strong> - Kibana</li>\n</ul>\n<h3>3. 可视化</h3>\n<ul>\n<li><strong>Grafana</strong> - 仪表盘设计</li>\n<li><strong>Panel</strong> - 图表类型</li>\n<li><strong>变量</strong> - 动态过滤</li>\n</ul>\n<h2>核心指标</h2>\n<table>\n<thead>\n<tr>\n<th>指标类型</th>\n<th>示例</th>\n<th>用途</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>RED</td>\n<td>Rate/Error/Duration</td>\n<td>服务监控</td>\n</tr>\n<tr>\n<td>USE</td>\n<td>Utilization/Saturation/Errors</td>\n<td>资源监控</td>\n</tr>\n<tr>\n<td>Four Golden</td>\n<td>延迟/流量/错误/饱和度</td>\n<td>SRE 实践</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>分层监控</strong> - 基础设施、应用、业务</li>\n<li><strong>告警分级</strong> - P0-P4 告警级别</li>\n<li><strong>Runbook</strong> - 告警处理手册</li>\n<li><strong>定期演练</strong> - 验证监控有效性</li>\n</ol>\n"
+}

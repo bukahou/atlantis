@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Kubernetes",
+    "description": "Kubernetes コンテナオーケストレーションの核心概念、リソースオブジェクトとクラスタ管理",
+    "keyPoints": [
+      "Pod、Deployment、Service 核心リソース",
+      "宣言的設定とコントローラパターン",
+      "サービスディスカバリとロードバランシング",
+      "Helm パッケージ管理と GitOps"
+    ],
+    "relatedTopics": [
+      "Docker コンテナ",
+      "サービスメッシュ",
+      "クラウドネイティブアーキテクチャ"
+    ]
+  },
+  "content": "<h1>Kubernetes 知識体系</h1>\n<h2>核心概念</h2>\n<p>Kubernetes (K8s) はコンテナオーケストレーションのデファクトスタンダードで、コンテナ化アプリケーションの自動デプロイ、スケーリング、管理機能を提供します。</p>\n<h3>アーキテクチャ概要</h3>\n<pre><code>┌─────────────────────────────────────────────────┐\n│                  Control Plane                   │\n│  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │\n│  │ API      │ │ Scheduler│ │ Controller       │ │\n│  │ Server   │ │          │ │ Manager          │ │\n│  └──────────┘ └──────────┘ └──────────────────┘ │\n│  ┌──────────────────────────────────────────┐   │\n│  │                  etcd                     │   │\n│  └──────────────────────────────────────────┘   │\n└─────────────────────────────────────────────────┘\n                        │\n         ┌──────────────┼──────────────┐\n         ▼              ▼              ▼\n┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n│   Node 1    │ │   Node 2    │ │   Node 3    │\n│ ┌─────────┐ │ │ ┌─────────┐ │ │ ┌─────────┐ │\n│ │ kubelet │ │ │ │ kubelet │ │ │ │ kubelet │ │\n│ ├─────────┤ │ │ ├─────────┤ │ │ ├─────────┤ │\n│ │Container│ │ │ │Container│ │ │ │Container│ │\n│ │ Runtime │ │ │ │ Runtime │ │ │ │ Runtime │ │\n│ └─────────┘ │ │ └─────────┘ │ │ └─────────┘ │\n└─────────────┘ └─────────────┘ └─────────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>1. 核心リソース</h3>\n<ul>\n<li><strong>Pod</strong> - 最小スケジュール単位</li>\n<li><strong>Deployment</strong> - ステートレスアプリケーション管理</li>\n<li><strong>Service</strong> - サービスディスカバリとロードバランシング</li>\n<li><strong>ConfigMap/Secret</strong> - 設定管理</li>\n</ul>\n<h3>2. 高度なオブジェクト</h3>\n<ul>\n<li><strong>StatefulSet</strong> - ステートフルアプリケーション</li>\n<li><strong>DaemonSet</strong> - ノードレベルデーモン</li>\n<li><strong>Job/CronJob</strong> - バッチ処理タスク</li>\n<li><strong>Ingress</strong> - HTTP ルーティング</li>\n</ul>\n<h3>3. 運用管理</h3>\n<ul>\n<li><strong>Helm</strong> - パッケージマネージャー</li>\n<li><strong>Kustomize</strong> - 設定管理</li>\n<li><strong>Prometheus</strong> - 監視アラート</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>リソース制限</strong> - requests と limits の設定</li>\n<li><strong>ヘルスチェック</strong> - liveness と readiness の設定</li>\n<li><strong>ローリングアップデート</strong> - ゼロダウンタイムデプロイ戦略</li>\n<li><strong>Namespace 分離</strong> - マルチ環境リソース分離</li>\n</ol>\n"
+}

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "kafka",
+      "title": "Kafka",
+      "description": "Apache Kafka 分布式消息流平台、生产消费模式与流处理",
+      "href": "/backend/mq/kafka",
+      "order": 1
+    },
+    {
+      "slug": "rabbitmq",
+      "title": "RabbitMQ",
+      "description": "RabbitMQ 消息队列、AMQP 协议与消息模式",
+      "href": "/backend/mq/rabbitmq",
+      "order": 2
+    },
+    {
+      "slug": "redis-mq",
+      "title": "Redis 消息队列",
+      "description": "Redis 实现消息队列、发布订阅与 Stream 数据结构",
+      "href": "/backend/mq/redis-mq",
+      "order": 3
+    }
+  ]
+}

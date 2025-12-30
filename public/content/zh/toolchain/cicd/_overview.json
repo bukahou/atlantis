@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "CI/CD",
+    "description": "持续集成、持续交付与自动化部署流水线",
+    "keyPoints": [
+      "CI/CD 核心概念",
+      "GitHub Actions 工作流",
+      "Jenkins 流水线",
+      "部署策略"
+    ],
+    "relatedTopics": [
+      "容器化部署",
+      "GitOps",
+      "自动化测试"
+    ]
+  },
+  "content": "<h1>CI/CD 知识体系</h1>\n<h2>核心概念</h2>\n<p>CI/CD 是持续集成、持续交付和持续部署的实践，自动化软件交付流程。</p>\n<h3>CI/CD 流程</h3>\n<pre><code>CI/CD 流水线\n┌──────────────────────────────────────────────────┐\n│                     CI (持续集成)                 │\n│  ┌─────────┐  ┌─────────┐  ┌─────────┐          │\n│  │  代码   │  │  构建   │  │  测试   │          │\n│  │  提交   │→ │  编译   │→ │  验证   │          │\n│  └─────────┘  └─────────┘  └─────────┘          │\n└──────────────────────────────────────────────────┘\n                        │\n                        ▼\n┌──────────────────────────────────────────────────┐\n│                   CD (持续交付)                   │\n│  ┌─────────┐  ┌─────────┐  ┌─────────┐          │\n│  │  打包   │  │  部署   │  │  发布   │          │\n│  │  镜像   │→ │  预发布 │→ │  生产   │          │\n│  └─────────┘  └─────────┘  └─────────┘          │\n└──────────────────────────────────────────────────┘\n\n部署策略\n┌─────────────────────────────────────────────┐\n│  滚动更新  │  逐步替换旧版本              │\n├────────────┼────────────────────────────────┤\n│  蓝绿部署  │  两套环境切换                │\n├────────────┼────────────────────────────────┤\n│  金丝雀    │  小流量验证后全量            │\n└────────────┴────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 持续集成</h3>\n<ul>\n<li><strong>代码检查</strong> - Lint、格式化</li>\n<li><strong>自动测试</strong> - 单元测试、集成测试</li>\n<li><strong>构建产物</strong> - 镜像、包</li>\n</ul>\n<h3>2. 持续交付</h3>\n<ul>\n<li><strong>环境管理</strong> - 开发、测试、生产</li>\n<li><strong>配置管理</strong> - 环境变量、密钥</li>\n<li><strong>部署自动化</strong> - 脚本、编排</li>\n</ul>\n<h3>3. 工具平台</h3>\n<ul>\n<li><strong>GitHub Actions</strong> - 云端 CI/CD</li>\n<li><strong>Jenkins</strong> - 自建 CI/CD</li>\n<li><strong>ArgoCD</strong> - GitOps 部署</li>\n</ul>\n<h2>工具对比</h2>\n<table>\n<thead>\n<tr>\n<th>工具</th>\n<th>特点</th>\n<th>适用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>GitHub Actions</td>\n<td>云原生、易用</td>\n<td>GitHub 项目</td>\n</tr>\n<tr>\n<td>Jenkins</td>\n<td>功能强大、可扩展</td>\n<td>企业自建</td>\n</tr>\n<tr>\n<td>GitLab CI</td>\n<td>集成度高</td>\n<td>GitLab 生态</td>\n</tr>\n<tr>\n<td>ArgoCD</td>\n<td>GitOps</td>\n<td>Kubernetes</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>快速反馈</strong> - 流水线尽快完成</li>\n<li><strong>环境一致</strong> - 容器化保证一致性</li>\n<li><strong>自动回滚</strong> - 失败自动回滚</li>\n<li><strong>安全扫描</strong> - 集成安全检查</li>\n</ol>\n"
+}

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "aws",
+      "title": "AWS 云服务基础",
+      "description": "Amazon Web Services 核心服务介绍与实践指南",
+      "href": "/infrastructure/cloud/aws",
+      "order": 1
+    },
+    {
+      "slug": "gcp",
+      "title": "GCP 云服务基础",
+      "description": "Google Cloud Platform 核心服务介绍与实践指南",
+      "href": "/infrastructure/cloud/gcp",
+      "order": 2
+    },
+    {
+      "slug": "azure",
+      "title": "Azure 云服务基础",
+      "description": "Microsoft Azure 核心服务介绍与实践指南",
+      "href": "/infrastructure/cloud/azure",
+      "order": 3
+    }
+  ]
+}

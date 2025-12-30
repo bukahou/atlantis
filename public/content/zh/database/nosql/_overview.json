@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "NoSQL 数据库",
+    "description": "MongoDB、Redis 与 Elasticsearch 非关系型数据库",
+    "keyPoints": [
+      "文档型、键值型、搜索引擎",
+      "CAP 理论与一致性选择",
+      "数据模型设计",
+      "集群与分片"
+    ],
+    "relatedTopics": [
+      "缓存策略",
+      "全文搜索",
+      "分布式系统"
+    ]
+  },
+  "content": "<h1>NoSQL 数据库知识体系</h1>\n<h2>核心概念</h2>\n<p>NoSQL 数据库放弃部分关系型特性，换取更好的扩展性和灵活性。</p>\n<h3>NoSQL 类型</h3>\n<pre><code>NoSQL 分类\n┌─────────────────────────────────────────┐\n│  键值型     │  Redis, Memcached        │\n│             │  简单快速，缓存场景       │\n├─────────────┼───────────────────────────┤\n│  文档型     │  MongoDB, CouchDB        │\n│             │  灵活 Schema，嵌套数据    │\n├─────────────┼───────────────────────────┤\n│  列族型     │  HBase, Cassandra        │\n│             │  大数据，高写入           │\n├─────────────┼───────────────────────────┤\n│  搜索引擎   │  Elasticsearch           │\n│             │  全文搜索，日志分析       │\n└─────────────┴───────────────────────────┘\n\nCAP 理论\n    Consistency (一致性)\n           /\\\n          /  \\\n         /    \\\n        /  选2  \\\n       /________\\\n  Availability   Partition\n  (可用性)       Tolerance\n                 (分区容错)\n</code></pre>\n<h2>学习路径</h2>\n<h3>MongoDB</h3>\n<ul>\n<li><strong>文档模型</strong> - BSON、嵌套文档</li>\n<li><strong>查询语法</strong> - CRUD、聚合管道</li>\n<li><strong>索引</strong> - 单字段、复合、地理索引</li>\n<li><strong>集群</strong> - 副本集、分片</li>\n</ul>\n<h3>Redis</h3>\n<ul>\n<li><strong>数据结构</strong> - String, Hash, List, Set, ZSet</li>\n<li><strong>持久化</strong> - RDB、AOF</li>\n<li><strong>高可用</strong> - 主从、哨兵、Cluster</li>\n<li><strong>应用</strong> - 缓存、分布式锁、消息</li>\n</ul>\n<h3>Elasticsearch</h3>\n<ul>\n<li><strong>倒排索引</strong> - 全文搜索原理</li>\n<li><strong>映射</strong> - 字段类型定义</li>\n<li><strong>查询 DSL</strong> - 复杂查询</li>\n<li><strong>聚合</strong> - 数据分析</li>\n</ul>\n<h2>选型指南</h2>\n<table>\n<thead>\n<tr>\n<th>场景</th>\n<th>推荐方案</th>\n<th>原因</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>缓存</td>\n<td>Redis</td>\n<td>高性能、丰富数据结构</td>\n</tr>\n<tr>\n<td>文档存储</td>\n<td>MongoDB</td>\n<td>灵活 Schema</td>\n</tr>\n<tr>\n<td>全文搜索</td>\n<td>Elasticsearch</td>\n<td>倒排索引</td>\n</tr>\n<tr>\n<td>会话存储</td>\n<td>Redis</td>\n<td>快速读写</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>选型匹配</strong> - 根据场景选择合适类型</li>\n<li><strong>数据建模</strong> - 适应 NoSQL 特性</li>\n<li><strong>一致性选择</strong> - 根据业务需求权衡</li>\n<li><strong>监控运维</strong> - 集群状态监控</li>\n</ol>\n"
+}

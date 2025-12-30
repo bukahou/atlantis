@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "shell",
+      "title": "シェルスクリプト基礎",
+      "description": "Linux シェルスクリプト入門チュートリアル、Bash スクリプトの書き方をマスター",
+      "href": "/infrastructure/linux/shell",
+      "order": 1
+    },
+    {
+      "slug": "system",
+      "title": "Linux システム管理",
+      "description": "Linux システム管理の核心知識と一般的な操作",
+      "href": "/infrastructure/linux/system",
+      "order": 2
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Vue",
+    "description": "Vue 3 响应式系统、Composition API 与生态工具",
+    "keyPoints": [
+      "响应式原理与 Proxy",
+      "Composition API 组合式开发",
+      "Pinia 状态管理",
+      "Vue Router 路由系统"
+    ],
+    "relatedTopics": [
+      "TypeScript 集成",
+      "Vite 构建工具",
+      "Nuxt 全栈框架"
+    ]
+  },
+  "content": "<h1>Vue 知识体系</h1>\n<h2>核心概念</h2>\n<p>Vue 是一款渐进式 JavaScript 框架，以其易用性和灵活性著称，Vue 3 引入了 Composition API。</p>\n<h3>核心特性</h3>\n<pre><code>Vue 3 核心特性\n┌─────────────────────────────────────────┐\n│  响应式系统   │  Proxy 实现，性能更好   │\n├──────────────┼──────────────────────────┤\n│  Composition │  逻辑复用，更好组织代码 │\n│  API         │                          │\n├──────────────┼──────────────────────────┤\n│  更小体积    │  Tree-shaking 友好       │\n├──────────────┼──────────────────────────┤\n│  TypeScript  │  原生支持，类型推导      │\n└──────────────┴──────────────────────────┘\n\nOptions API  vs  Composition API\n┌──────────────┐    ┌──────────────┐\n│ data()       │    │ ref()        │\n│ methods      │ →  │ reactive()   │\n│ computed     │    │ computed()   │\n│ watch        │    │ watch()      │\n│ mounted()    │    │ onMounted()  │\n└──────────────┘    └──────────────┘\n按选项组织          按功能组织\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础概念</h3>\n<ul>\n<li><strong>模板语法</strong> - 插值、指令、事件</li>\n<li><strong>响应式基础</strong> - ref, reactive</li>\n<li><strong>组件通信</strong> - props, emit, provide/inject</li>\n</ul>\n<h3>2. Composition API</h3>\n<ul>\n<li><strong>setup 函数</strong> - 组件入口</li>\n<li><strong>响应式 API</strong> - ref, reactive, toRefs</li>\n<li><strong>生命周期</strong> - onMounted, onUnmounted</li>\n<li><strong>组合函数</strong> - 逻辑复用</li>\n</ul>\n<h3>3. 生态工具</h3>\n<ul>\n<li><strong>Vue Router</strong> - 路由管理</li>\n<li><strong>Pinia</strong> - 状态管理</li>\n<li><strong>Vite</strong> - 构建工具</li>\n<li><strong>Nuxt</strong> - 全栈框架</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>响应式</td>\n<td>ref、computed、watch</td>\n<td>状态管理</td>\n</tr>\n<tr>\n<td>组件化</td>\n<td>props、slots、emit</td>\n<td>UI 构建</td>\n</tr>\n<tr>\n<td>路由</td>\n<td>动态路由、导航守卫</td>\n<td>页面导航</td>\n</tr>\n<tr>\n<td>状态管理</td>\n<td>Pinia、Vuex</td>\n<td>复杂状态</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>Composition API</strong> - 优先使用组合式 API</li>\n<li><strong>类型安全</strong> - 配合 TypeScript 使用</li>\n<li><strong>组合函数</strong> - 提取复用逻辑</li>\n<li><strong>性能优化</strong> - v-memo、虚拟滚动</li>\n</ol>\n"
+}

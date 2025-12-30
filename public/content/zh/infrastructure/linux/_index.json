@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "shell",
+      "title": "Shell 脚本基础",
+      "description": "Linux Shell 脚本入门教程，掌握 Bash 脚本编写技巧",
+      "href": "/infrastructure/linux/shell",
+      "order": 1
+    },
+    {
+      "slug": "system",
+      "title": "Linux 系统管理",
+      "description": "Linux 系统管理核心知识与常用操作",
+      "href": "/infrastructure/linux/system",
+      "order": 2
+    }
+  ]
+}

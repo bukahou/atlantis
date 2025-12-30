@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "go",
+      "title": "Go 言語基礎",
+      "description": "Go 言語のコア機能、並行プログラミングとクラウドネイティブ開発",
+      "href": "/languages/compiled/go",
+      "order": 1
+    },
+    {
+      "slug": "rust",
+      "title": "Rust 言語基礎",
+      "description": "Rust の所有権システム、メモリ安全性とシステムプログラミング",
+      "href": "/languages/compiled/rust",
+      "order": 2
+    }
+  ]
+}

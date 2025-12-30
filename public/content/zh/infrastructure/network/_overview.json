@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "网络基础",
+    "description": "计算机网络核心概念、协议栈与网络架构",
+    "keyPoints": [
+      "OSI 七层模型与 TCP/IP 四层模型",
+      "HTTP/HTTPS 协议与 RESTful 设计",
+      "DNS 解析与域名系统",
+      "负载均衡与高可用架构"
+    ],
+    "relatedTopics": [
+      "云平台网络",
+      "容器网络",
+      "微服务通信"
+    ]
+  },
+  "content": "<h1>网络基础知识体系</h1>\n<h2>核心概念</h2>\n<p>计算机网络是现代分布式系统的基石。理解网络协议和架构对于构建高性能、高可用的应用至关重要。</p>\n<h3>网络分层模型</h3>\n<pre><code>OSI 七层模型              TCP/IP 四层模型\n┌─────────────────┐      ┌─────────────────┐\n│    应用层       │      │                 │\n├─────────────────┤      │    应用层       │\n│    表示层       │      │  (HTTP/DNS/FTP) │\n├─────────────────┤      │                 │\n│    会话层       │      ├─────────────────┤\n├─────────────────┤      │    传输层       │\n│    传输层       │  →   │   (TCP/UDP)     │\n├─────────────────┤      ├─────────────────┤\n│    网络层       │      │    网络层       │\n├─────────────────┤      │     (IP)        │\n│  数据链路层     │      ├─────────────────┤\n├─────────────────┤      │   网络接口层    │\n│    物理层       │      │  (Ethernet等)   │\n└─────────────────┘      └─────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础协议</h3>\n<ul>\n<li><strong>TCP/IP</strong> - 可靠传输协议，三次握手四次挥手</li>\n<li><strong>UDP</strong> - 无连接协议，适合实时应用</li>\n<li><strong>ICMP</strong> - 网络诊断协议，ping 命令基础</li>\n</ul>\n<h3>2. 应用层协议</h3>\n<ul>\n<li><strong>HTTP/HTTPS</strong> - Web 通信基础</li>\n<li><strong>DNS</strong> - 域名解析系统</li>\n<li><strong>WebSocket</strong> - 全双工通信</li>\n</ul>\n<h3>3. 网络架构</h3>\n<ul>\n<li><strong>负载均衡</strong> - 流量分发策略</li>\n<li><strong>CDN</strong> - 内容分发网络</li>\n<li><strong>VPN</strong> - 虚拟专用网络</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>协议分析</td>\n<td>Wireshark, tcpdump</td>\n<td>网络故障排查</td>\n</tr>\n<tr>\n<td>网络配置</td>\n<td>iptables, 路由表</td>\n<td>服务器运维</td>\n</tr>\n<tr>\n<td>安全加固</td>\n<td>TLS/SSL, 防火墙</td>\n<td>安全架构</td>\n</tr>\n<tr>\n<td>性能优化</td>\n<td>TCP 调优, 连接池</td>\n<td>高并发系统</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>理解分层</strong> - 每层职责清晰，便于问题定位</li>\n<li><strong>安全优先</strong> - 始终使用 HTTPS，加密敏感数据</li>\n<li><strong>监控预警</strong> - 建立网络监控体系</li>\n<li><strong>容量规划</strong> - 评估带宽需求，预防瓶颈</li>\n</ol>\n"
+}

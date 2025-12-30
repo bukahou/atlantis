@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "微服务",
+    "description": "微服务架构设计、服务治理与分布式系统模式",
+    "keyPoints": [
+      "服务拆分与边界划分",
+      "服务发现与注册",
+      "熔断降级与容错",
+      "分布式事务处理"
+    ],
+    "relatedTopics": [
+      "容器编排",
+      "服务网格",
+      "可观测性"
+    ]
+  },
+  "content": "<h1>微服务知识体系</h1>\n<h2>核心概念</h2>\n<p>微服务架构将应用拆分为一组小型、独立部署的服务，每个服务围绕特定业务能力构建。</p>\n<h3>架构对比</h3>\n<pre><code>单体架构 vs 微服务架构\n┌─────────────────┐     ┌────┐ ┌────┐ ┌────┐\n│                 │     │用户│ │订单│ │支付│\n│     单体应用    │  →  │服务│ │服务│ │服务│\n│                 │     └────┘ └────┘ └────┘\n│  用户+订单+支付  │        ↓     ↓     ↓\n│                 │     ┌────┐ ┌────┐ ┌────┐\n└─────────────────┘     │ DB │ │ DB │ │ DB │\n                        └────┘ └────┘ └────┘\n\n微服务特点\n┌─────────────────────────────────────────┐\n│  单一职责  │  每个服务专注一个业务域    │\n├────────────┼────────────────────────────┤\n│  独立部署  │  服务可独立发布更新        │\n├────────────┼────────────────────────────┤\n│  技术多样  │  不同服务可用不同技术栈    │\n├────────────┼────────────────────────────┤\n│  故障隔离  │  单个服务故障不影响整体    │\n└────────────┴────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 服务设计</h3>\n<ul>\n<li><strong>DDD</strong> - 领域驱动设计</li>\n<li><strong>边界划分</strong> - 限界上下文</li>\n<li><strong>通信模式</strong> - 同步 vs 异步</li>\n</ul>\n<h3>2. 服务治理</h3>\n<ul>\n<li><strong>服务发现</strong> - Consul, etcd, Nacos</li>\n<li><strong>负载均衡</strong> - 客户端 vs 服务端</li>\n<li><strong>API 网关</strong> - 统一入口</li>\n</ul>\n<h3>3. 容错设计</h3>\n<ul>\n<li><strong>熔断器</strong> - Circuit Breaker</li>\n<li><strong>重试机制</strong> - 指数退避</li>\n<li><strong>限流降级</strong> - 保护系统</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>服务拆分</td>\n<td>DDD、边界上下文</td>\n<td>架构设计</td>\n</tr>\n<tr>\n<td>服务通信</td>\n<td>REST、gRPC、消息队列</td>\n<td>集成</td>\n</tr>\n<tr>\n<td>数据管理</td>\n<td>Saga、最终一致性</td>\n<td>事务</td>\n</tr>\n<tr>\n<td>可观测性</td>\n<td>链路追踪、日志、指标</td>\n<td>运维</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>渐进拆分</strong> - 从单体逐步演进</li>\n<li><strong>自动化</strong> - CI/CD 流水线</li>\n<li><strong>监控优先</strong> - 完善的可观测性</li>\n<li><strong>容错设计</strong> - 设计失败场景</li>\n</ol>\n"
+}

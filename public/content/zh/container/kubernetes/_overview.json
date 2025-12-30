@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Kubernetes",
+    "description": "Kubernetes 容器编排核心概念、资源对象与集群管理",
+    "keyPoints": [
+      "Pod、Deployment、Service 核心资源",
+      "声明式配置与控制器模式",
+      "服务发现与负载均衡",
+      "Helm 包管理与 GitOps"
+    ],
+    "relatedTopics": [
+      "Docker 容器",
+      "服务网格",
+      "云原生架构"
+    ]
+  },
+  "content": "<h1>Kubernetes 知识体系</h1>\n<h2>核心概念</h2>\n<p>Kubernetes (K8s) 是容器编排的事实标准，提供自动化部署、扩展和管理容器化应用的能力。</p>\n<h3>架构概览</h3>\n<pre><code>┌─────────────────────────────────────────────────┐\n│                  Control Plane                   │\n│  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │\n│  │ API      │ │ Scheduler│ │ Controller       │ │\n│  │ Server   │ │          │ │ Manager          │ │\n│  └──────────┘ └──────────┘ └──────────────────┘ │\n│  ┌──────────────────────────────────────────┐   │\n│  │                  etcd                     │   │\n│  └──────────────────────────────────────────┘   │\n└─────────────────────────────────────────────────┘\n                        │\n         ┌──────────────┼──────────────┐\n         ▼              ▼              ▼\n┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n│   Node 1    │ │   Node 2    │ │   Node 3    │\n│ ┌─────────┐ │ │ ┌─────────┐ │ │ ┌─────────┐ │\n│ │ kubelet │ │ │ │ kubelet │ │ │ │ kubelet │ │\n│ ├─────────┤ │ │ ├─────────┤ │ │ ├─────────┤ │\n│ │ kube-   │ │ │ │ kube-   │ │ │ │ kube-   │ │\n│ │ proxy   │ │ │ │ proxy   │ │ │ │ proxy   │ │\n│ ├─────────┤ │ │ ├─────────┤ │ │ ├─────────┤ │\n│ │Container│ │ │ │Container│ │ │ │Container│ │\n│ │ Runtime │ │ │ │ Runtime │ │ │ │ Runtime │ │\n│ └─────────┘ │ │ └─────────┘ │ │ └─────────┘ │\n└─────────────┘ └─────────────┘ └─────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 核心资源</h3>\n<ul>\n<li><strong>Pod</strong> - 最小调度单元</li>\n<li><strong>Deployment</strong> - 无状态应用管理</li>\n<li><strong>Service</strong> - 服务发现与负载均衡</li>\n<li><strong>ConfigMap/Secret</strong> - 配置管理</li>\n</ul>\n<h3>2. 高级对象</h3>\n<ul>\n<li><strong>StatefulSet</strong> - 有状态应用</li>\n<li><strong>DaemonSet</strong> - 节点级守护进程</li>\n<li><strong>Job/CronJob</strong> - 批处理任务</li>\n<li><strong>Ingress</strong> - HTTP 路由</li>\n</ul>\n<h3>3. 运维管理</h3>\n<ul>\n<li><strong>Helm</strong> - 包管理器</li>\n<li><strong>Kustomize</strong> - 配置管理</li>\n<li><strong>Prometheus</strong> - 监控告警</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>资源管理</td>\n<td>YAML, kubectl</td>\n<td>日常运维</td>\n</tr>\n<tr>\n<td>调试排错</td>\n<td>describe, logs, exec</td>\n<td>问题定位</td>\n</tr>\n<tr>\n<td>扩缩容</td>\n<td>HPA, VPA</td>\n<td>弹性伸缩</td>\n</tr>\n<tr>\n<td>安全</td>\n<td>RBAC, NetworkPolicy</td>\n<td>权限控制</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>资源限制</strong> - 设置 requests 和 limits</li>\n<li><strong>健康检查</strong> - 配置 liveness 和 readiness</li>\n<li><strong>滚动更新</strong> - 零停机发布策略</li>\n<li><strong>命名空间隔离</strong> - 多环境资源隔离</li>\n</ol>\n"
+}

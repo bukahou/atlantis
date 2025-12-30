@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "normalization",
+      "title": "数据库范式",
+      "description": "数据库范式理论、反范式设计与数据建模",
+      "href": "/database/modeling/normalization",
+      "order": 1
+    },
+    {
+      "slug": "indexing",
+      "title": "索引设计",
+      "description": "数据库索引原理、设计策略与性能优化",
+      "href": "/database/modeling/indexing",
+      "order": 2
+    },
+    {
+      "slug": "sharding",
+      "title": "分库分表",
+      "description": "数据库分片策略、分布式数据库架构与数据迁移",
+      "href": "/database/modeling/sharding",
+      "order": 3
+    }
+  ]
+}

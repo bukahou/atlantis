@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "slug": "pod",
+      "title": "Kubernetes Pod 詳解",
+      "description": "Pod の概念、ライフサイクル、設定とベストプラクティス",
+      "href": "/container/kubernetes/pod",
+      "order": 1
+    },
+    {
+      "slug": "service",
+      "title": "Kubernetes Service 詳解",
+      "description": "Service タイプ、サービスディスカバリと負荷分散設定",
+      "href": "/container/kubernetes/service",
+      "order": 2
+    },
+    {
+      "slug": "deployment",
+      "title": "Kubernetes Deployment 詳解",
+      "description": "Deployment 設定、更新戦略とローリングリリースの実践",
+      "href": "/container/kubernetes/deployment",
+      "order": 3
+    },
+    {
+      "slug": "helm",
+      "title": "Helm パッケージ管理詳解",
+      "description": "Helm Chart 開発、リポジトリ管理とベストプラクティス",
+      "href": "/container/kubernetes/helm",
+      "order": 4
+    }
+  ]
+}

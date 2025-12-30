@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Docker コンテナ",
+    "description": "Docker コンテナ技術の核心概念、イメージ管理とコンテナオーケストレーション",
+    "keyPoints": [
+      "コンテナと仮想マシンの違い",
+      "Dockerfile とイメージビルド",
+      "コンテナネットワークとストレージ",
+      "Docker Compose マルチコンテナオーケストレーション"
+    ],
+    "relatedTopics": [
+      "Kubernetes オーケストレーション",
+      "マイクロサービスアーキテクチャ",
+      "CI/CD パイプライン"
+    ]
+  },
+  "content": "<h1>Docker コンテナ知識体系</h1>\n<h2>核心概念</h2>\n<p>Docker は最も人気のあるコンテナ化プラットフォームで、アプリケーションの迅速なデプロイと一貫した実行環境を実現します。</p>\n<h3>コンテナ vs 仮想マシン</h3>\n<pre><code>仮想マシンアーキテクチャ        コンテナアーキテクチャ\n┌─────┬─────┬─────┐         ┌─────┬─────┬─────┐\n│App A│App B│App C│         │App A│App B│App C│\n├─────┼─────┼─────┤         ├─────┴─────┴─────┤\n│Guest│Guest│Guest│         │  Docker Engine  │\n│ OS  │ OS  │ OS  │         ├─────────────────┤\n├─────┴─────┴─────┤         │    Host OS      │\n│   Hypervisor    │         ├─────────────────┤\n├─────────────────┤         │   Hardware      │\n│    Host OS      │         └─────────────────┘\n├─────────────────┤\n│    Hardware     │         ✓ より軽量\n└─────────────────┘         ✓ 起動が高速\n                            ✓ リソース効率が高い\n</code></pre>\n<h2>学習パス</h2>\n<h3>1. 基本操作</h3>\n<ul>\n<li><strong>イメージ管理</strong> - pull, build, push, tag</li>\n<li><strong>コンテナライフサイクル</strong> - run, stop, start, rm</li>\n<li><strong>リソース確認</strong> - ps, logs, inspect, stats</li>\n</ul>\n<h3>2. イメージビルド</h3>\n<ul>\n<li><strong>Dockerfile</strong> - マルチステージビルド</li>\n<li><strong>イメージ最適化</strong> - レイヤーキャッシュ、サイズ最適化</li>\n<li><strong>イメージレジストリ</strong> - Registry, Harbor</li>\n</ul>\n<h3>3. コンテナオーケストレーション</h3>\n<ul>\n<li><strong>Docker Compose</strong> - マルチコンテナアプリケーション</li>\n<li><strong>ネットワークモード</strong> - bridge, host, overlay</li>\n<li><strong>データ永続化</strong> - volumes, bind mounts</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>最小イメージ</strong> - Alpine または distroless を使用</li>\n<li><strong>非 root 実行</strong> - コンテナセキュリティ向上</li>\n<li><strong>ヘルスチェック</strong> - HEALTHCHECK 設定</li>\n<li><strong>ログ管理</strong> - ログドライバーでログ収集</li>\n</ol>\n"
+}

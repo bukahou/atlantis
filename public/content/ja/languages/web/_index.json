@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "typescript",
+      "title": "TypeScript 言語基礎",
+      "description": "TypeScript 型システム、高度な型とフロントエンド開発のベストプラクティス",
+      "href": "/languages/web/typescript",
+      "order": 1
+    },
+    {
+      "slug": "javascript",
+      "title": "JavaScript 言語基礎",
+      "description": "JavaScript コア構文、ES6+ 機能と非同期プログラミング",
+      "href": "/languages/web/javascript",
+      "order": 2
+    }
+  ]
+}

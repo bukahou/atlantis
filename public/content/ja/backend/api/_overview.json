@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "API 設計",
+    "description": "RESTful API、GraphQL と gRPC インターフェース設計規範",
+    "keyPoints": [
+      "RESTful 設計原則",
+      "GraphQL クエリ言語",
+      "gRPC 高性能通信",
+      "API バージョン管理"
+    ],
+    "relatedTopics": [
+      "マイクロサービスアーキテクチャ",
+      "ゲートウェイ設計",
+      "インターフェースセキュリティ"
+    ]
+  },
+  "content": "<h1>API 設計知識体系</h1>\n<h2>核心概念</h2>\n<p>API はシステム間通信のコントラクトで、良い API 設計はシステムの使いやすさと保守性を決定します。</p>\n<h3>API スタイル比較</h3>\n<pre><code>三つの主流 API スタイル\n┌─────────────────────────────────────────────┐\n│           REST                              │\n│  • リソース指向、HTTP セマンティクス          │\n│  • シンプル直感的、広くサポート              │\n│  • CRUD 操作に適している                    │\n├─────────────────────────────────────────────┤\n│           GraphQL                           │\n│  • クエリ言語、必要なデータのみ取得          │\n│  • 単一エンドポイント、リクエスト削減        │\n│  • 複雑なデータ関係に適している              │\n├─────────────────────────────────────────────┤\n│           gRPC                              │\n│  • Protocol Buffers、バイナリ               │\n│  • 双方向ストリーム、高性能                  │\n│  • マイクロサービス内部通信に適している      │\n└─────────────────────────────────────────────┘\n</code></pre>\n<h2>学習パス</h2>\n<h3>RESTful API</h3>\n<ul>\n<li><strong>リソース設計</strong> - URI 規範、命名規則</li>\n<li><strong>HTTP メソッド</strong> - GET, POST, PUT, DELETE</li>\n<li><strong>ステータスコード</strong> - 2xx, 4xx, 5xx セマンティクス</li>\n<li><strong>バージョン管理</strong> - URL バージョン、Header バージョン</li>\n</ul>\n<h3>GraphQL</h3>\n<ul>\n<li><strong>Schema 定義</strong> - Type, Query, Mutation</li>\n<li><strong>クエリ構文</strong> - フィールド選択、ネストクエリ</li>\n<li><strong>リゾルバー</strong> - Resolver 実装</li>\n<li><strong>最適化</strong> - DataLoader, キャッシュ</li>\n</ul>\n<h3>gRPC</h3>\n<ul>\n<li><strong>Protobuf</strong> - メッセージ定義</li>\n<li><strong>サービス定義</strong> - RPC メソッド</li>\n<li><strong>ストリーム通信</strong> - 単方向、双方向ストリーム</li>\n<li><strong>インターセプター</strong> - ミドルウェアパターン</li>\n</ul>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>一貫性</strong> - 統一された命名とレスポンス形式</li>\n<li><strong>ドキュメント化</strong> - OpenAPI/Swagger 規範</li>\n<li><strong>バージョン管理</strong> - 互換性と進化</li>\n<li><strong>エラーハンドリング</strong> - 明確なエラーメッセージ</li>\n</ol>\n"
+}

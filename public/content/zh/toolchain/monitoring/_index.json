@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "prometheus",
+      "title": "Prometheus",
+      "description": "Prometheus 监控系统、指标收集与告警配置",
+      "href": "/toolchain/monitoring/prometheus",
+      "order": 1
+    },
+    {
+      "slug": "grafana",
+      "title": "Grafana",
+      "description": "Grafana 可视化平台、仪表盘设计与告警配置",
+      "href": "/toolchain/monitoring/grafana",
+      "order": 2
+    },
+    {
+      "slug": "logging",
+      "title": "日志系统",
+      "description": "日志收集、ELK Stack 与分布式追踪",
+      "href": "/toolchain/monitoring/logging",
+      "order": 3
+    }
+  ]
+}

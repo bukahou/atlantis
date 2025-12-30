@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "github-actions",
+      "title": "GitHub Actions",
+      "description": "GitHub Actions CI/CD 工作流、自动化构建与部署",
+      "href": "/toolchain/cicd/github-actions",
+      "order": 1
+    },
+    {
+      "slug": "jenkins",
+      "title": "Jenkins",
+      "description": "Jenkins 持续集成、Pipeline 与自动化部署",
+      "href": "/toolchain/cicd/jenkins",
+      "order": 2
+    }
+  ]
+}

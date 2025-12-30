@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Web 语言",
+    "description": "TypeScript 与 JavaScript 在现代 Web 开发中的应用",
+    "keyPoints": [
+      "ES6+ 现代语法特性",
+      "TypeScript 类型系统",
+      "异步编程模式",
+      "前后端全栈开发"
+    ],
+    "relatedTopics": [
+      "React 框架",
+      "Node.js 后端",
+      "前端工程化"
+    ]
+  },
+  "content": "<h1>Web 语言知识体系</h1>\n<h2>核心概念</h2>\n<p>JavaScript 是 Web 开发的核心语言，TypeScript 通过添加类型系统增强了大型项目的可维护性。</p>\n<h3>语言演进</h3>\n<pre><code>JavaScript 演进历程\n┌─────────────────────────────────────────────┐\n│ ES5 (2009)    │ 严格模式、数组方法          │\n├───────────────┼─────────────────────────────┤\n│ ES6 (2015)    │ 类、模块、箭头函数、Promise │\n├───────────────┼─────────────────────────────┤\n│ ES7-ES12      │ async/await、展开运算符     │\n├───────────────┼─────────────────────────────┤\n│ TypeScript    │ 类型系统、接口、泛型        │\n└───────────────┴─────────────────────────────┘\n\nTypeScript 价值\n┌──────────────────────────────────────────────┐\n│  类型安全    →  编译时发现错误              │\n│  IDE 支持    →  更好的自动补全              │\n│  重构能力    →  安全的代码重构              │\n│  文档作用    →  类型即文档                  │\n└──────────────────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>JavaScript</h3>\n<ul>\n<li><strong>基础语法</strong> - 数据类型、函数、作用域</li>\n<li><strong>ES6+ 特性</strong> - 解构、模块、类</li>\n<li><strong>异步编程</strong> - Promise、async/await</li>\n<li><strong>DOM/BOM</strong> - 浏览器 API</li>\n</ul>\n<h3>TypeScript</h3>\n<ul>\n<li><strong>类型基础</strong> - 基本类型、联合类型</li>\n<li><strong>高级类型</strong> - 泛型、映射类型</li>\n<li><strong>类型工具</strong> - Partial、Pick、Omit</li>\n<li><strong>工程配置</strong> - tsconfig、模块解析</li>\n</ul>\n<h2>技能对比</h2>\n<table>\n<thead>\n<tr>\n<th>特性</th>\n<th>JavaScript</th>\n<th>TypeScript</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>类型系统</td>\n<td>动态</td>\n<td>静态</td>\n</tr>\n<tr>\n<td>编译步骤</td>\n<td>不需要</td>\n<td>需要</td>\n</tr>\n<tr>\n<td>IDE 支持</td>\n<td>基础</td>\n<td>完善</td>\n</tr>\n<tr>\n<td>学习曲线</td>\n<td>较低</td>\n<td>中等</td>\n</tr>\n<tr>\n<td>适用项目</td>\n<td>小型/快速迭代</td>\n<td>大型/团队协作</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>TypeScript</strong> - 严格模式、避免 any</li>\n<li><strong>异步处理</strong> - 优先 async/await</li>\n<li><strong>模块化</strong> - ES Modules 规范</li>\n<li><strong>代码质量</strong> - ESLint + Prettier</li>\n</ol>\n"
+}

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "React",
+    "description": "React 组件化开发、Hooks 与现代前端架构",
+    "keyPoints": [
+      "组件化思想与设计模式",
+      "Hooks 函数式编程",
+      "状态管理方案",
+      "SSR 与 Next.js"
+    ],
+    "relatedTopics": [
+      "TypeScript 开发",
+      "前端工程化",
+      "性能优化"
+    ]
+  },
+  "content": "<h1>React 知识体系</h1>\n<h2>核心概念</h2>\n<p>React 是构建用户界面的声明式、组件化 JavaScript 库，由 Meta 开发维护。</p>\n<h3>核心特性</h3>\n<pre><code>React 核心理念\n┌─────────────────────────────────────────┐\n│  声明式     │  描述 UI 状态，自动更新   │\n├─────────────┼───────────────────────────┤\n│  组件化     │  封装复用，关注点分离     │\n├─────────────┼───────────────────────────┤\n│  单向数据流 │  数据自上而下，可预测     │\n├─────────────┼───────────────────────────┤\n│  虚拟 DOM   │  高效更新，性能优化       │\n└─────────────┴───────────────────────────┘\n\n组件类型演进\nClass Component  →  Function Component + Hooks\n     ↓                        ↓\n状态管理复杂           更简洁、更易测试\n生命周期方法           useEffect 统一处理\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础概念</h3>\n<ul>\n<li><strong>JSX</strong> - 语法扩展，声明式 UI</li>\n<li><strong>组件</strong> - 函数组件、Props 传递</li>\n<li><strong>状态</strong> - useState、状态提升</li>\n</ul>\n<h3>2. Hooks 深入</h3>\n<ul>\n<li><strong>useState</strong> - 状态管理</li>\n<li><strong>useEffect</strong> - 副作用处理</li>\n<li><strong>useContext</strong> - 上下文共享</li>\n<li><strong>自定义 Hooks</strong> - 逻辑复用</li>\n</ul>\n<h3>3. 高级模式</h3>\n<ul>\n<li><strong>性能优化</strong> - memo, useMemo, useCallback</li>\n<li><strong>状态管理</strong> - Redux, Zustand, Jotai</li>\n<li><strong>服务端渲染</strong> - Next.js, Remix</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>组件设计</td>\n<td>高阶组件、Render Props</td>\n<td>代码复用</td>\n</tr>\n<tr>\n<td>状态管理</td>\n<td>Context、Redux</td>\n<td>复杂状态</td>\n</tr>\n<tr>\n<td>性能优化</td>\n<td>懒加载、代码分割</td>\n<td>大型应用</td>\n</tr>\n<tr>\n<td>测试</td>\n<td>Jest、React Testing Library</td>\n<td>质量保障</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>组件拆分</strong> - 保持组件单一职责</li>\n<li><strong>状态下沉</strong> - 状态尽量靠近使用处</li>\n<li><strong>避免过度优化</strong> - 先测量再优化</li>\n<li><strong>TypeScript</strong> - 类型安全开发</li>\n</ol>\n"
+}

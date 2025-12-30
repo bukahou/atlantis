@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Linux 系统",
+    "description": "Linux 操作系统核心概念、系统管理与运维实践",
+    "keyPoints": [
+      "Linux 文件系统与权限管理",
+      "进程管理与系统监控",
+      "Shell 脚本与自动化",
+      "系统性能调优"
+    ],
+    "relatedTopics": [
+      "容器技术",
+      "云原生架构",
+      "DevOps 实践"
+    ]
+  },
+  "content": "<h1>Linux 系统知识体系</h1>\n<h2>核心概念</h2>\n<p>Linux 是服务器端最主流的操作系统，掌握 Linux 是后端开发和运维的必备技能。</p>\n<h3>系统架构</h3>\n<pre><code>用户空间 (User Space)\n┌────────────────────────────────────┐\n│  应用程序  │  Shell  │  系统工具   │\n├────────────────────────────────────┤\n│           C 标准库 (glibc)         │\n├────────────────────────────────────┤\n│           系统调用接口             │\n└────────────────────────────────────┘\n─────────────────────────────────────\n内核空间 (Kernel Space)\n┌────────────────────────────────────┐\n│  进程调度 │ 内存管理 │ 文件系统    │\n├────────────────────────────────────┤\n│  网络栈   │ 设备驱动 │ 安全模块    │\n└────────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>1. 基础操作</h3>\n<ul>\n<li><strong>文件管理</strong> - ls, cp, mv, rm, find</li>\n<li><strong>权限控制</strong> - chmod, chown, ACL</li>\n<li><strong>用户管理</strong> - useradd, usermod, groups</li>\n</ul>\n<h3>2. 系统管理</h3>\n<ul>\n<li><strong>进程管理</strong> - ps, top, kill, systemctl</li>\n<li><strong>内存管理</strong> - free, vmstat, /proc/meminfo</li>\n<li><strong>磁盘管理</strong> - df, du, fdisk, mount</li>\n</ul>\n<h3>3. 高级运维</h3>\n<ul>\n<li><strong>性能分析</strong> - perf, strace, sar</li>\n<li><strong>日志管理</strong> - journalctl, rsyslog</li>\n<li><strong>自动化</strong> - cron, systemd timer</li>\n</ul>\n<h2>关键技能</h2>\n<table>\n<thead>\n<tr>\n<th>技能领域</th>\n<th>核心内容</th>\n<th>应用场景</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>命令行</td>\n<td>Bash, Zsh</td>\n<td>日常操作</td>\n</tr>\n<tr>\n<td>编辑器</td>\n<td>Vim, Nano</td>\n<td>配置修改</td>\n</tr>\n<tr>\n<td>包管理</td>\n<td>apt, yum, dnf</td>\n<td>软件安装</td>\n</tr>\n<tr>\n<td>网络配置</td>\n<td>ip, ss, netstat</td>\n<td>网络运维</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>最小权限</strong> - 避免使用 root，善用 sudo</li>\n<li><strong>日志分析</strong> - 定期检查系统日志</li>\n<li><strong>备份策略</strong> - 关键数据定期备份</li>\n<li><strong>安全加固</strong> - 关闭不必要服务，配置防火墙</li>\n</ol>\n"
+}

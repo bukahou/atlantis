@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "脚本语言",
+    "description": "Python 与 Shell 等脚本语言的特性与应用场景",
+    "keyPoints": [
+      "动态类型与灵活性",
+      "快速开发与原型设计",
+      "自动化与系统管理",
+      "数据处理与分析"
+    ],
+    "relatedTopics": [
+      "DevOps 自动化",
+      "数据科学",
+      "后端开发"
+    ]
+  },
+  "content": "<h1>脚本语言知识体系</h1>\n<h2>核心概念</h2>\n<p>脚本语言以其灵活性和快速开发能力著称，广泛应用于自动化、数据处理和 Web 开发。</p>\n<h3>脚本语言特点</h3>\n<pre><code>特性优势\n┌─────────────────────────────────────┐\n│  快速开发  │  代码简洁，迭代迅速     │\n├────────────┼────────────────────────┤\n│  动态类型  │  灵活性高，无需编译     │\n├────────────┼────────────────────────┤\n│  丰富生态  │  库和框架资源丰富       │\n├────────────┼────────────────────────┤\n│  跨平台    │  一次编写，到处运行     │\n└────────────┴────────────────────────┘\n\n应用场景\n┌──────────────────────────────────────┐\n│  Python   →  数据科学/AI/Web/自动化  │\n│  Shell    →  系统管理/运维脚本       │\n│  Node.js  →  Web 开发/工具链         │\n│  Ruby     →  Web 开发/脚本           │\n└──────────────────────────────────────┘\n</code></pre>\n<h2>学习路径</h2>\n<h3>Python</h3>\n<ul>\n<li><strong>基础语法</strong> - 数据类型、控制流、函数</li>\n<li><strong>面向对象</strong> - 类、继承、魔术方法</li>\n<li><strong>高级特性</strong> - 装饰器、生成器、上下文管理</li>\n<li><strong>生态应用</strong> - Web (Django/Flask)、数据 (Pandas/NumPy)</li>\n</ul>\n<h3>Shell/Bash</h3>\n<ul>\n<li><strong>基础命令</strong> - 文件操作、文本处理</li>\n<li><strong>脚本编程</strong> - 变量、条件、循环</li>\n<li><strong>高级技巧</strong> - 管道、重定向、进程控制</li>\n<li><strong>实践应用</strong> - 自动化脚本、运维工具</li>\n</ul>\n<h2>语言对比</h2>\n<table>\n<thead>\n<tr>\n<th>特性</th>\n<th>Python</th>\n<th>Shell</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>可读性</td>\n<td>高</td>\n<td>中等</td>\n</tr>\n<tr>\n<td>应用范围</td>\n<td>广泛</td>\n<td>系统管理</td>\n</tr>\n<tr>\n<td>数据处理</td>\n<td>强大</td>\n<td>文本为主</td>\n</tr>\n<tr>\n<td>跨平台</td>\n<td>好</td>\n<td>Unix 系列</td>\n</tr>\n<tr>\n<td>学习曲线</td>\n<td>平缓</td>\n<td>需要经验</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>Python</strong> - 遵循 PEP8，使用虚拟环境</li>\n<li><strong>Shell</strong> - 使用 set -e，添加错误处理</li>\n<li><strong>共同点</strong> - 编写清晰注释，模块化设计</li>\n</ol>\n"
+}

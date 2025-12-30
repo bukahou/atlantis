@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "go",
+      "title": "Go 语言基础",
+      "description": "Go 语言核心特性、并发编程与云原生开发",
+      "href": "/languages/compiled/go",
+      "order": 1
+    },
+    {
+      "slug": "rust",
+      "title": "Rust 语言基础",
+      "description": "Rust 所有权系统、内存安全与系统编程",
+      "href": "/languages/compiled/rust",
+      "order": 2
+    }
+  ]
+}

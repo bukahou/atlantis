@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "编译型语言",
+    "description": "Go 与 Rust 等现代编译型语言的特性与应用",
+    "keyPoints": [
+      "静态类型与编译时检查",
+      "高性能与内存安全",
+      "并发编程模型",
+      "系统级编程能力"
+    ],
+    "relatedTopics": [
+      "微服务开发",
+      "云原生应用",
+      "系统编程"
+    ]
+  },
+  "content": "<h1>编译型语言知识体系</h1>\n<h2>核心概念</h2>\n<p>编译型语言在运行前将源代码编译为机器码，具有更高的执行效率和更严格的类型检查。</p>\n<h3>编译型 vs 解释型</h3>\n<pre><code>编译型语言                    解释型语言\n┌──────────────┐             ┌──────────────┐\n│   源代码      │             │   源代码      │\n└──────┬───────┘             └──────┬───────┘\n       │ 编译                        │\n       ▼                             ▼\n┌──────────────┐             ┌──────────────┐\n│   机器码      │             │   解释器      │\n└──────┬───────┘             └──────┬───────┘\n       │ 执行                        │ 解释执行\n       ▼                             ▼\n┌──────────────┐             ┌──────────────┐\n│   运行结果    │             │   运行结果    │\n└──────────────┘             └──────────────┘\n\n✓ 执行速度快                 ✓ 开发迭代快\n✓ 编译时检查                 ✓ 跨平台容易\n✓ 优化程度高                 ✓ 动态特性丰富\n</code></pre>\n<h2>学习路径</h2>\n<h3>Go 语言</h3>\n<ul>\n<li><strong>基础语法</strong> - 变量、函数、结构体</li>\n<li><strong>并发编程</strong> - Goroutine, Channel</li>\n<li><strong>标准库</strong> - net/http, io, context</li>\n<li><strong>工程实践</strong> - 模块化、测试、性能分析</li>\n</ul>\n<h3>Rust 语言</h3>\n<ul>\n<li><strong>所有权系统</strong> - 借用、生命周期</li>\n<li><strong>类型系统</strong> - trait, 泛型</li>\n<li><strong>错误处理</strong> - Result, Option</li>\n<li><strong>并发安全</strong> - 线程安全保证</li>\n</ul>\n<h2>语言对比</h2>\n<table>\n<thead>\n<tr>\n<th>特性</th>\n<th>Go</th>\n<th>Rust</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>学习曲线</td>\n<td>平缓</td>\n<td>陡峭</td>\n</tr>\n<tr>\n<td>内存管理</td>\n<td>GC</td>\n<td>所有权</td>\n</tr>\n<tr>\n<td>并发模型</td>\n<td>CSP</td>\n<td>多范式</td>\n</tr>\n<tr>\n<td>编译速度</td>\n<td>快</td>\n<td>较慢</td>\n</tr>\n<tr>\n<td>应用场景</td>\n<td>云原生/微服务</td>\n<td>系统/嵌入式</td>\n</tr>\n</tbody>\n</table>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>Go</strong> - 简洁优先，善用接口</li>\n<li><strong>Rust</strong> - 理解所有权，拥抱编译器</li>\n<li><strong>共同点</strong> - 编写测试，使用 lint 工具</li>\n</ol>\n"
+}
