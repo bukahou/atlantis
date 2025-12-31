@@ -82,7 +82,7 @@ export default function ContentPage({ params }: PageProps) {
       setLoading(true);
       try {
         const articleRes = await fetch(
-          `/content/${locale}/${category}/${subcategory}/${slug}.json`
+          `/api/content/${locale}/${category}/${subcategory}/${slug}.json`
         );
         if (articleRes.ok) {
           const articleData = await articleRes.json();
@@ -92,7 +92,7 @@ export default function ContentPage({ params }: PageProps) {
         }
 
         const indexRes = await fetch(
-          `/content/${locale}/${category}/${subcategory}/_index.json`
+          `/api/content/${locale}/${category}/${subcategory}/_index.json`
         );
         if (indexRes.ok) {
           const indexData = await indexRes.json();

@@ -4,9 +4,8 @@
   "description": "知识体系构建平台 - 运维与开发知识库",
   "private": true,
   "scripts": {
-    "dev": "npm run build:content && next dev",
-    "build": "npm run build:content && next build",
-    "build:content": "node scripts/build-content.mjs",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },

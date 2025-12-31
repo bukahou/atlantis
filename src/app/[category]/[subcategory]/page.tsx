@@ -112,7 +112,7 @@ export default function SubcategoryPage({ params }: PageProps) {
       try {
         // Try to load new JSON format first
         const jsonRes = await fetch(
-          `/content/${locale}/${category}/${subcategory}/_overview.json`
+          `/api/content/${locale}/${category}/${subcategory}/_overview.json`
         );
 
         if (jsonRes.ok) {

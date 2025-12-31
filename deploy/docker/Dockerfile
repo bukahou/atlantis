@@ -18,9 +18,9 @@ RUN npm install --frozen-lockfile
 # 复制源代码
 COPY . .
 
-# 构建内容和应用
+# 构建应用
 ENV NEXT_SKIP_ESLINT=1
-RUN npm run build:content && npm run build
+RUN npm run build
 
 # ---------- 运行阶段 ----------
 FROM node:20-alpine AS runner
@@ -33,6 +33,8 @@ RUN apk add --no-cache libc6-compat
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+# 复制内容文件（API 路由运行时读取）
+COPY --from=builder /app/src/content ./src/content
 
 ENV NODE_ENV=production
 ENV PORT=3000
