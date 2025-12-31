@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "title": "TiDB",
+    "description": "TiDB 分散型 HTAP データベースアーキテクチャと実践",
+    "order": 1,
+    "tags": ["TiDB", "分散型", "HTAP", "NewSQL"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "TiDB はオープンソースの分散型 HTAP データベース",
+        "MySQL プロトコル互換、シームレス移行",
+        "水平スケーリング、弾力的な拡張",
+        "OLTP と OLAP のハイブリッドワークロード対応"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "アーキテクチャコンポーネント",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "TiDB Server", "description": "SQL 層、ステートレス", "color": "bg-blue-500" },
+        { "label": "PD", "description": "メタデータ管理", "color": "bg-purple-500" },
+        { "label": "TiKV", "description": "分散 KV ストレージ", "color": "bg-green-500" },
+        { "label": "TiFlash", "description": "カラムナ OLAP", "color": "bg-orange-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コアコンポーネント詳細",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "TiDB Server",
+          "badge": "SQL 層",
+          "badgeColor": "blue",
+          "points": [
+            "SQL 解析と実行計画生成",
+            "ステートレス、水平スケール",
+            "MySQL プロトコル互換"
+          ]
+        },
+        {
+          "title": "PD (Placement Driver)",
+          "badge": "スケジューラ",
+          "badgeColor": "purple",
+          "points": [
+            "クラスタメタデータ管理",
+            "Region スケジューリング",
+            "グローバルトランザクション ID 発行"
+          ]
+        },
+        {
+          "title": "TiKV",
+          "badge": "ストレージ",
+          "badgeColor": "green",
+          "points": [
+            "分散トランザクション KV",
+            "Raft ベースのレプリケーション",
+            "MVCC スナップショット分離"
+          ]
+        },
+        {
+          "title": "TiFlash",
+          "badge": "分析",
+          "badgeColor": "orange",
+          "points": [
+            "カラムナストレージエンジン",
+            "TiKV からリアルタイム同期",
+            "OLAP クエリ高速化"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "TiDB vs MySQL",
+      "columns": [
+        {
+          "title": "TiDB",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "スケール", "description": "水平スケール、自動シャーディング" },
+            { "label": "容量", "description": "PB レベル" },
+            { "label": "高可用性", "description": "Raft レプリカ、自動フェイルオーバー" },
+            { "label": "HTAP", "description": "OLTP + OLAP 統合" }
+          ]
+        },
+        {
+          "title": "MySQL",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "スケール", "description": "垂直スケール、手動シャーディング" },
+            { "label": "容量", "description": "TB レベル" },
+            { "label": "高可用性", "description": "レプリケーション、ミドルウェア必要" },
+            { "label": "HTAP", "description": "別途 DWH が必要" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "TiUP デプロイ",
+      "language": "bash",
+      "code": "# TiUP インストール\ncurl --proto '=https' --tlsv1.2 -sSf https://tiup-mirrors.pingcap.com/install.sh | sh\n\n# ローカルテストクラスタ\ntiup playground --db 2 --pd 3 --kv 3\n\n# 本番デプロイ\ntiup cluster deploy mytidb v7.5.0 ./topology.yaml --user root -p\n\n# クラスタ起動\ntiup cluster start mytidb\n\n# ステータス確認\ntiup cluster display mytidb"
+    },
+    {
+      "type": "codeBlock",
+      "title": "topology.yaml サンプル",
+      "language": "yaml",
+      "code": "global:\n  user: \"tidb\"\n  deploy_dir: \"/tidb-deploy\"\n  data_dir: \"/tidb-data\"\n\npd_servers:\n  - host: 10.0.0.1\n  - host: 10.0.0.2\n  - host: 10.0.0.3\n\ntidb_servers:\n  - host: 10.0.0.4\n  - host: 10.0.0.5\n\ntikv_servers:\n  - host: 10.0.0.6\n  - host: 10.0.0.7\n  - host: 10.0.0.8\n\ntiflash_servers:\n  - host: 10.0.0.9\n\nmonitoring_servers:\n  - host: 10.0.0.10\n\ngrafana_servers:\n  - host: 10.0.0.10"
+    },
+    {
+      "type": "codeBlock",
+      "title": "HTAP クエリサンプル",
+      "language": "sql",
+      "code": "-- TiFlash レプリカ作成 (カラムナ高速化有効)\nALTER TABLE orders SET TIFLASH REPLICA 1;\n\n-- TiFlash 同期状態確認\nSELECT * FROM information_schema.tiflash_replica;\n\n-- OLTP クエリ (TiKV 経由)\nSELECT * FROM orders WHERE order_id = 12345;\n\n-- OLAP クエリ (自動的に TiFlash へルーティング)\nSELECT \n  DATE(created_at) AS date,\n  COUNT(*) AS order_count,\n  SUM(amount) AS total_amount\nFROM orders\nWHERE created_at >= '2024-01-01'\nGROUP BY DATE(created_at)\nORDER BY date;\n\n-- TiFlash 強制使用\nSELECT /*+ READ_FROM_STORAGE(TIFLASH[orders]) */ * FROM orders;"
+    },
+    {
+      "type": "table",
+      "title": "主要機能",
+      "highlightFirst": true,
+      "headers": ["機能", "説明", "メリット"],
+      "rows": [
+        ["Raft プロトコル", "マルチレプリカ一貫性", "強一貫性、自動フェイルオーバー"],
+        ["Region", "データ分割単位 (96MB)", "自動分割/マージ、負荷分散"],
+        ["MVCC", "マルチバージョン同時実行制御", "スナップショット分離、ロックフリー読み取り"],
+        ["分散トランザクション", "2PC + Percolator", "ノード間 ACID トランザクション"],
+        ["Online DDL", "オンラインスキーマ変更", "業務無停止"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "主キー設計", "description": "自動増分主キーによる書き込みホットスポット回避、AUTO_RANDOM 使用" },
+        { "label": "TiFlash レプリカ", "description": "分析クエリ用テーブルに TiFlash レプリカ作成" },
+        { "label": "監視アラート", "description": "内蔵 Grafana でクラスタ状態監視" },
+        { "label": "バックアップリカバリ", "description": "BR ツールでフル/増分バックアップ" },
+        { "label": "スロークエリ最適化", "description": "Dashboard でスロー SQL 分析" }
+      ]
+    }
+  ],
+  "relatedTopics": ["MySQL", "分散システム", "Raft", "HTAP"]
+}

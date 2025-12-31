@@ -1,0 +1,164 @@
+{
+  "slug": "nginx",
+  "meta": {
+    "title": "Nginx",
+    "description": "高性能 Web 服务器与反向代理配置指南",
+    "order": 1,
+    "tags": [
+      "Nginx",
+      "Web服务器",
+      "反向代理",
+      "负载均衡"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "事件驱动架构，支持高并发连接",
+        "低内存占用，适合资源受限环境",
+        "支持反向代理、负载均衡、缓存",
+        "模块化设计，易于扩展"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Nginx 简介",
+      "content": "Nginx 是一款轻量级、高性能的 Web 服务器和反向代理服务器。采用事件驱动的异步非阻塞架构，能够以极低的资源消耗处理数万并发连接。除了作为 Web 服务器，Nginx 还广泛用于负载均衡、HTTP 缓存、API 网关等场景。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础配置结构",
+      "language": "nginx",
+      "code": "# /etc/nginx/nginx.conf\nuser nginx;\nworker_processes auto;  # 自动匹配 CPU 核心数\nerror_log /var/log/nginx/error.log;\n\nevents {\n    worker_connections 1024;  # 每个 worker 最大连接数\n    use epoll;                # Linux 高效事件模型\n}\n\nhttp {\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n    \n    # 性能优化\n    sendfile on;\n    tcp_nopush on;\n    tcp_nodelay on;\n    keepalive_timeout 65;\n    \n    # Gzip 压缩\n    gzip on;\n    gzip_types text/plain application/json application/javascript text/css;\n    \n    include /etc/nginx/conf.d/*.conf;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "核心功能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "静态文件服务",
+          "badge": "基础",
+          "badgeColor": "green",
+          "points": [
+            "root 指令指定根目录",
+            "try_files 处理 SPA 路由",
+            "expires 设置缓存时间",
+            "autoindex 目录列表"
+          ]
+        },
+        {
+          "title": "反向代理",
+          "badge": "核心",
+          "badgeColor": "blue",
+          "points": [
+            "proxy_pass 转发请求",
+            "proxy_set_header 传递头信息",
+            "proxy_cache 缓存响应",
+            "upstream 定义后端服务"
+          ]
+        },
+        {
+          "title": "负载均衡",
+          "badge": "高级",
+          "badgeColor": "purple",
+          "points": [
+            "round-robin 轮询",
+            "least_conn 最少连接",
+            "ip_hash 会话保持",
+            "weight 权重分配"
+          ]
+        },
+        {
+          "title": "SSL/TLS",
+          "badge": "安全",
+          "badgeColor": "red",
+          "points": [
+            "ssl_certificate 证书配置",
+            "ssl_protocols 协议版本",
+            "HSTS 强制 HTTPS",
+            "OCSP Stapling"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "反向代理配置示例",
+      "language": "nginx",
+      "code": "upstream backend {\n    server 127.0.0.1:8080 weight=3;\n    server 127.0.0.1:8081 weight=2;\n    server 127.0.0.1:8082 backup;  # 备用服务器\n}\n\nserver {\n    listen 80;\n    server_name example.com;\n    return 301 https://$server_name$request_uri;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name example.com;\n    \n    ssl_certificate /etc/ssl/certs/example.crt;\n    ssl_certificate_key /etc/ssl/private/example.key;\n    ssl_protocols TLSv1.2 TLSv1.3;\n    \n    location / {\n        proxy_pass http://backend;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n    \n    location /static/ {\n        alias /var/www/static/;\n        expires 30d;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "常用指令",
+      "highlightFirst": true,
+      "headers": [
+        "指令",
+        "作用",
+        "示例"
+      ],
+      "rows": [
+        [
+          "listen",
+          "监听端口",
+          "listen 443 ssl http2"
+        ],
+        [
+          "server_name",
+          "域名匹配",
+          "server_name *.example.com"
+        ],
+        [
+          "location",
+          "路径匹配",
+          "location ~ \\.php$"
+        ],
+        [
+          "proxy_pass",
+          "代理转发",
+          "proxy_pass http://backend"
+        ],
+        [
+          "rewrite",
+          "URL 重写",
+          "rewrite ^/old /new permanent"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "性能优化建议",
+      "style": "check",
+      "items": [
+        {
+          "label": "启用 sendfile",
+          "description": "零拷贝传输静态文件"
+        },
+        {
+          "label": "开启 Gzip 压缩",
+          "description": "减少传输数据量 60-80%"
+        },
+        {
+          "label": "配置缓冲区",
+          "description": "proxy_buffer_size、proxy_buffers"
+        },
+        {
+          "label": "启用 HTTP/2",
+          "description": "多路复用、头部压缩"
+        },
+        {
+          "label": "连接复用",
+          "description": "keepalive 保持长连接"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "负载均衡",
+    "SSL/TLS",
+    "HAProxy"
+  ]
+}

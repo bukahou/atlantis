@@ -1,15 +1,203 @@
 {
   "slug": "circuit-breaker",
   "meta": {
-    "title": "熔断与降级",
-    "description": "微服务熔断器模式、服务降级与容错机制",
+    "title": "熔断器模式",
+    "description": "服务容错与弹性设计",
     "order": 3,
     "tags": [
-      "microservices",
-      "circuit-breaker",
-      "fallback",
-      "resilience"
+      "微服务",
+      "熔断",
+      "容错"
     ]
   },
-  "content": "<h1>熔断与降级</h1>\n<h2>熔断器模式概述</h2>\n<p>熔断器模式防止级联故障，当下游服务不可用时快速失败，保护系统整体稳定性。</p>\n<pre><code>熔断器状态机\n├── CLOSED (关闭) - 正常状态，请求通过\n├── OPEN (打开) - 熔断状态，请求直接失败\n└── HALF_OPEN (半开) - 探测状态，允许部分请求\n\n状态转换\nCLOSED -> OPEN: 失败率超过阈值\nOPEN -> HALF_OPEN: 超时后探测\nHALF_OPEN -> CLOSED: 探测成功\nHALF_OPEN -> OPEN: 探测失败\n</code></pre>\n<h2>熔断器实现</h2>\n<h3>基础熔断器</h3>\n<pre><code class=\"language-go\">// 熔断器\ntype CircuitBreaker struct {\n    mu           sync.RWMutex\n    state        State\n    failureCount int\n    successCount int\n    lastFailure  time.Time\n\n    // 配置\n    failureThreshold int\n    successThreshold int\n    timeout          time.Duration\n}\n\ntype State int\n\nconst (\n    StateClosed State = iota\n    StateOpen\n    StateHalfOpen\n)\n\nfunc NewCircuitBreaker(failureThreshold, successThreshold int, timeout time.Duration) *CircuitBreaker {\n    return &#x26;CircuitBreaker{\n        state:            StateClosed,\n        failureThreshold: failureThreshold,\n        successThreshold: successThreshold,\n        timeout:          timeout,\n    }\n}\n\nfunc (cb *CircuitBreaker) Execute(fn func() error) error {\n    if !cb.allowRequest() {\n        return ErrCircuitOpen\n    }\n\n    err := fn()\n    cb.recordResult(err)\n    return err\n}\n\nfunc (cb *CircuitBreaker) allowRequest() bool {\n    cb.mu.RLock()\n    defer cb.mu.RUnlock()\n\n    switch cb.state {\n    case StateClosed:\n        return true\n    case StateOpen:\n        if time.Since(cb.lastFailure) > cb.timeout {\n            cb.mu.RUnlock()\n            cb.mu.Lock()\n            cb.state = StateHalfOpen\n            cb.mu.Unlock()\n            cb.mu.RLock()\n            return true\n        }\n        return false\n    case StateHalfOpen:\n        return true\n    }\n    return false\n}\n\nfunc (cb *CircuitBreaker) recordResult(err error) {\n    cb.mu.Lock()\n    defer cb.mu.Unlock()\n\n    if err != nil {\n        cb.failureCount++\n        cb.lastFailure = time.Now()\n\n        if cb.state == StateHalfOpen {\n            cb.state = StateOpen\n        } else if cb.failureCount >= cb.failureThreshold {\n            cb.state = StateOpen\n        }\n    } else {\n        cb.successCount++\n\n        if cb.state == StateHalfOpen &#x26;&#x26; cb.successCount >= cb.successThreshold {\n            cb.state = StateClosed\n            cb.failureCount = 0\n            cb.successCount = 0\n        }\n    }\n}\n</code></pre>\n<h3>滑动窗口统计</h3>\n<pre><code class=\"language-go\">// 滑动窗口熔断器\ntype SlidingWindowBreaker struct {\n    mu          sync.RWMutex\n    state       State\n    window      *SlidingWindow\n    config      Config\n    lastFailure time.Time\n}\n\ntype Config struct {\n    WindowSize        time.Duration\n    FailureRateThresh float64\n    MinRequests       int\n    HalfOpenRequests  int\n    Timeout           time.Duration\n}\n\ntype SlidingWindow struct {\n    buckets    []Bucket\n    bucketSize time.Duration\n    current    int\n}\n\ntype Bucket struct {\n    success int\n    failure int\n    time    time.Time\n}\n\nfunc (sw *SlidingWindow) Record(success bool) {\n    sw.rotate()\n    if success {\n        sw.buckets[sw.current].success++\n    } else {\n        sw.buckets[sw.current].failure++\n    }\n}\n\nfunc (sw *SlidingWindow) FailureRate() float64 {\n    sw.rotate()\n    var total, failures int\n    for _, b := range sw.buckets {\n        total += b.success + b.failure\n        failures += b.failure\n    }\n    if total == 0 {\n        return 0\n    }\n    return float64(failures) / float64(total)\n}\n\nfunc (sw *SlidingWindow) TotalRequests() int {\n    var total int\n    for _, b := range sw.buckets {\n        total += b.success + b.failure\n    }\n    return total\n}\n</code></pre>\n<h2>服务降级</h2>\n<h3>降级策略</h3>\n<pre><code class=\"language-go\">// 降级处理器\ntype Fallback struct {\n    primary   func() (interface{}, error)\n    fallback  func(error) (interface{}, error)\n    breaker   *CircuitBreaker\n}\n\nfunc (f *Fallback) Execute() (interface{}, error) {\n    // 尝试主逻辑\n    result, err := f.breaker.Execute(func() error {\n        var execErr error\n        result, execErr = f.primary()\n        return execErr\n    })\n\n    if err != nil {\n        // 执行降级\n        return f.fallback(err)\n    }\n\n    return result, nil\n}\n\n// 使用示例\nfallback := &#x26;Fallback{\n    primary: func() (interface{}, error) {\n        return userService.GetUser(userID)\n    },\n    fallback: func(err error) (interface{}, error) {\n        // 返回缓存数据或默认值\n        if cached, ok := cache.Get(userID); ok {\n            return cached, nil\n        }\n        return &#x26;User{Name: \"Unknown\"}, nil\n    },\n    breaker: circuitBreaker,\n}\n\nuser, _ := fallback.Execute()\n</code></pre>\n<h3>多级降级</h3>\n<pre><code class=\"language-go\">// 多级降级链\ntype FallbackChain struct {\n    handlers []func() (interface{}, error)\n}\n\nfunc (fc *FallbackChain) Execute() (interface{}, error) {\n    var lastErr error\n\n    for _, handler := range fc.handlers {\n        result, err := handler()\n        if err == nil {\n            return result, nil\n        }\n        lastErr = err\n    }\n\n    return nil, lastErr\n}\n\n// 使用示例\nchain := &#x26;FallbackChain{\n    handlers: []func() (interface{}, error){\n        // 主服务\n        func() (interface{}, error) {\n            return primaryService.GetData()\n        },\n        // 备用服务\n        func() (interface{}, error) {\n            return backupService.GetData()\n        },\n        // 本地缓存\n        func() (interface{}, error) {\n            return localCache.Get(key)\n        },\n        // 默认值\n        func() (interface{}, error) {\n            return defaultValue, nil\n        },\n    },\n}\n</code></pre>\n<h2>Hystrix 风格实现</h2>\n<pre><code class=\"language-go\">// Hystrix 风格命令\ntype Command struct {\n    Name     string\n    Run      func() (interface{}, error)\n    Fallback func(error) (interface{}, error)\n\n    timeout time.Duration\n    breaker *CircuitBreaker\n}\n\nfunc (c *Command) Execute() (interface{}, error) {\n    // 检查熔断状态\n    if !c.breaker.allowRequest() {\n        return c.Fallback(ErrCircuitOpen)\n    }\n\n    // 超时控制\n    ctx, cancel := context.WithTimeout(context.Background(), c.timeout)\n    defer cancel()\n\n    resultCh := make(chan interface{}, 1)\n    errCh := make(chan error, 1)\n\n    go func() {\n        result, err := c.Run()\n        if err != nil {\n            errCh &#x3C;- err\n        } else {\n            resultCh &#x3C;- result\n        }\n    }()\n\n    select {\n    case result := &#x3C;-resultCh:\n        c.breaker.recordResult(nil)\n        return result, nil\n    case err := &#x3C;-errCh:\n        c.breaker.recordResult(err)\n        return c.Fallback(err)\n    case &#x3C;-ctx.Done():\n        c.breaker.recordResult(ctx.Err())\n        return c.Fallback(ctx.Err())\n    }\n}\n</code></pre>\n<h2>舱壁隔离</h2>\n<pre><code class=\"language-go\">// 舱壁模式\ntype Bulkhead struct {\n    name      string\n    semaphore chan struct{}\n    timeout   time.Duration\n}\n\nfunc NewBulkhead(name string, maxConcurrent int, timeout time.Duration) *Bulkhead {\n    return &#x26;Bulkhead{\n        name:      name,\n        semaphore: make(chan struct{}, maxConcurrent),\n        timeout:   timeout,\n    }\n}\n\nfunc (b *Bulkhead) Execute(fn func() error) error {\n    select {\n    case b.semaphore &#x3C;- struct{}{}:\n        defer func() { &#x3C;-b.semaphore }()\n        return fn()\n    case &#x3C;-time.After(b.timeout):\n        return ErrBulkheadTimeout\n    }\n}\n\n// 线程池隔离\ntype ThreadPoolBulkhead struct {\n    pool *workerpool.Pool\n}\n\nfunc (tp *ThreadPoolBulkhead) Submit(task func()) error {\n    return tp.pool.Submit(task)\n}\n</code></pre>\n<h2>限流</h2>\n<h3>令牌桶</h3>\n<pre><code class=\"language-go\">// 令牌桶限流\ntype TokenBucket struct {\n    capacity   int64\n    tokens     int64\n    refillRate int64 // 每秒填充\n    lastRefill time.Time\n    mu         sync.Mutex\n}\n\nfunc (tb *TokenBucket) Allow() bool {\n    tb.mu.Lock()\n    defer tb.mu.Unlock()\n\n    tb.refill()\n\n    if tb.tokens > 0 {\n        tb.tokens--\n        return true\n    }\n    return false\n}\n\nfunc (tb *TokenBucket) refill() {\n    now := time.Now()\n    elapsed := now.Sub(tb.lastRefill).Seconds()\n    tb.tokens = min(tb.capacity, tb.tokens+int64(elapsed*float64(tb.refillRate)))\n    tb.lastRefill = now\n}\n</code></pre>\n<h3>漏桶</h3>\n<pre><code class=\"language-go\">// 漏桶限流\ntype LeakyBucket struct {\n    capacity int64\n    water    int64\n    rate     int64 // 每秒漏出\n    lastLeak time.Time\n    mu       sync.Mutex\n}\n\nfunc (lb *LeakyBucket) Allow() bool {\n    lb.mu.Lock()\n    defer lb.mu.Unlock()\n\n    lb.leak()\n\n    if lb.water &#x3C; lb.capacity {\n        lb.water++\n        return true\n    }\n    return false\n}\n</code></pre>\n<h2>监控指标</h2>\n<pre><code class=\"language-go\">// 熔断器指标\ntype Metrics struct {\n    TotalRequests   *prometheus.CounterVec\n    FailedRequests  *prometheus.CounterVec\n    CircuitState    *prometheus.GaugeVec\n    ResponseTime    *prometheus.HistogramVec\n}\n\nfunc (m *Metrics) RecordRequest(name string, success bool, duration time.Duration) {\n    m.TotalRequests.WithLabelValues(name).Inc()\n    if !success {\n        m.FailedRequests.WithLabelValues(name).Inc()\n    }\n    m.ResponseTime.WithLabelValues(name).Observe(duration.Seconds())\n}\n\nfunc (m *Metrics) SetCircuitState(name string, state State) {\n    m.CircuitState.WithLabelValues(name).Set(float64(state))\n}\n</code></pre>\n<h2>总结</h2>\n<p>熔断与降级要点：</p>\n<ol>\n<li><strong>熔断器</strong> - 三态转换，防止级联故障</li>\n<li><strong>服务降级</strong> - 缓存、默认值、备用服务</li>\n<li><strong>舱壁隔离</strong> - 资源隔离，限制并发</li>\n<li><strong>限流</strong> - 令牌桶、漏桶算法</li>\n<li><strong>监控</strong> - 实时指标，告警触发</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "熔断器防止级联故障",
+        "三种状态：关闭、打开、半开",
+        "失败率超阈值时触发熔断",
+        "自动恢复机制"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "熔断器状态机",
+      "subtitle": "状态转换流程",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Closed",
+          "description": "正常通过",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "Open",
+          "description": "快速失败",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "Half-Open",
+          "description": "试探恢复",
+          "color": "bg-amber-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "容错策略",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "熔断",
+          "badge": "Circuit Breaker",
+          "badgeColor": "red",
+          "points": [
+            "失败率超阈值触发",
+            "快速失败不等待",
+            "自动恢复"
+          ]
+        },
+        {
+          "title": "重试",
+          "badge": "Retry",
+          "badgeColor": "blue",
+          "points": [
+            "暂时性故障重试",
+            "指数退避",
+            "最大重试次数"
+          ]
+        },
+        {
+          "title": "超时",
+          "badge": "Timeout",
+          "badgeColor": "amber",
+          "points": [
+            "避免无限等待",
+            "快速释放资源",
+            "合理超时设置"
+          ]
+        },
+        {
+          "title": "降级",
+          "badge": "Fallback",
+          "badgeColor": "purple",
+          "points": [
+            "失败时返回默认",
+            "缓存数据兜底",
+            "保证核心功能"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "主流实现",
+      "columns": [
+        {
+          "title": "Resilience4j",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "语言",
+              "description": "Java"
+            },
+            {
+              "label": "特点",
+              "description": "轻量、函数式"
+            },
+            {
+              "label": "功能",
+              "description": "熔断/限流/重试"
+            }
+          ]
+        },
+        {
+          "title": "Sentinel",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "语言",
+              "description": "Java/Go"
+            },
+            {
+              "label": "特点",
+              "description": "阿里开源"
+            },
+            {
+              "label": "功能",
+              "description": "流控/熔断/热点"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "熔断器参数",
+      "highlightFirst": true,
+      "headers": [
+        "参数",
+        "说明",
+        "推荐值"
+      ],
+      "rows": [
+        [
+          "failureRateThreshold",
+          "失败率阈值",
+          "50%"
+        ],
+        [
+          "slowCallRateThreshold",
+          "慢调用率阈值",
+          "100%"
+        ],
+        [
+          "slowCallDurationThreshold",
+          "慢调用时间",
+          "2s"
+        ],
+        [
+          "waitDurationInOpenState",
+          "熔断等待时间",
+          "60s"
+        ],
+        [
+          "permittedNumberOfCallsInHalfOpenState",
+          "半开状态请求数",
+          "10"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "合理阈值",
+          "description": "根据业务特性设置失败率阈值"
+        },
+        {
+          "label": "降级方案",
+          "description": "为关键接口准备降级返回"
+        },
+        {
+          "label": "监控告警",
+          "description": "熔断触发时及时告警"
+        },
+        {
+          "label": "避免过度保护",
+          "description": "不是所有接口都需要熔断"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "微服务",
+    "服务网格",
+    "可观测性"
+  ]
 }

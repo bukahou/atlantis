@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "title": "一致性模型",
+    "description": "强一致性、弱一致性与最终一致性",
+    "order": 2,
+    "tags": ["分布式", "一致性", "复制"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "一致性定义了系统对读写操作的保证",
+        "强一致性：所有读取返回最新写入",
+        "最终一致性：系统最终会收敛到一致状态",
+        "不同一致性模型有不同的性能和复杂度权衡"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "一致性级别",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "强一致性",
+          "badge": "Strong",
+          "badgeColor": "blue",
+          "points": [
+            "线性一致性",
+            "读取最新值",
+            "性能开销大"
+          ]
+        },
+        {
+          "title": "弱一致性",
+          "badge": "Weak",
+          "badgeColor": "yellow",
+          "points": [
+            "不保证立即可见",
+            "会话一致性",
+            "单调读/写"
+          ]
+        },
+        {
+          "title": "最终一致性",
+          "badge": "Eventual",
+          "badgeColor": "green",
+          "points": [
+            "最终收敛",
+            "高可用",
+            "需要冲突解决"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "同步复制 vs 异步复制",
+      "columns": [
+        {
+          "title": "同步复制",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "机制", "description": "等待所有副本确认" },
+            { "label": "一致性", "description": "强一致" },
+            { "label": "延迟", "description": "取决于最慢节点" },
+            { "label": "可用性", "description": "任一节点故障影响写入" }
+          ]
+        },
+        {
+          "title": "异步复制",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "机制", "description": "主节点确认即返回" },
+            { "label": "一致性", "description": "最终一致" },
+            { "label": "延迟", "description": "低延迟" },
+            { "label": "可用性", "description": "高，但可能丢数据" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Quorum 机制",
+      "language": "text",
+      "code": "Quorum 公式：W + R > N\n\nN = 副本总数\nW = 写入需要确认的副本数\nR = 读取需要查询的副本数\n\n示例（N=3）：\n- W=3, R=1: 强一致写，读取可从任意节点\n- W=1, R=3: 快速写入，读取需查询所有节点\n- W=2, R=2: 平衡读写，容忍1个节点故障\n\n读写分离场景：\n- 写操作：W=2（多数派确认）\n- 读操作：R=1（低延迟）+ 异步修复\n\n权衡：\n- W 越大，写延迟越高，一致性越强\n- R 越大，读延迟越高，数据越新"
+    },
+    {
+      "type": "table",
+      "title": "一致性模型对比",
+      "highlightFirst": true,
+      "headers": ["模型", "保证", "典型系统", "适用场景"],
+      "rows": [
+        ["线性一致性", "实时最新值", "Spanner", "金融交易"],
+        ["顺序一致性", "操作顺序一致", "ZooKeeper", "配置管理"],
+        ["因果一致性", "因果关系保证", "COPS", "社交应用"],
+        ["最终一致性", "最终收敛", "DynamoDB", "购物车、缓存"],
+        ["读己所写", "能读到自己写的", "大多数系统", "用户体验优化"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "版本向量冲突解决",
+      "language": "go",
+      "code": "// 版本向量\ntype VectorClock map[string]int64\n\n// 比较版本\nfunc (vc VectorClock) Compare(other VectorClock) int {\n    // 返回: -1 (小于), 0 (并发), 1 (大于)\n    greater, less := false, false\n    for node := range union(vc, other) {\n        if vc[node] > other[node] {\n            greater = true\n        } else if vc[node] < other[node] {\n            less = true\n        }\n    }\n    if greater && !less { return 1 }\n    if less && !greater { return -1 }\n    return 0 // 并发冲突，需要业务解决\n}\n\n// 合并策略\n// - LWW (Last Write Wins): 时间戳最大者胜\n// - 业务合并: 如购物车合并\n// - 人工解决: 如文档编辑冲突"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "根据业务选择", "description": "金融用强一致，社交用最终一致" },
+        { "label": "Quorum 灵活配置", "description": "根据读写比例调整 W 和 R" },
+        { "label": "版本控制", "description": "使用版本向量或逻辑时钟" },
+        { "label": "冲突解决策略", "description": "预先定义好冲突解决规则" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CAP 理论", "分布式事务", "复制"]
+}

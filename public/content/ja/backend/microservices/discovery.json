@@ -2,14 +2,164 @@
   "slug": "discovery",
   "meta": {
     "title": "サービスディスカバリ",
-    "description": "マイクロサービスのサービスディスカバリ機構、レジストリとロードバランシング",
+    "description": "サービス登録、発見とロードバランシング",
     "order": 2,
     "tags": [
-      "microservices",
-      "discovery",
-      "consul",
-      "etcd"
+      "マイクロサービス",
+      "サービスディスカバリ",
+      "ロードバランシング"
     ]
   },
-  "content": "<h1>サービスディスカバリ</h1>\n<h2>サービスディスカバリ概要</h2>\n<p>サービスディスカバリにより、分散環境でサービスが他のサービスを動的に発見でき、マイクロサービスアーキテクチャのコアインフラです。</p>\n<pre><code>サービスディスカバリフロー\n├── サービス登録 - サービス起動時に登録\n├── ヘルスチェック - 定期的にサービス状態を検査\n├── サービス照会 - クライアントがサービス一覧を取得\n├── ロードバランシング - ターゲットインスタンス選択\n└── サービス登録解除 - サービス停止時に削除\n</code></pre>\n<h2>サービスレジストリ</h2>\n<h3>Consul</h3>\n<pre><code class=\"language-hcl\"># Consul サービス定義\nservice {\n  name = \"user-service\"\n  id   = \"user-service-1\"\n  port = 8080\n  tags = [\"v1\", \"primary\"]\n\n  check {\n    http     = \"http://localhost:8080/health\"\n    interval = \"10s\"\n    timeout  = \"3s\"\n  }\n\n  meta {\n    version = \"1.0.0\"\n    region  = \"us-east-1\"\n  }\n}\n</code></pre>\n<pre><code class=\"language-go\">// Go サービス登録\nimport \"github.com/hashicorp/consul/api\"\n\nfunc RegisterService(client *api.Client) error {\n    registration := &#x26;api.AgentServiceRegistration{\n        ID:      \"user-service-1\",\n        Name:    \"user-service\",\n        Port:    8080,\n        Address: \"192.168.1.100\",\n        Tags:    []string{\"v1\", \"primary\"},\n        Check: &#x26;api.AgentServiceCheck{\n            HTTP:                           \"http://192.168.1.100:8080/health\",\n            Interval:                       \"10s\",\n            Timeout:                        \"3s\",\n            DeregisterCriticalServiceAfter: \"1m\",\n        },\n    }\n    return client.Agent().ServiceRegister(registration)\n}\n\n// サービス発見\nfunc DiscoverService(client *api.Client, serviceName string) ([]*api.ServiceEntry, error) {\n    services, _, err := client.Health().Service(serviceName, \"\", true, nil)\n    return services, err\n}\n</code></pre>\n<h3>etcd</h3>\n<pre><code class=\"language-go\">// etcd サービス登録\nimport clientv3 \"go.etcd.io/etcd/client/v3\"\n\nfunc RegisterService(client *clientv3.Client, serviceName, addr string) error {\n    ctx := context.Background()\n\n    // リース作成\n    lease, _ := client.Grant(ctx, 10)\n\n    // サービス登録\n    key := fmt.Sprintf(\"/services/%s/%s\", serviceName, addr)\n    _, err := client.Put(ctx, key, addr, clientv3.WithLease(lease.ID))\n    if err != nil {\n        return err\n    }\n\n    // リース維持\n    ch, _ := client.KeepAlive(ctx, lease.ID)\n    go func() {\n        for range ch {\n            // リース更新\n        }\n    }()\n\n    return nil\n}\n\n// サービス発見\nfunc DiscoverService(client *clientv3.Client, serviceName string) ([]string, error) {\n    ctx := context.Background()\n    prefix := fmt.Sprintf(\"/services/%s/\", serviceName)\n    resp, err := client.Get(ctx, prefix, clientv3.WithPrefix())\n    if err != nil {\n        return nil, err\n    }\n\n    var addrs []string\n    for _, kv := range resp.Kvs {\n        addrs = append(addrs, string(kv.Value))\n    }\n    return addrs, nil\n}\n\n// 変更監視\nfunc WatchService(client *clientv3.Client, serviceName string) {\n    prefix := fmt.Sprintf(\"/services/%s/\", serviceName)\n    watchChan := client.Watch(context.Background(), prefix, clientv3.WithPrefix())\n\n    for watchResp := range watchChan {\n        for _, event := range watchResp.Events {\n            switch event.Type {\n            case clientv3.EventTypePut:\n                fmt.Println(\"Service added:\", string(event.Kv.Value))\n            case clientv3.EventTypeDelete:\n                fmt.Println(\"Service removed:\", string(event.Kv.Key))\n            }\n        }\n    }\n}\n</code></pre>\n<h3>Kubernetes サービスディスカバリ</h3>\n<pre><code class=\"language-yaml\"># Service 定義\napiVersion: v1\nkind: Service\nmetadata:\n  name: user-service\nspec:\n  selector:\n    app: user-service\n  ports:\n    - port: 80\n      targetPort: 8080\n  type: ClusterIP\n---\n# Endpoints 自動管理\n# DNS でアクセス: user-service.default.svc.cluster.local\n</code></pre>\n<pre><code class=\"language-go\">// K8s でサービス発見\n// 1. DNS 方式\nresp, _ := http.Get(\"http://user-service:80/api/users\")\n\n// 2. API 方式\nimport \"k8s.io/client-go/kubernetes\"\n\nfunc GetEndpoints(clientset *kubernetes.Clientset, namespace, serviceName string) ([]string, error) {\n    endpoints, err := clientset.CoreV1().Endpoints(namespace).Get(\n        context.Background(), serviceName, metav1.GetOptions{})\n    if err != nil {\n        return nil, err\n    }\n\n    var addrs []string\n    for _, subset := range endpoints.Subsets {\n        for _, addr := range subset.Addresses {\n            for _, port := range subset.Ports {\n                addrs = append(addrs, fmt.Sprintf(\"%s:%d\", addr.IP, port.Port))\n            }\n        }\n    }\n    return addrs, nil\n}\n</code></pre>\n<h2>ロードバランシング</h2>\n<h3>ロードバランシング戦略</h3>\n<pre><code class=\"language-go\">// ラウンドロビン\ntype RoundRobin struct {\n    instances []string\n    current   int\n    mu        sync.Mutex\n}\n\nfunc (r *RoundRobin) Next() string {\n    r.mu.Lock()\n    defer r.mu.Unlock()\n    instance := r.instances[r.current]\n    r.current = (r.current + 1) % len(r.instances)\n    return instance\n}\n\n// 重み付けラウンドロビン\ntype WeightedRoundRobin struct {\n    instances []Instance\n    current   int\n}\n\ntype Instance struct {\n    Addr   string\n    Weight int\n}\n\n// ランダム\nfunc Random(instances []string) string {\n    return instances[rand.Intn(len(instances))]\n}\n\n// 最少接続\ntype LeastConnections struct {\n    instances map[string]*atomic.Int32\n}\n\nfunc (lc *LeastConnections) Next() string {\n    var minAddr string\n    var minConn int32 = math.MaxInt32\n    for addr, conn := range lc.instances {\n        if conn.Load() &#x3C; minConn {\n            minAddr = addr\n            minConn = conn.Load()\n        }\n    }\n    lc.instances[minAddr].Add(1)\n    return minAddr\n}\n\n// コンシステントハッシュ\ntype ConsistentHash struct {\n    ring     map[uint32]string\n    sortedKeys []uint32\n    replicas int\n}\n\nfunc (ch *ConsistentHash) Get(key string) string {\n    hash := crc32.ChecksumIEEE([]byte(key))\n    idx := sort.Search(len(ch.sortedKeys), func(i int) bool {\n        return ch.sortedKeys[i] >= hash\n    })\n    if idx == len(ch.sortedKeys) {\n        idx = 0\n    }\n    return ch.ring[ch.sortedKeys[idx]]\n}\n</code></pre>\n<h2>ヘルスチェック</h2>\n<pre><code class=\"language-go\">// HTTP ヘルスチェック\nfunc healthHandler(w http.ResponseWriter, r *http.Request) {\n    // 依存関係チェック\n    if err := checkDatabase(); err != nil {\n        w.WriteHeader(http.StatusServiceUnavailable)\n        json.NewEncoder(w).Encode(map[string]string{\n            \"status\": \"unhealthy\",\n            \"error\":  err.Error(),\n        })\n        return\n    }\n\n    w.WriteHeader(http.StatusOK)\n    json.NewEncoder(w).Encode(map[string]string{\n        \"status\": \"healthy\",\n    })\n}\n\n// Readiness プローブ\nfunc readinessHandler(w http.ResponseWriter, r *http.Request) {\n    if !isReady {\n        w.WriteHeader(http.StatusServiceUnavailable)\n        return\n    }\n    w.WriteHeader(http.StatusOK)\n}\n\n// Liveness プローブ\nfunc livenessHandler(w http.ResponseWriter, r *http.Request) {\n    w.WriteHeader(http.StatusOK)\n}\n</code></pre>\n<pre><code class=\"language-yaml\"># Kubernetes プローブ設定\nspec:\n  containers:\n    - name: app\n      livenessProbe:\n        httpGet:\n          path: /healthz\n          port: 8080\n        initialDelaySeconds: 15\n        periodSeconds: 10\n      readinessProbe:\n        httpGet:\n          path: /ready\n          port: 8080\n        initialDelaySeconds: 5\n        periodSeconds: 5\n</code></pre>\n<h2>まとめ</h2>\n<p>サービスディスカバリのポイント：</p>\n<ol>\n<li><strong>レジストリ</strong> - Consul、etcd、K8s DNS</li>\n<li><strong>ヘルスチェック</strong> - HTTP、TCP、gRPC</li>\n<li><strong>ロードバランシング</strong> - ラウンドロビン、ランダム、コンシステントハッシュ</li>\n<li><strong>サービス監視</strong> - リアルタイムでサービス変更を検知</li>\n<li><strong>グレースフルシャットダウン</strong> - 登録解除とトラフィックドレイン</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "サービス登録：サービス起動時にレジストリに登録",
+        "サービス発見：クライアントがレジストリからサービスアドレスを取得",
+        "ヘルスチェック：定期的にサービスの可用性を検出",
+        "ロードバランシング：リクエストを複数インスタンスに分散"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "発見モード",
+      "columns": [
+        {
+          "title": "クライアントサイド発見",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "クライアントがレジストリをクエリ"
+            },
+            {
+              "label": "ロードバランシング",
+              "description": "クライアント側で実装"
+            },
+            {
+              "label": "代表例",
+              "description": "Eureka, Consul"
+            }
+          ]
+        },
+        {
+          "title": "サーバーサイド発見",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "ロードバランサー経由"
+            },
+            {
+              "label": "ロードバランシング",
+              "description": "プロキシ層で実装"
+            },
+            {
+              "label": "代表例",
+              "description": "Kubernetes, AWS ELB"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要ソリューション",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Consul",
+          "badge": "HashiCorp",
+          "badgeColor": "red",
+          "points": [
+            "サービス発見 + KV ストア",
+            "ヘルスチェック",
+            "マルチデータセンター"
+          ]
+        },
+        {
+          "title": "Nacos",
+          "badge": "Alibaba",
+          "badgeColor": "blue",
+          "points": [
+            "サービス発見 + 設定管理",
+            "動的 DNS",
+            "トラフィック管理"
+          ]
+        },
+        {
+          "title": "etcd",
+          "badge": "CNCF",
+          "badgeColor": "cyan",
+          "points": [
+            "分散 KV ストア",
+            "Kubernetes コア",
+            "強い一貫性"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "サービス登録フロー",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "サービス起動",
+          "description": "初期化",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "登録",
+          "description": "アドレス報告",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "ハートビート",
+          "description": "アクティブ維持",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "発見",
+          "description": "リスト取得",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "呼び出し",
+          "description": "ロードバランシング",
+          "color": "bg-purple-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "ヘルスチェック",
+          "description": "適切なチェック間隔とタイムアウトを設定"
+        },
+        {
+          "label": "グレースフルシャットダウン",
+          "description": "サービス停止前にレジストリから登録解除"
+        },
+        {
+          "label": "ローカルキャッシュ",
+          "description": "サービスリストをキャッシュし、レジストリ障害の影響を回避"
+        },
+        {
+          "label": "マルチレジストリ",
+          "description": "リージョン間デプロイで可用性向上"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "マイクロサービス",
+    "ロードバランシング",
+    "Kubernetes"
+  ]
 }

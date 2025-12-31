@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "redundancy",
+      "title": "冗長設計",
+      "description": "単一障害点を排除するための戦略と実践",
+      "href": "/architecture/high-availability/redundancy",
+      "order": 1
+    },
+    {
+      "slug": "failover",
+      "title": "フェイルオーバー",
+      "description": "主待機切替、クラスタリーダー選出とトラフィック制御",
+      "href": "/architecture/high-availability/failover",
+      "order": 2
+    },
+    {
+      "slug": "disaster-recovery",
+      "title": "災害復旧",
+      "description": "マルチリージョンアクティブ、データバックアップと復旧戦略",
+      "href": "/architecture/high-availability/disaster-recovery",
+      "order": 3
+    }
+  ]
+}

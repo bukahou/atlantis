@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "tls",
+      "title": "TLS/SSL",
+      "description": "TLS 1.3、证书管理与配置",
+      "href": "/security/network-security/tls",
+      "order": 1
+    },
+    {
+      "slug": "firewall",
+      "title": "防火墙",
+      "description": "网络防火墙与安全组配置",
+      "href": "/security/network-security/firewall",
+      "order": 2
+    },
+    {
+      "slug": "waf",
+      "title": "WAF",
+      "description": "Web 应用防火墙规则与策略",
+      "href": "/security/network-security/waf",
+      "order": 3
+    }
+  ]
+}

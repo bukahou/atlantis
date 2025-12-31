@@ -1,0 +1,132 @@
+{
+  "slug": "caddy",
+  "meta": {
+    "title": "Caddy",
+    "description": "自動 HTTPS のモダン Web サーバー",
+    "order": 3,
+    "tags": [
+      "Caddy",
+      "Webサーバー",
+      "自動HTTPS",
+      "Go"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "自動 HTTPS：Let's Encrypt 証明書を自動取得・更新",
+        "シンプルな設定：Caddyfile 構文は直感的で分かりやすい",
+        "Go 言語製：単一バイナリでデプロイ",
+        "豊富な組み込み機能：リバースプロキシ、ロードバランシング、圧縮"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Caddy 概要",
+      "content": "Caddy は Go 言語で書かれたモダンな Web サーバーで、最大の特徴は自動 HTTPS です。ドメインの TLS 証明書を自動的に取得・更新し、追加設定は不要です。Caddyfile の設定構文はシンプルで直感的なため、クイックデプロイや開発環境に最適です。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Caddyfile 基本設定",
+      "language": "caddyfile",
+      "code": "# 最もシンプルな静的サイト\nexample.com {\n    root * /var/www/html\n    file_server\n}\n\n# リバースプロキシ\napi.example.com {\n    reverse_proxy localhost:8080\n}\n\n# SPA アプリケーション\napp.example.com {\n    root * /var/www/app\n    try_files {path} /index.html\n    file_server\n    encode gzip\n}"
+    },
+    {
+      "type": "cards",
+      "title": "コア機能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "自動 HTTPS",
+          "badge": "コア",
+          "badgeColor": "green",
+          "points": [
+            "証明書自動申請",
+            "証明書自動更新",
+            "HTTP→HTTPS 自動リダイレクト",
+            "ACME プロトコル対応"
+          ]
+        },
+        {
+          "title": "リバースプロキシ",
+          "badge": "機能",
+          "badgeColor": "blue",
+          "points": [
+            "ロードバランシング",
+            "ヘルスチェック",
+            "WebSocket 対応",
+            "gRPC プロキシ"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Caddy vs Nginx",
+      "highlightFirst": true,
+      "headers": [
+        "機能",
+        "Caddy",
+        "Nginx"
+      ],
+      "rows": [
+        [
+          "自動 HTTPS",
+          "組み込み対応",
+          "certbot が必要"
+        ],
+        [
+          "設定構文",
+          "シンプルで直感的",
+          "やや複雑"
+        ],
+        [
+          "ホットリロード",
+          "ネイティブ対応",
+          "シグナルが必要"
+        ],
+        [
+          "メモリ使用量",
+          "やや高め",
+          "非常に低い"
+        ],
+        [
+          "エコシステム",
+          "比較的新しい",
+          "非常に成熟"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ユースケース",
+      "style": "check",
+      "items": [
+        {
+          "label": "開発環境",
+          "description": "ローカル HTTPS サービスを素早く起動"
+        },
+        {
+          "label": "小規模プロジェクト",
+          "description": "シンプルな設定でデプロイ完了"
+        },
+        {
+          "label": "API ゲートウェイ",
+          "description": "動的設定、自動証明書"
+        },
+        {
+          "label": "コンテナデプロイ",
+          "description": "単一バイナリ、コンテナ化が容易"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Let's Encrypt",
+    "Nginx",
+    "リバースプロキシ"
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "Apache Kafka",
+    "description": "分布式流处理平台",
+    "order": 1,
+    "tags": ["消息队列", "Kafka", "流处理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Kafka 是分布式流处理平台",
+        "高吞吐、低延迟、持久化",
+        "Topic + Partition 分布式存储",
+        "Consumer Group 实现负载均衡"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心组件",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Topic",
+          "badge": "主题",
+          "badgeColor": "blue",
+          "points": [
+            "消息分类的逻辑概念",
+            "包含多个 Partition",
+            "按名称订阅"
+          ]
+        },
+        {
+          "title": "Partition",
+          "badge": "分区",
+          "badgeColor": "green",
+          "points": [
+            "物理存储单元",
+            "保证分区内有序",
+            "并行处理基础"
+          ]
+        },
+        {
+          "title": "Producer",
+          "badge": "生产者",
+          "badgeColor": "amber",
+          "points": [
+            "发送消息到 Topic",
+            "选择分区策略",
+            "可配置确认级别"
+          ]
+        },
+        {
+          "title": "Consumer",
+          "badge": "消费者",
+          "badgeColor": "purple",
+          "points": [
+            "订阅 Topic 消费",
+            "Group 内负载均衡",
+            "Offset 管理"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "消息流转",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Producer", "description": "生产消息", "color": "bg-blue-500" },
+        { "label": "Broker", "description": "存储消息", "color": "bg-purple-500" },
+        { "label": "Partition", "description": "分区写入", "color": "bg-cyan-500" },
+        { "label": "Consumer", "description": "拉取消费", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Kafka 配置",
+      "highlightFirst": true,
+      "headers": ["配置", "说明", "推荐值"],
+      "rows": [
+        ["replication.factor", "副本数", "3"],
+        ["min.insync.replicas", "最小同步副本", "2"],
+        ["acks", "确认级别", "all"],
+        ["retention.ms", "消息保留时间", "7天"],
+        ["num.partitions", "默认分区数", "根据吞吐量"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "消费模式",
+      "columns": [
+        {
+          "title": "At Most Once",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "特点", "description": "可能丢失" },
+            { "label": "方式", "description": "先提交后处理" }
+          ]
+        },
+        {
+          "title": "At Least Once",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "特点", "description": "可能重复" },
+            { "label": "方式", "description": "先处理后提交" }
+          ]
+        },
+        {
+          "title": "Exactly Once",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "特点", "description": "精确一次" },
+            { "label": "方式", "description": "事务 + 幂等" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "合理分区数", "description": "分区数 = 预期吞吐量 / 单分区吞吐量" },
+        { "label": "消费者幂等", "description": "处理重复消息的能力" },
+        { "label": "监控 Lag", "description": "监控消费延迟，及时扩容" },
+        { "label": "数据压缩", "description": "使用 lz4/snappy 压缩节省带宽" }
+      ]
+    }
+  ],
+  "relatedTopics": ["消息队列", "流处理", "微服务"]
+}

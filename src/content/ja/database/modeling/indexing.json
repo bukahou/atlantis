@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "title": "インデックス設計",
+    "description": "データベースインデックスの原理、設計戦略と性能最適化",
+    "order": 2,
+    "tags": ["インデックス", "性能最適化", "B+Tree"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "インデックスはデータ検索を高速化するデータ構造",
+        "B+Tree は最も一般的なインデックス構造",
+        "空間と時間のトレードオフ：クエリ高速化だが書き込みオーバーヘッド増加",
+        "複合インデックスは最左プレフィックス原則に従う"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "インデックスデータ構造",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "B+Tree",
+          "badge": "デフォルト",
+          "badgeColor": "blue",
+          "points": [
+            "リーフノードにデータを保存",
+            "範囲クエリをサポート",
+            "O(log n) 計算量"
+          ]
+        },
+        {
+          "title": "Hash",
+          "badge": "等値",
+          "badgeColor": "green",
+          "points": [
+            "O(1) クエリ",
+            "等値のみサポート",
+            "範囲非対応"
+          ]
+        },
+        {
+          "title": "全文インデックス",
+          "badge": "検索",
+          "badgeColor": "purple",
+          "points": [
+            "転置インデックス",
+            "形態素マッチ",
+            "テキスト検索"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "クラスタード vs ノンクラスタードインデックス",
+      "columns": [
+        {
+          "title": "クラスタードインデックス",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "ストレージ", "description": "データはインデックス順に保存" },
+            { "label": "数量", "description": "テーブルごとに1つのみ" },
+            { "label": "例", "description": "InnoDB 主キーインデックス" }
+          ]
+        },
+        {
+          "title": "ノンクラスタードインデックス",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "ストレージ", "description": "インデックスとデータが分離" },
+            { "label": "数量", "description": "複数可能" },
+            { "label": "例", "description": "セカンダリインデックス" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "インデックスタイプ",
+      "language": "sql",
+      "code": "-- 主キーインデックス (クラスタード)\nCREATE TABLE users (id INT PRIMARY KEY);\n\n-- ユニークインデックス\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 通常インデックス\nCREATE INDEX idx_name ON users(name);\n\n-- 複合インデックス\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- プレフィックスインデックス\nCREATE INDEX idx_email ON users(email(20));"
+    },
+    {
+      "type": "codeBlock",
+      "title": "最左プレフィックス原則",
+      "language": "sql",
+      "code": "-- インデックス: (a, b, c)\n-- インデックス使用可能\nWHERE a = 1\nWHERE a = 1 AND b = 2\nWHERE a = 1 AND b = 2 AND c = 3\n\n-- 部分的にのみ使用\nWHERE a = 1 AND c = 3  -- a のみ使用\n\n-- インデックス使用不可\nWHERE b = 2\nWHERE c = 3\nWHERE b = 2 AND c = 3"
+    },
+    {
+      "type": "table",
+      "title": "インデックスが無効になるシナリオ",
+      "highlightFirst": true,
+      "headers": ["シナリオ", "無効理由", "最適化方法"],
+      "rows": [
+        ["関数操作", "YEAR(date) = 2024", "date >= '2024-01-01'"],
+        ["型変換", "phone = 138001380", "phone = '138001380'"],
+        ["LIKE プレフィックス", "LIKE '%test'", "LIKE 'test%'"],
+        ["OR 条件", "全テーブルスキャンの可能性", "UNION で代替"],
+        ["NOT IN", "インデックス不使用の可能性", "LEFT JOIN + IS NULL"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "実行計画分析",
+      "language": "sql",
+      "code": "EXPLAIN SELECT * FROM users WHERE email = 'test@example.com';\n\n-- 主要指標\n-- type: const > eq_ref > ref > range > index > ALL\n-- key: 使用されるインデックス名\n-- rows: 推定スキャン行数\n-- Extra: Using index はカバリングインデックスを示す"
+    },
+    {
+      "type": "list",
+      "title": "設計戦略",
+      "style": "check",
+      "items": [
+        { "label": "高選択性カラム優先", "description": "ユニーク値が多いカラムを前に配置" },
+        { "label": "等値を前、範囲を後", "description": "WHERE status = 1 AND date > ?" },
+        { "label": "カバリングインデックス", "description": "クエリカラムがすべてインデックス内、テーブルアクセス回避" },
+        { "label": "冗長インデックス回避", "description": "(a,b) は既に (a) を含む" }
+      ]
+    }
+  ],
+  "relatedTopics": ["MySQL", "PostgreSQL", "クエリ最適化"]
+}

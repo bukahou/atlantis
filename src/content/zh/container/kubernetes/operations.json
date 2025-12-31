@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "title": "运维操作",
+    "description": "Kubernetes 运维：健康检查、HPA、RBAC 与故障排查",
+    "order": 7,
+    "tags": ["Kubernetes", "运维", "Probes", "HPA", "RBAC"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "健康检查 (Probes) 确保应用正常运行",
+        "HPA 根据负载自动扩缩容",
+        "RBAC 实现细粒度权限控制",
+        "掌握故障排查方法和工具"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "健康检查类型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Liveness Probe",
+          "badge": "存活",
+          "badgeColor": "red",
+          "points": [
+            "检测容器是否存活",
+            "失败则重启容器",
+            "防止死锁/无响应",
+            "不影响 Service 流量"
+          ]
+        },
+        {
+          "title": "Readiness Probe",
+          "badge": "就绪",
+          "badgeColor": "green",
+          "points": [
+            "检测是否可接收流量",
+            "失败则从 Service 移除",
+            "启动完成后加入负载",
+            "不重启容器"
+          ]
+        },
+        {
+          "title": "Startup Probe",
+          "badge": "启动",
+          "badgeColor": "blue",
+          "points": [
+            "慢启动应用专用",
+            "成功后启用其他探针",
+            "避免过早被 Liveness 杀死",
+            "K8s 1.16+"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "健康检查配置",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    ports:\n    - containerPort: 8080\n    \n    # HTTP 探针\n    livenessProbe:\n      httpGet:\n        path: /healthz\n        port: 8080\n      initialDelaySeconds: 10  # 启动后等待\n      periodSeconds: 10        # 检查间隔\n      timeoutSeconds: 5        # 超时时间\n      failureThreshold: 3      # 失败次数\n    \n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 8080\n      initialDelaySeconds: 5\n      periodSeconds: 5\n    \n    # 慢启动应用使用 startupProbe\n    startupProbe:\n      httpGet:\n        path: /healthz\n        port: 8080\n      failureThreshold: 30\n      periodSeconds: 10  # 最多等待 300 秒启动\n\n---\n# TCP 探针 (适合数据库)\nlivenessProbe:\n  tcpSocket:\n    port: 3306\n  periodSeconds: 10\n\n# 命令探针\nlivenessProbe:\n  exec:\n    command:\n    - cat\n    - /tmp/healthy\n  periodSeconds: 5"
+    },
+    {
+      "type": "codeBlock",
+      "title": "HPA 水平自动扩缩容",
+      "language": "yaml",
+      "code": "# 需要安装 Metrics Server\n# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml\n\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: web-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n  # CPU 指标\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 70\n  # 内存指标\n  - type: Resource\n    resource:\n      name: memory\n      target:\n        type: Utilization\n        averageUtilization: 80\n  # 自定义指标 (需要 Prometheus Adapter)\n  - type: Pods\n    pods:\n      metric:\n        name: http_requests_per_second\n      target:\n        type: AverageValue\n        averageValue: 1000\n  behavior:\n    scaleDown:\n      stabilizationWindowSeconds: 300  # 缩容稳定窗口\n      policies:\n      - type: Percent\n        value: 10\n        periodSeconds: 60\n    scaleUp:\n      stabilizationWindowSeconds: 0\n      policies:\n      - type: Percent\n        value: 100\n        periodSeconds: 15"
+    },
+    {
+      "type": "codeBlock",
+      "title": "RBAC 权限配置",
+      "language": "yaml",
+      "code": "# Role (命名空间级别)\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\n  namespace: default\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"pods/log\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n- apiGroups: [\"apps\"]\n  resources: [\"deployments\"]\n  verbs: [\"get\", \"list\"]\n---\n# RoleBinding\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: read-pods\n  namespace: default\nsubjects:\n- kind: ServiceAccount\n  name: app-sa\n  namespace: default\n- kind: User\n  name: developer\n  apiGroup: rbac.authorization.k8s.io\nroleRef:\n  kind: Role\n  name: pod-reader\n  apiGroup: rbac.authorization.k8s.io\n---\n# ClusterRole (集群级别)\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: secret-reader\nrules:\n- apiGroups: [\"\"]\n  resources: [\"secrets\"]\n  verbs: [\"get\", \"list\"]\n---\n# ServiceAccount\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: app-sa\n  namespace: default"
+    },
+    {
+      "type": "table",
+      "title": "RBAC 资源",
+      "highlightFirst": true,
+      "headers": ["资源", "作用域", "说明"],
+      "rows": [
+        ["Role", "命名空间", "定义命名空间内权限"],
+        ["ClusterRole", "集群", "定义集群级别权限"],
+        ["RoleBinding", "命名空间", "绑定 Role 到用户"],
+        ["ClusterRoleBinding", "集群", "绑定 ClusterRole 到用户"],
+        ["ServiceAccount", "命名空间", "Pod 身份标识"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "故障排查命令",
+      "language": "bash",
+      "code": "# Pod 状态排查\nkubectl get pods -o wide\nkubectl describe pod <pod-name>\nkubectl logs <pod-name> -c <container>\nkubectl logs <pod-name> --previous  # 上一个容器日志\n\n# 进入容器调试\nkubectl exec -it <pod-name> -- /bin/sh\n\n# 临时调试容器 (K8s 1.25+)\nkubectl debug <pod-name> -it --image=busybox\n\n# 事件查看\nkubectl get events --sort-by='.lastTimestamp'\nkubectl get events -w  # 实时监控\n\n# 资源使用\nkubectl top nodes\nkubectl top pods\n\n# API 资源查看\nkubectl api-resources\nkubectl explain pod.spec.containers\n\n# 权限检查\nkubectl auth can-i create pods\nkubectl auth can-i list secrets --as=system:serviceaccount:default:app-sa"
+    },
+    {
+      "type": "table",
+      "title": "Pod 常见问题",
+      "highlightFirst": true,
+      "headers": ["状态", "原因", "排查方法"],
+      "rows": [
+        ["Pending", "资源不足/调度失败", "describe pod 查看 Events"],
+        ["ImagePullBackOff", "镜像拉取失败", "检查镜像名称/认证"],
+        ["CrashLoopBackOff", "容器反复崩溃", "查看 logs --previous"],
+        ["OOMKilled", "内存超限", "增加 memory limits"],
+        ["Evicted", "节点资源不足", "检查节点资源/清理 Pod"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "资源请求与限制",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    resources:\n      requests:         # 调度依据\n        cpu: 100m       # 0.1 CPU\n        memory: 128Mi\n      limits:           # 运行时限制\n        cpu: 500m       # 0.5 CPU\n        memory: 512Mi\n\n# CPU: 1 = 1000m (millicores)\n# Memory: Ki, Mi, Gi\n\n# QoS 等级:\n# Guaranteed: requests = limits\n# Burstable: requests < limits\n# BestEffort: 无 requests/limits"
+    },
+    {
+      "type": "list",
+      "title": "运维最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "配置健康检查", "description": "所有生产 Pod 必须配置 Probes" },
+        { "label": "设置资源限制", "description": "防止资源争抢和 OOM" },
+        { "label": "启用 HPA", "description": "应对流量波动自动扩缩容" },
+        { "label": "最小权限原则", "description": "RBAC 只授予必要权限" },
+        { "label": "监控告警", "description": "Prometheus + Grafana 监控集群" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Pod", "Deployment", "监控", "日志"]
+}

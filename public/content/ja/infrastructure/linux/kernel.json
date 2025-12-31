@@ -1,0 +1,322 @@
+{
+  "slug": "kernel",
+  "meta": {
+    "title": "Linux カーネル",
+    "description": "Linux カーネルアーキテクチャ：ユーザー空間、カーネル空間とハードウェアの相互作用",
+    "order": 1,
+    "tags": [
+      "Linux",
+      "カーネル",
+      "Kernel",
+      "システムコール"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "カーネルは OS の中核、ハードウェアリソースを管理",
+        "ユーザー空間とカーネル空間は厳格に分離",
+        "システムコールはユーザープログラムがカーネルにアクセスする唯一のインターフェース",
+        "カーネルはプロセススケジューリング、メモリ管理、デバイスドライバを担当"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Linux カーネル概要",
+      "content": "Linux カーネルはモノリシックカーネル（Monolithic Kernel）で、すべてのコア機能が同一アドレス空間で実行されます。CPU、メモリ、ストレージ、ネットワークなどのハードウェアリソースを管理し、ユーザープログラムに抽象インターフェースを提供します。カーネルはシステムをユーザー空間とカーネル空間に分け、システムコールで両者の安全な通信を実現します。"
+    },
+    {
+      "type": "flow",
+      "title": "Linux システムアーキテクチャ",
+      "subtitle": "ユーザープログラムからハードウェアまでの階層構造",
+      "direction": "vertical",
+      "steps": [
+        {
+          "label": "ユーザーアプリケーション",
+          "description": "User Applications",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "C ライブラリ (glibc)",
+          "description": "システムコールラッパー",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "システムコールインターフェース",
+          "description": "System Call Interface",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Linux カーネル",
+          "description": "プロセス/メモリ/ファイル/ネットワーク/ドライバ",
+          "color": "bg-orange-500"
+        },
+        {
+          "label": "ハードウェア抽象層",
+          "description": "Hardware Abstraction",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "ハードウェア",
+          "description": "CPU/メモリ/ディスク/NIC",
+          "color": "bg-gray-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ユーザー空間 vs カーネル空間",
+      "columns": [
+        {
+          "title": "ユーザー空間 (User Space)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "権限",
+              "description": "Ring 3、制限された権限"
+            },
+            {
+              "label": "メモリ",
+              "description": "独立した仮想アドレス空間"
+            },
+            {
+              "label": "実行内容",
+              "description": "アプリケーション、Shell"
+            },
+            {
+              "label": "エラーの影響",
+              "description": "該当プロセスのみ"
+            },
+            {
+              "label": "ハードウェアアクセス",
+              "description": "システムコール経由必須"
+            }
+          ]
+        },
+        {
+          "title": "カーネル空間 (Kernel Space)",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            {
+              "label": "権限",
+              "description": "Ring 0、最高権限"
+            },
+            {
+              "label": "メモリ",
+              "description": "共有カーネルアドレス空間"
+            },
+            {
+              "label": "実行内容",
+              "description": "カーネルコード、ドライバ"
+            },
+            {
+              "label": "エラーの影響",
+              "description": "システムクラッシュ (Panic)"
+            },
+            {
+              "label": "ハードウェアアクセス",
+              "description": "直接アクセス可能"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "カーネルコアサブシステム",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "プロセス管理",
+          "badge": "Scheduler",
+          "badgeColor": "blue",
+          "points": [
+            "プロセス/スレッドの作成と終了",
+            "CPU スケジューリングアルゴリズム (CFS)",
+            "プロセス間通信 (IPC)",
+            "シグナル処理"
+          ]
+        },
+        {
+          "title": "メモリ管理",
+          "badge": "MM",
+          "badgeColor": "green",
+          "points": [
+            "仮想メモリ管理",
+            "ページの割り当てと回収",
+            "メモリマッピング (mmap)",
+            "OOM Killer"
+          ]
+        },
+        {
+          "title": "ファイルシステム",
+          "badge": "VFS",
+          "badgeColor": "amber",
+          "points": [
+            "仮想ファイルシステム抽象化",
+            "ext4/xfs/btrfs",
+            "ファイルキャッシュ (Page Cache)",
+            "inode 管理"
+          ]
+        },
+        {
+          "title": "ネットワークサブシステム",
+          "badge": "Netfilter",
+          "badgeColor": "purple",
+          "points": [
+            "プロトコルスタック実装",
+            "Socket インターフェース",
+            "iptables/nftables",
+            "ネットワークデバイスドライバ"
+          ]
+        },
+        {
+          "title": "デバイスドライバ",
+          "badge": "Drivers",
+          "badgeColor": "red",
+          "points": [
+            "キャラクタ/ブロック/ネットワークデバイス",
+            "デバイスツリー (Device Tree)",
+            "udev 動的管理",
+            "カーネルモジュールロード"
+          ]
+        },
+        {
+          "title": "セキュリティモジュール",
+          "badge": "LSM",
+          "badgeColor": "gray",
+          "points": [
+            "SELinux/AppArmor",
+            "Capabilities",
+            "Namespaces",
+            "Cgroups"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "システムコールの流れ",
+      "language": "text",
+      "code": "ユーザープログラムが read() を呼び出す:\n\n1. ユーザー空間\n   ┌─────────────────────────────────┐\n   │  アプリケーション: read(fd, buf, size) │\n   │              ↓                 │\n   │  glibc: システムコール番号と引数をラップ │\n   │              ↓                 │\n   │  syscall 命令 (x86_64)         │\n   └──────────────┬──────────────────┘\n                  │ Ring 0 に切り替え\n   ┌──────────────▼──────────────────┐\n2. カーネル空間                       │\n   │  システムコールエントリ           │\n   │              ↓                 │\n   │  sys_read() カーネル関数         │\n   │              ↓                 │\n   │  VFS 層 → ファイルシステム → ブロックデバイス │\n   │              ↓                 │\n   │  結果を返し、Ring 3 に戻る       │\n   └─────────────────────────────────┘"
+    },
+    {
+      "type": "table",
+      "title": "よく使うシステムコール",
+      "highlightFirst": true,
+      "headers": [
+        "カテゴリ",
+        "システムコール",
+        "機能"
+      ],
+      "rows": [
+        [
+          "プロセス",
+          "fork, exec, exit, wait",
+          "プロセスの作成/実行/終了"
+        ],
+        [
+          "ファイル",
+          "open, read, write, close",
+          "ファイル操作"
+        ],
+        [
+          "メモリ",
+          "mmap, brk, mprotect",
+          "メモリ管理"
+        ],
+        [
+          "ネットワーク",
+          "socket, bind, connect, send",
+          "ネットワーク通信"
+        ],
+        [
+          "シグナル",
+          "kill, signal, sigaction",
+          "シグナル処理"
+        ],
+        [
+          "時間",
+          "time, gettimeofday, nanosleep",
+          "時間操作"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "カーネル情報の確認",
+      "language": "bash",
+      "code": "# カーネルバージョン\nuname -r\ncat /proc/version\n\n# カーネル設定\ncat /boot/config-$(uname -r) | grep CONFIG_\nzcat /proc/config.gz  # 有効な場合\n\n# カーネルモジュール\nlsmod                 # ロード済みモジュール\nmodinfo <module>      # モジュール情報\nmodprobe <module>     # モジュールロード\nrmmod <module>        # モジュールアンロード\n\n# カーネルパラメータ\nsysctl -a             # すべてのパラメータ\nsysctl vm.swappiness  # 単一パラメータ\nsysctl -w vm.swappiness=10  # 一時的な変更\n\n# カーネルログ\ndmesg | tail -50\njournalctl -k"
+    },
+    {
+      "type": "table",
+      "title": "重要な /proc ファイル",
+      "highlightFirst": true,
+      "headers": [
+        "パス",
+        "内容"
+      ],
+      "rows": [
+        [
+          "/proc/cpuinfo",
+          "CPU 情報"
+        ],
+        [
+          "/proc/meminfo",
+          "メモリ情報"
+        ],
+        [
+          "/proc/interrupts",
+          "割り込み統計"
+        ],
+        [
+          "/proc/sys/",
+          "カーネルパラメータ (sysctl)"
+        ],
+        [
+          "/proc/<pid>/",
+          "プロセス情報"
+        ],
+        [
+          "/proc/loadavg",
+          "システム負荷"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "カーネルチューニングのポイント",
+      "style": "check",
+      "items": [
+        {
+          "label": "vm.swappiness",
+          "description": "Swap 使用傾向を制御 (0-100)"
+        },
+        {
+          "label": "vm.dirty_ratio",
+          "description": "ダーティページ比率の閾値"
+        },
+        {
+          "label": "net.core.somaxconn",
+          "description": "Socket リッスンキューサイズ"
+        },
+        {
+          "label": "fs.file-max",
+          "description": "システム最大ファイルディスクリプタ数"
+        },
+        {
+          "label": "kernel.pid_max",
+          "description": "最大プロセス ID"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "プロセス管理",
+    "メモリ管理",
+    "システムコール"
+  ]
+}

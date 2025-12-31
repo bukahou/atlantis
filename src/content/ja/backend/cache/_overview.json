@@ -1,0 +1,76 @@
+{
+  "meta": {
+    "title": "キャッシュ・高速化",
+    "description": "HTTP キャッシュと CDN 高速化",
+    "icon": "zap"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "キャッシュでバックエンド負荷を軽減、レスポンスを高速化",
+        "HTTP キャッシュ層：Varnish、Nginx キャッシュ",
+        "CDN 配信：エッジノードで近接応答",
+        "キャッシュ戦略：TTL、失効、プリウォーム"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "キャッシュは Web アプリケーションのパフォーマンス向上に欠かせない技術です。クライアントとオリジンサーバー間にキャッシュ層を追加することで、レスポンス時間とバックエンド負荷を大幅に削減できます。HTTP キャッシュプロキシ（Varnish など）は動的コンテンツをキャッシュでき、CDN はコンテンツをグローバルなエッジノードに配信し、ユーザーが最寄りのノードからリソースを取得できるようにします。"
+    },
+    {
+      "type": "flow",
+      "title": "キャッシュアーキテクチャ",
+      "subtitle": "多層キャッシュ戦略",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "ブラウザ", "description": "ローカルキャッシュ", "color": "bg-gray-500" },
+        { "label": "CDN", "description": "エッジキャッシュ", "color": "bg-blue-500" },
+        { "label": "Varnish", "description": "HTTP キャッシュ", "color": "bg-purple-500" },
+        { "label": "アプリ", "description": "オブジェクトキャッシュ", "color": "bg-green-500" },
+        { "label": "データベース", "description": "永続化", "color": "bg-amber-500" }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "キャッシュソリューション比較",
+      "columns": [
+        {
+          "title": "Varnish",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "ポジション", "description": "HTTP 高速化キャッシュ" },
+            { "label": "特徴", "description": "VCL 設定言語、極限の性能" },
+            { "label": "適用", "description": "動的コンテンツキャッシュ" }
+          ]
+        },
+        {
+          "title": "CDN",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "ポジション", "description": "グローバルコンテンツ配信" },
+            { "label": "特徴", "description": "エッジノード、近接アクセス" },
+            { "label": "適用", "description": "静的リソース、グローバルユーザー" }
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["HTTP キャッシュ", "パフォーマンス最適化", "ロードバランシング"],
+  "articles": [
+    {
+      "slug": "varnish",
+      "title": "Varnish",
+      "description": "高性能 HTTP 高速化キャッシュ",
+      "priority": "essential"
+    },
+    {
+      "slug": "cdn",
+      "title": "CDN",
+      "description": "コンテンツ配信ネットワークの原理と実践",
+      "priority": "recommended"
+    }
+  ]
+}

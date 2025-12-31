@@ -1,0 +1,162 @@
+{
+  "slug": "typescript",
+  "meta": {
+    "title": "TypeScript 语言基础",
+    "description": "TypeScript 类型系统、高级类型与前端开发最佳实践",
+    "order": 1,
+    "tags": [
+      "TypeScript",
+      "类型系统",
+      "前端开发"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "TypeScript 是 JavaScript 的超集",
+        "静态类型系统，编译时检查",
+        "类型推断，减少冗余标注",
+        "渐进式采用，与 JS 无缝兼容"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础类型",
+      "language": "typescript",
+      "code": "// 基本类型\nlet name: string = \"TypeScript\";\nlet age: number = 10;\nlet isTyped: boolean = true;\n\n// 类型推断\nlet inferred = \"Hello\";  // 自动推断为 string\n\n// 联合类型\ntype ID = string | number;\n\n// 字面量类型\ntype Status = \"pending\" | \"success\" | \"error\";\n\n// 数组与元组\nlet numbers: number[] = [1, 2, 3];\nlet tuple: [string, number] = [\"age\", 30];"
+    },
+    {
+      "type": "cards",
+      "title": "类型系统",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "接口 interface",
+          "badge": "对象结构",
+          "badgeColor": "blue",
+          "points": [
+            "定义对象形状",
+            "可扩展 extends",
+            "可实现 implements"
+          ]
+        },
+        {
+          "title": "类型别名 type",
+          "badge": "灵活",
+          "badgeColor": "green",
+          "points": [
+            "联合/交叉类型",
+            "条件类型",
+            "映射类型"
+          ]
+        },
+        {
+          "title": "泛型",
+          "badge": "复用",
+          "badgeColor": "purple",
+          "points": [
+            "类型参数化",
+            "约束 extends",
+            "默认类型"
+          ]
+        },
+        {
+          "title": "类型守卫",
+          "badge": "收窄",
+          "badgeColor": "amber",
+          "points": [
+            "typeof/instanceof",
+            "in 操作符",
+            "自定义守卫"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "泛型",
+      "language": "typescript",
+      "code": "// 泛型函数\nfunction identity<T>(value: T): T {\n    return value;\n}\n\n// 泛型约束\nfunction getLength<T extends { length: number }>(value: T): number {\n    return value.length;\n}\n\n// keyof 约束\nfunction getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {\n    return obj[key];\n}\n\n// 泛型接口\ninterface Response<T> {\n    data: T;\n    status: number;\n}"
+    },
+    {
+      "type": "table",
+      "title": "实用类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "作用",
+        "示例"
+      ],
+      "rows": [
+        [
+          "Partial<T>",
+          "所有属性可选",
+          "Partial<User>"
+        ],
+        [
+          "Required<T>",
+          "所有属性必选",
+          "Required<Config>"
+        ],
+        [
+          "Pick<T, K>",
+          "选择属性",
+          "Pick<User, 'id'|'name'>"
+        ],
+        [
+          "Omit<T, K>",
+          "排除属性",
+          "Omit<User, 'password'>"
+        ],
+        [
+          "ReturnType<T>",
+          "函数返回类型",
+          "ReturnType<typeof fn>"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "高级类型",
+      "language": "typescript",
+      "code": "// 条件类型\ntype IsString<T> = T extends string ? true : false;\n\n// infer 推断\ntype UnwrapPromise<T> = T extends Promise<infer U> ? U : T;\n\n// 映射类型\ntype Readonly<T> = {\n    readonly [P in keyof T]: T[P];\n};\n\n// 模板字面量类型\ntype EventName = `on${Capitalize<'click' | 'focus'>}`;\n// \"onClick\" | \"onFocus\""
+    },
+    {
+      "type": "codeBlock",
+      "title": "类型守卫",
+      "language": "typescript",
+      "code": "// typeof 守卫\nfunction process(value: string | number) {\n    if (typeof value === \"string\") {\n        return value.toUpperCase();\n    }\n    return value.toFixed(2);\n}\n\n// 自定义类型守卫\nfunction isString(value: unknown): value is string {\n    return typeof value === \"string\";\n}\n\n// 断言函数\nfunction assertNonNull<T>(v: T): asserts v is NonNullable<T> {\n    if (v === null || v === undefined) throw new Error();\n}"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "开启 strict",
+          "description": "tsconfig 中开启严格模式"
+        },
+        {
+          "label": "避免 any",
+          "description": "使用 unknown 替代需要检查的类型"
+        },
+        {
+          "label": "使用类型推断",
+          "description": "减少冗余的类型标注"
+        },
+        {
+          "label": "类型导入",
+          "description": "import type { X } 仅导入类型"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "JavaScript",
+    "React",
+    "Node.js"
+  ]
+}

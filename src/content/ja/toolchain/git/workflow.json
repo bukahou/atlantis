@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "title": "Git ワークフロー",
+    "description": "Git ブランチ戦略とチームコラボレーションワークフロー",
+    "order": 1,
+    "tags": ["Git", "ワークフロー", "コラボレーション"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Git は分散バージョン管理システム",
+        "作業ディレクトリ -> ステージングエリア -> ローカルリポジトリ",
+        "ブランチ戦略がチームコラボレーション効率を決定",
+        "コミット規約が履歴の明確さと追跡可能性を保証"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "作業領域",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "作業ディレクトリ", "description": "git add", "color": "bg-blue-500" },
+        { "label": "ステージングエリア", "description": "git commit", "color": "bg-purple-500" },
+        { "label": "ローカルリポジトリ", "description": "git push", "color": "bg-cyan-500" },
+        { "label": "リモートリポジトリ", "description": "origin", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ワークフロー比較",
+      "columns": [
+        {
+          "title": "Git Flow",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "ブランチ", "description": "main/develop/feature/release" },
+            { "label": "適用", "description": "バージョンリリース、マルチ環境" },
+            { "label": "複雑度", "description": "高め" }
+          ]
+        },
+        {
+          "title": "GitHub Flow",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "ブランチ", "description": "main + feature" },
+            { "label": "適用", "description": "継続的デプロイ、高速イテレーション" },
+            { "label": "複雑度", "description": "シンプル" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "よく使うコマンド",
+      "language": "bash",
+      "code": "# ブランチ操作\ngit checkout -b feature/login    # 作成して切り替え\ngit switch -c feature/login       # Git 2.23+\ngit branch -d feature/login       # ブランチ削除\n\n# マージ\ngit merge --no-ff feature/login   # マージ履歴を保持\ngit rebase main                   # リベース（線形履歴）\n\n# リモート\ngit push -u origin feature/login  # プッシュしてアップストリーム設定\ngit pull origin main              # プルしてマージ"
+    },
+    {
+      "type": "table",
+      "title": "Conventional Commits",
+      "highlightFirst": true,
+      "headers": ["Type", "説明", "例"],
+      "rows": [
+        ["feat", "新機能", "feat(auth): add OAuth login"],
+        ["fix", "バグ修正", "fix(api): handle null response"],
+        ["docs", "ドキュメント更新", "docs: update README"],
+        ["refactor", "リファクタリング", "refactor: extract helper"],
+        ["chore", "ビルド/ツール", "chore: update deps"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "実用テクニック",
+      "language": "bash",
+      "code": "# 作業を一時保存\ngit stash           # 現在の変更を保存\ngit stash pop       # 変更を復元\n\n# 取り消し操作\ngit restore file.txt           # 作業ディレクトリの変更を取り消し\ngit restore --staged file.txt  # ステージングを取り消し\ngit reset --soft HEAD~1        # コミットを取り消し、変更を保持\n\n# コミット修正\ngit commit --amend             # 最後のコミットを修正"
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "頻繁なコミット", "description": "小さなコミットで追跡とロールバックを容易に" },
+        { "label": "明確なメッセージ", "description": "Conventional Commits に従う" },
+        { "label": "ブランチ分離", "description": "機能を独立して開発し、コンフリクトを回避" },
+        { "label": "Code Review", "description": "PR を通じてコード品質を保証" }
+      ]
+    }
+  ],
+  "relatedTopics": ["GitHub Actions", "CI/CD", "チームコラボレーション"]
+}

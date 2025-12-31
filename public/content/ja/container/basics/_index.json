@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "vm-vs-container",
+      "title": "仮想マシン vs コンテナ",
+      "description": "仮想化技術の比較：Hypervisor、コンテナランタイムと分離メカニズム",
+      "href": "/container/basics/vm-vs-container",
+      "order": 1
+    },
+    {
+      "slug": "image",
+      "title": "コンテナイメージ詳解",
+      "description": "コンテナイメージの原理：レイヤー構造、UnionFS、イメージ構築と最適化",
+      "href": "/container/basics/image",
+      "order": 2
+    }
+  ]
+}

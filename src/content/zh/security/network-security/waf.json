@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "title": "WAF",
+    "description": "Web 应用防火墙规则与策略",
+    "order": 3,
+    "tags": ["WAF", "Web安全", "防护"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "WAF：应用层（L7）防护",
+        "防护：SQL注入、XSS、CSRF、文件上传等",
+        "模式：阻断模式、检测模式",
+        "规则：OWASP CRS、自定义规则"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "防护能力",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "注入防护",
+          "badge": "A03",
+          "badgeColor": "blue",
+          "points": [
+            "SQL 注入",
+            "命令注入",
+            "LDAP 注入"
+          ]
+        },
+        {
+          "title": "XSS 防护",
+          "badge": "A07",
+          "badgeColor": "green",
+          "points": [
+            "反射型 XSS",
+            "存储型 XSS",
+            "DOM XSS"
+          ]
+        },
+        {
+          "title": "访问控制",
+          "badge": "限流",
+          "badgeColor": "purple",
+          "points": [
+            "IP 黑白名单",
+            "请求频率限制",
+            "Bot 防护"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ModSecurity 配置",
+      "language": "apache",
+      "code": "# 加载 ModSecurity\nLoadModule security2_module modules/mod_security2.so\n\n# 基础配置\nSecRuleEngine On\nSecRequestBodyAccess On\nSecResponseBodyAccess Off\n\n# 加载 OWASP CRS 规则\nInclude /etc/modsecurity/crs/crs-setup.conf\nInclude /etc/modsecurity/crs/rules/*.conf\n\n# 自定义规则：阻止 SQL 注入\nSecRule ARGS|ARGS_NAMES \"@rx (?i)(union.*select|select.*from|insert.*into)\" \\\n    \"id:1001,phase:2,block,log,msg:'SQL Injection Attempt'\"\n\n# 自定义规则：阻止 XSS\nSecRule ARGS|ARGS_NAMES \"@rx <script[^>]*>|javascript:\" \\\n    \"id:1002,phase:2,block,log,msg:'XSS Attempt'\"\n\n# 请求体大小限制\nSecRequestBodyLimit 10485760\nSecRequestBodyNoFilesLimit 131072\n\n# 白名单特定路径\nSecRule REQUEST_URI \"@beginsWith /api/webhook\" \\\n    \"id:1003,phase:1,nolog,allow\""
+    },
+    {
+      "type": "codeBlock",
+      "title": "AWS WAF 规则配置",
+      "language": "json",
+      "code": "{\n  \"Name\": \"WebACL\",\n  \"DefaultAction\": { \"Allow\": {} },\n  \"Rules\": [\n    {\n      \"Name\": \"AWSManagedRulesCommonRuleSet\",\n      \"Priority\": 1,\n      \"Statement\": {\n        \"ManagedRuleGroupStatement\": {\n          \"VendorName\": \"AWS\",\n          \"Name\": \"AWSManagedRulesCommonRuleSet\"\n        }\n      },\n      \"OverrideAction\": { \"None\": {} }\n    },\n    {\n      \"Name\": \"AWSManagedRulesSQLiRuleSet\",\n      \"Priority\": 2,\n      \"Statement\": {\n        \"ManagedRuleGroupStatement\": {\n          \"VendorName\": \"AWS\",\n          \"Name\": \"AWSManagedRulesSQLiRuleSet\"\n        }\n      },\n      \"OverrideAction\": { \"None\": {} }\n    },\n    {\n      \"Name\": \"RateLimitRule\",\n      \"Priority\": 3,\n      \"Statement\": {\n        \"RateBasedStatement\": {\n          \"Limit\": 2000,\n          \"AggregateKeyType\": \"IP\"\n        }\n      },\n      \"Action\": { \"Block\": {} }\n    }\n  ]\n}"
+    },
+    {
+      "type": "table",
+      "title": "WAF 产品对比",
+      "highlightFirst": true,
+      "headers": ["产品", "类型", "特点", "适用"],
+      "rows": [
+        ["AWS WAF", "云服务", "托管规则、与 CloudFront 集成", "AWS 用户"],
+        ["Cloudflare", "边缘", "全球 CDN、免费版可用", "各类网站"],
+        ["ModSecurity", "开源", "灵活、自定义规则", "自建服务"],
+        ["阿里云 WAF", "云服务", "国内合规、托管规则", "阿里云用户"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "配置建议",
+      "style": "check",
+      "items": [
+        { "label": "先检测后阻断", "description": "新规则先用检测模式观察" },
+        { "label": "白名单优先", "description": "信任的路径/IP 配置白名单" },
+        { "label": "日志分析", "description": "定期分析拦截日志优化规则" },
+        { "label": "误报处理", "description": "及时处理误报，优化规则" }
+      ]
+    }
+  ],
+  "relatedTopics": ["OWASP", "防火墙", "DDoS防护"]
+}

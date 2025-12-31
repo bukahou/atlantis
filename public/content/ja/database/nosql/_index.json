@@ -20,6 +20,13 @@
       "description": "Elasticsearch 全文検索エンジン、インデックスとクエリ DSL",
       "href": "/database/nosql/elasticsearch",
       "order": 3
+    },
+    {
+      "slug": "dynamodb",
+      "title": "DynamoDB",
+      "description": "AWS DynamoDB フルマネージド NoSQL データベースサービス",
+      "href": "/database/nosql/dynamodb",
+      "order": 4
     }
   ]
 }

@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "title": "GitHub Actions",
+    "description": "GitHub Actions CI/CD 工作流、自动化构建与部署",
+    "order": 1,
+    "tags": ["GitHub Actions", "CI/CD", "自动化"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "GitHub Actions 是 GitHub 提供的 CI/CD 平台",
+        "Workflow -> Job -> Step 层级结构",
+        "事件驱动：push/PR/schedule/手动触发",
+        "矩阵构建支持多环境并行测试"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心组件",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Workflow",
+          "badge": "工作流",
+          "badgeColor": "blue",
+          "points": [
+            "YAML 配置文件",
+            ".github/workflows/",
+            "事件触发"
+          ]
+        },
+        {
+          "title": "Job",
+          "badge": "作业",
+          "badgeColor": "green",
+          "points": [
+            "运行在 Runner",
+            "可定义依赖",
+            "并行/顺序执行"
+          ]
+        },
+        {
+          "title": "Step",
+          "badge": "步骤",
+          "badgeColor": "purple",
+          "points": [
+            "单个命令/Action",
+            "顺序执行",
+            "共享环境"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础工作流",
+      "language": "yaml",
+      "code": "name: CI\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-go@v5\n        with:\n          go-version: '1.21'\n      - run: go test -v ./..."
+    },
+    {
+      "type": "codeBlock",
+      "title": "矩阵构建",
+      "language": "yaml",
+      "code": "jobs:\n  test:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, macos-latest]\n        go-version: ['1.20', '1.21']\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-go@v5\n        with:\n          go-version: ${{ matrix.go-version }}\n      - run: go test ./..."
+    },
+    {
+      "type": "table",
+      "title": "常用触发器",
+      "highlightFirst": true,
+      "headers": ["事件", "配置", "用途"],
+      "rows": [
+        ["push", "branches: [main]", "代码推送"],
+        ["pull_request", "types: [opened]", "PR 事件"],
+        ["schedule", "cron: '0 0 * * *'", "定时触发"],
+        ["workflow_dispatch", "inputs: {...}", "手动触发"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker 构建发布",
+      "language": "yaml",
+      "code": "- uses: docker/setup-buildx-action@v3\n\n- uses: docker/login-action@v3\n  with:\n    username: ${{ secrets.DOCKER_USERNAME }}\n    password: ${{ secrets.DOCKER_PASSWORD }}\n\n- uses: docker/build-push-action@v5\n  with:\n    context: .\n    push: true\n    tags: user/app:latest\n    cache-from: type=gha\n    cache-to: type=gha,mode=max"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用缓存", "description": "actions/cache 加速构建" },
+        { "label": "密钥管理", "description": "secrets 存储敏感信息" },
+        { "label": "可复用工作流", "description": "workflow_call 模板化" },
+        { "label": "矩阵构建", "description": "多环境并行测试" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Jenkins", "Docker", "Git"]
+}

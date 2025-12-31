@@ -41,7 +41,7 @@ export function NavDropdown({ item }: NavDropdownProps) {
     return (
       <Link
         href={item.href || "#"}
-        className="px-4 py-2 text-sm font-medium hover:text-blue-600 transition-colors"
+        className="px-2 xl:px-3 py-2 text-sm font-medium hover:text-blue-600 transition-colors whitespace-nowrap"
       >
         {item.label}
       </Link>
@@ -56,11 +56,11 @@ export function NavDropdown({ item }: NavDropdownProps) {
       onMouseLeave={handleMouseLeave}
     >
       <button
-        className="flex items-center gap-1 px-4 py-2 text-sm font-medium
-                   hover:text-blue-600 transition-colors"
+        className="flex items-center gap-0.5 px-2 xl:px-3 py-2 text-sm font-medium
+                   hover:text-blue-600 transition-colors whitespace-nowrap"
       >
         {item.label}
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (

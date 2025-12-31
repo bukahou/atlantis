@@ -2,14 +2,154 @@
   "slug": "rabbitmq",
   "meta": {
     "title": "RabbitMQ",
-    "description": "RabbitMQ メッセージキュー、AMQP プロトコルとメッセージパターン",
+    "description": "信頼性の高いメッセージブローカー",
     "order": 2,
     "tags": [
-      "mq",
-      "rabbitmq",
-      "amqp",
-      "messaging"
+      "メッセージキュー",
+      "RabbitMQ",
+      "AMQP"
     ]
   },
-  "content": "<h1>RabbitMQ</h1>\n<h2>RabbitMQ 概要</h2>\n<p>RabbitMQ は AMQP プロトコルベースのメッセージブローカーで、複数のメッセージパターンをサポートし、信頼性の高いメッセージ配信メカニズムを提供します。</p>\n<pre><code>RabbitMQ アーキテクチャ\n├── Producer - メッセージプロデューサー\n├── Exchange - エクスチェンジ (メッセージルーティング)\n├── Queue - メッセージキュー\n├── Binding - バインディング関係\n├── Consumer - メッセージコンシューマー\n└── Virtual Host - 仮想ホスト (分離)\n</code></pre>\n<h2>エクスチェンジタイプ</h2>\n<h3>Direct Exchange</h3>\n<pre><code>ダイレクトエクスチェンジ - 完全一致ルーティングキー\n\nProducer -> [Exchange] -> routing_key=\"order\" -> [Queue: orders]\n                       -> routing_key=\"user\"  -> [Queue: users]\n</code></pre>\n<h3>Fanout Exchange</h3>\n<pre><code>ファンアウトエクスチェンジ - 全バインドキューにブロードキャスト\n\nProducer -> [Exchange] -> [Queue: logs1]\n                       -> [Queue: logs2]\n                       -> [Queue: logs3]\n</code></pre>\n<h3>Topic Exchange</h3>\n<pre><code>トピックエクスチェンジ - パターンマッチルーティングキー\n\nrouting_key: \"order.created.us\"\n├── \"order.*.*\"     - マッチ\n├── \"order.#\"       - マッチ\n├── \"*.created.*\"   - マッチ\n└── \"order.updated\" - 不一致\n\n* 一語にマッチ\n# ゼロ以上の語にマッチ\n</code></pre>\n<h3>Headers Exchange</h3>\n<pre><code>ヘッダーエクスチェンジ - メッセージヘッダーでマッチ\n\nheaders: {type: \"order\", region: \"us\"}\nbinding: {x-match: \"all\", type: \"order\", region: \"us\"} - マッチ\nbinding: {x-match: \"any\", type: \"order\"} - マッチ\n</code></pre>\n<h2>Go クライアント</h2>\n<h3>接続とチャネル</h3>\n<pre><code class=\"language-go\">import \"github.com/rabbitmq/amqp091-go\"\n\n// 接続確立\nconn, _ := amqp.Dial(\"amqp://guest:guest@localhost:5672/\")\ndefer conn.Close()\n\n// チャネル作成\nch, _ := conn.Channel()\ndefer ch.Close()\n\n// エクスチェンジ宣言\nch.ExchangeDeclare(\n    \"orders\",   // 名前\n    \"direct\",   // タイプ\n    true,       // 永続化\n    false,      // 自動削除\n    false,      // 内部\n    false,      // 待機なし\n    nil,        // 引数\n)\n\n// キュー宣言\nq, _ := ch.QueueDeclare(\n    \"order_queue\", // 名前\n    true,          // 永続化\n    false,         // 自動削除\n    false,         // 排他\n    false,         // 待機なし\n    nil,           // 引数\n)\n\n// キューバインド\nch.QueueBind(\n    q.Name,         // キュー名\n    \"order.create\", // ルーティングキー\n    \"orders\",       // エクスチェンジ\n    false,\n    nil,\n)\n</code></pre>\n<h3>メッセージ送信</h3>\n<pre><code class=\"language-go\">// メッセージ送信\nctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\ndefer cancel()\n\nbody := []byte(`{\"order_id\": \"123\", \"status\": \"created\"}`)\n\nerr := ch.PublishWithContext(ctx,\n    \"orders\",       // エクスチェンジ\n    \"order.create\", // ルーティングキー\n    false,          // 必須\n    false,          // 即時\n    amqp.Publishing{\n        DeliveryMode: amqp.Persistent, // 永続化\n        ContentType:  \"application/json\",\n        Body:         body,\n        Headers: amqp.Table{\n            \"type\": \"order_created\",\n        },\n    },\n)\n</code></pre>\n<h3>メッセージ消費</h3>\n<pre><code class=\"language-go\">// メッセージ消費\nmsgs, _ := ch.Consume(\n    q.Name, // キュー\n    \"\",     // コンシューマータグ\n    false,  // 自動確認\n    false,  // 排他\n    false,  // 待機なし\n    false,  // 引数\n    nil,\n)\n\nfor msg := range msgs {\n    fmt.Printf(\"Received: %s\\n\", msg.Body)\n\n    // メッセージ処理\n    err := processMessage(msg.Body)\n    if err != nil {\n        // 拒否して再キューイング\n        msg.Nack(false, true)\n    } else {\n        // 確認\n        msg.Ack(false)\n    }\n}\n</code></pre>\n<h2>メッセージ確認</h2>\n<h3>プロデューサー確認</h3>\n<pre><code class=\"language-go\">// 確認モード有効化\nch.Confirm(false)\n\n// 確認リッスン\nconfirms := ch.NotifyPublish(make(chan amqp.Confirmation, 1))\n\n// メッセージ送信\nch.PublishWithContext(ctx, exchange, routingKey, false, false, msg)\n\n// 確認待機\nconfirmed := &#x3C;-confirms\nif confirmed.Ack {\n    fmt.Println(\"Message confirmed\")\n} else {\n    fmt.Println(\"Message nacked\")\n}\n</code></pre>\n<h3>コンシューマー確認</h3>\n<pre><code class=\"language-go\">// 手動確認\nmsg.Ack(false)  // 単一確認\nmsg.Ack(true)   // バッチ確認 (現在及び以前全て)\n\n// 拒否\nmsg.Nack(false, false) // 拒否、再キューなし\nmsg.Nack(false, true)  // 拒否、再キュー\n\n// 単一拒否\nmsg.Reject(false) // 再キューなし\nmsg.Reject(true)  // 再キュー\n</code></pre>\n<h2>高度な機能</h2>\n<h3>デッドレターキュー</h3>\n<pre><code class=\"language-go\">// デッドレターエクスチェンジ宣言\nch.ExchangeDeclare(\"dlx\", \"direct\", true, false, false, false, nil)\n\n// デッドレターキュー宣言\nch.QueueDeclare(\"dlq\", true, false, false, false, nil)\nch.QueueBind(\"dlq\", \"dead\", \"dlx\", false, nil)\n\n// メインキューにデッドレター設定\nargs := amqp.Table{\n    \"x-dead-letter-exchange\":    \"dlx\",\n    \"x-dead-letter-routing-key\": \"dead\",\n    \"x-message-ttl\":             60000, // 60秒で期限切れ\n}\nch.QueueDeclare(\"main_queue\", true, false, false, false, args)\n</code></pre>\n<h3>遅延メッセージ</h3>\n<pre><code class=\"language-go\">// 方法1: TTL + デッドレターキュー\nargs := amqp.Table{\n    \"x-dead-letter-exchange\":    \"target_exchange\",\n    \"x-dead-letter-routing-key\": \"target_key\",\n    \"x-message-ttl\":             300000, // 5分遅延\n}\n\n// 方法2: 遅延プラグイン (rabbitmq_delayed_message_exchange)\nch.ExchangeDeclare(\n    \"delayed\",\n    \"x-delayed-message\",\n    true, false, false, false,\n    amqp.Table{\"x-delayed-type\": \"direct\"},\n)\n\n// 遅延メッセージ送信\nch.PublishWithContext(ctx, \"delayed\", \"key\", false, false,\n    amqp.Publishing{\n        Headers: amqp.Table{\n            \"x-delay\": 60000, // 60秒遅延\n        },\n        Body: body,\n    },\n)\n</code></pre>\n<h3>優先度キュー</h3>\n<pre><code class=\"language-go\">// 優先度キュー宣言\nargs := amqp.Table{\n    \"x-max-priority\": 10, // 最大優先度\n}\nch.QueueDeclare(\"priority_queue\", true, false, false, false, args)\n\n// 優先度付きメッセージ送信\nch.PublishWithContext(ctx, \"\", \"priority_queue\", false, false,\n    amqp.Publishing{\n        Priority: 5, // 優先度 0-10\n        Body:     body,\n    },\n)\n</code></pre>\n<h2>クラスターと高可用性</h2>\n<pre><code class=\"language-yaml\"># クラスター設定\nノードタイプ:\n  - disk: メタデータ永続化\n  - ram: メモリストレージ\n\nキューミラーリング:\n  - ha-mode: all        # 全ノード\n  - ha-mode: exactly    # 指定数\n  - ha-mode: nodes      # 指定ノード\n\nポリシー例:\n  rabbitmqctl set_policy ha-all \".*\" '{\"ha-mode\":\"all\"}'\n</code></pre>\n<h2>まとめ</h2>\n<p>RabbitMQ のポイント：</p>\n<ol>\n<li><strong>エクスチェンジ</strong> - Direct、Fanout、Topic、Headers</li>\n<li><strong>メッセージ確認</strong> - プロデューサー確認、コンシューマー確認</li>\n<li><strong>信頼性</strong> - 永続化、デッドレターキュー</li>\n<li><strong>高度な機能</strong> - 遅延メッセージ、優先度キュー</li>\n<li><strong>高可用性</strong> - クラスター、ミラーキュー</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "RabbitMQ は AMQP プロトコルを実装",
+        "Exchange がメッセージを Queue にルーティング",
+        "柔軟なルーティングルール",
+        "メッセージ確認と永続化をサポート"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Exchange タイプ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Direct",
+          "badge": "ダイレクト",
+          "badgeColor": "blue",
+          "points": [
+            "routing key の完全一致",
+            "一対一ルーティング",
+            "最もシンプルなモード"
+          ]
+        },
+        {
+          "title": "Fanout",
+          "badge": "ブロードキャスト",
+          "badgeColor": "green",
+          "points": [
+            "routing key を無視",
+            "バインドされた全キューにブロードキャスト",
+            "Pub/Sub パターン"
+          ]
+        },
+        {
+          "title": "Topic",
+          "badge": "トピック",
+          "badgeColor": "amber",
+          "points": [
+            "ワイルドカードマッチ",
+            "* は1ワードにマッチ",
+            "# は複数ワードにマッチ"
+          ]
+        },
+        {
+          "title": "Headers",
+          "badge": "ヘッダー",
+          "badgeColor": "purple",
+          "points": [
+            "メッセージヘッダー属性に基づく",
+            "routing key を使用しない",
+            "複雑なマッチングルール"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "メッセージフロー",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Producer",
+          "description": "メッセージ送信",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Exchange",
+          "description": "メッセージルーティング",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Queue",
+          "description": "メッセージ保存",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "Consumer",
+          "description": "メッセージ消費",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "信頼性保証",
+      "highlightFirst": true,
+      "headers": [
+        "メカニズム",
+        "説明"
+      ],
+      "rows": [
+        [
+          "永続化",
+          "Exchange/Queue/Message すべて永続化可能"
+        ],
+        [
+          "パブリッシャー確認",
+          "Publisher Confirms で Broker 到達を確認"
+        ],
+        [
+          "コンシューマー確認",
+          "Consumer Ack で処理完了を確認"
+        ],
+        [
+          "デッドレターキュー",
+          "処理失敗メッセージのフォールバックキュー"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "永続化を有効化",
+          "description": "Queue と Message 両方に永続化を設定"
+        },
+        {
+          "label": "手動確認",
+          "description": "処理完了後に Ack、メッセージロスを回避"
+        },
+        {
+          "label": "デッドレターキュー",
+          "description": "DLX を設定して失敗メッセージを処理"
+        },
+        {
+          "label": "コネクションプール",
+          "description": "接続とチャンネルを再利用し、オーバーヘッドを削減"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "メッセージキュー",
+    "AMQP",
+    "マイクロサービス"
+  ]
 }

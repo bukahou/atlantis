@@ -1,0 +1,145 @@
+{
+  "slug": "failover",
+  "meta": {
+    "title": "故障转移",
+    "description": "主备切换、集群选主与流量调度",
+    "order": 2,
+    "tags": [
+      "高可用",
+      "故障转移",
+      "选主"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "故障检测：心跳、健康检查、超时判定",
+        "故障转移：自动切换到备用节点",
+        "脑裂问题：网络分区导致多主",
+        "仲裁机制：通过多数派或外部仲裁避免脑裂"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "故障转移模式",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "主备切换",
+          "badge": "Active-Passive",
+          "badgeColor": "blue",
+          "points": [
+            "一主一备/多备",
+            "VIP 漂移",
+            "DNS 切换"
+          ]
+        },
+        {
+          "title": "集群选主",
+          "badge": "Leader Election",
+          "badgeColor": "green",
+          "points": [
+            "Raft/Paxos",
+            "多数派选举",
+            "租约机制"
+          ]
+        },
+        {
+          "title": "流量调度",
+          "badge": "Load Balancer",
+          "badgeColor": "purple",
+          "points": [
+            "健康检查剔除",
+            "权重调整",
+            "灰度切流"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "健康检查配置",
+      "language": "yaml",
+      "code": "# Kubernetes LivenessProbe\napiVersion: v1\nkind: Pod\nspec:\n  containers:\n  - name: app\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 8080\n      initialDelaySeconds: 10\n      periodSeconds: 5\n      timeoutSeconds: 3\n      failureThreshold: 3  # 3次失败后重启\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 8080\n      periodSeconds: 3\n      failureThreshold: 1  # 1次失败移出服务\n\n# Nginx 健康检查\nupstream backend {\n    server 10.0.0.1:8080 weight=5;\n    server 10.0.0.2:8080 weight=5;\n    server 10.0.0.3:8080 backup;  # 备用节点\n    \n    check interval=3000 rise=2 fall=3 timeout=1000;\n    check_http_send \"GET /health HTTP/1.0\\r\\n\\r\\n\";\n    check_http_expect_alive http_2xx http_3xx;\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "分布式锁实现选主",
+      "language": "go",
+      "code": "// 基于 Redis 的简单选主\nfunc TryBecomeLeader(ctx context.Context, redis *redis.Client) (bool, error) {\n    leaderKey := \"service:leader\"\n    nodeID := getNodeID()\n    ttl := 10 * time.Second\n    \n    // 尝试获取领导权\n    ok, err := redis.SetNX(ctx, leaderKey, nodeID, ttl).Result()\n    if err != nil || !ok {\n        return false, err\n    }\n    \n    // 获取成功，启动续约协程\n    go func() {\n        ticker := time.NewTicker(ttl / 3)\n        for {\n            select {\n            case <-ticker.C:\n                // 续约\n                redis.Expire(ctx, leaderKey, ttl)\n            case <-ctx.Done():\n                // 主动释放\n                redis.Del(ctx, leaderKey)\n                return\n            }\n        }\n    }()\n    \n    return true, nil\n}\n\n// 基于 etcd 的选主（推荐生产使用）\nfunc ElectLeader(client *clientv3.Client) {\n    session, _ := concurrency.NewSession(client, concurrency.WithTTL(10))\n    election := concurrency.NewElection(session, \"/leader\")\n    \n    // 参与选举（阻塞直到成为 leader）\n    election.Campaign(ctx, nodeID)\n    \n    // 成为 leader 后执行任务\n    doLeaderWork()\n    \n    // 主动让位\n    election.Resign(ctx)\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "选主方案对比",
+      "columns": [
+        {
+          "title": "Raft/Paxos",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            {
+              "label": "机制",
+              "description": "多数派共识"
+            },
+            {
+              "label": "优点",
+              "description": "强一致、无外部依赖"
+            },
+            {
+              "label": "代表",
+              "description": "etcd、Consul"
+            }
+          ]
+        },
+        {
+          "title": "外部协调",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "机制",
+              "description": "分布式锁/租约"
+            },
+            {
+              "label": "优点",
+              "description": "实现简单"
+            },
+            {
+              "label": "代表",
+              "description": "Redis、ZooKeeper"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "避免脑裂",
+      "style": "check",
+      "items": [
+        {
+          "label": "多数派仲裁",
+          "description": "只有获得多数节点同意才能成为主"
+        },
+        {
+          "label": "Fencing Token",
+          "description": "每次选主生成单调递增的令牌"
+        },
+        {
+          "label": "STONITH",
+          "description": "隔离故障节点，确保只有一个主"
+        },
+        {
+          "label": "人工干预",
+          "description": "复杂场景预留人工介入机制"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Raft",
+    "分布式锁",
+    "负载均衡"
+  ]
+}

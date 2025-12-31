@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "tls",
+      "title": "TLS/SSL",
+      "description": "TLS 1.3、証明書管理と設定",
+      "href": "/security/network-security/tls",
+      "order": 1
+    },
+    {
+      "slug": "firewall",
+      "title": "ファイアウォール",
+      "description": "ネットワークファイアウォールとセキュリティグループ設定",
+      "href": "/security/network-security/firewall",
+      "order": 2
+    },
+    {
+      "slug": "waf",
+      "title": "WAF",
+      "description": "Webアプリケーションファイアウォールのルールとポリシー",
+      "href": "/security/network-security/waf",
+      "order": 3
+    }
+  ]
+}

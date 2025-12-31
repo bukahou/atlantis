@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "cap",
+      "title": "CAP定理",
+      "description": "分散システムの不可能三角形",
+      "href": "/architecture/distributed/cap",
+      "order": 1
+    },
+    {
+      "slug": "consistency",
+      "title": "整合性モデル",
+      "description": "強整合性、弱整合性、結果整合性",
+      "href": "/architecture/distributed/consistency",
+      "order": 2
+    },
+    {
+      "slug": "transaction",
+      "title": "分散トランザクション",
+      "description": "2PC、Saga、TCCトランザクションパターン",
+      "href": "/architecture/distributed/transaction",
+      "order": 3
+    }
+  ]
+}

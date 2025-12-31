@@ -1,0 +1,213 @@
+{
+  "slug": "storage",
+  "meta": {
+    "title": "存储管理",
+    "description": "Kubernetes 存储：PV、PVC、StorageClass 与动态供给",
+    "order": 5,
+    "tags": [
+      "Kubernetes",
+      "存储",
+      "PV",
+      "PVC",
+      "StorageClass"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "PersistentVolume (PV) 是集群级别的存储资源",
+        "PersistentVolumeClaim (PVC) 是用户的存储请求",
+        "StorageClass 实现动态存储供给",
+        "存储与 Pod 生命周期解耦"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "存储架构",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Pod",
+          "description": "使用 PVC",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "PVC",
+          "description": "存储请求",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "PV",
+          "description": "存储资源",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Storage",
+          "description": "实际存储",
+          "color": "bg-gray-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "存储资源",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "PersistentVolume",
+          "badge": "PV",
+          "badgeColor": "blue",
+          "points": [
+            "集群级别资源",
+            "管理员预先创建",
+            "定义存储类型和容量",
+            "生命周期独立于 Pod"
+          ]
+        },
+        {
+          "title": "PersistentVolumeClaim",
+          "badge": "PVC",
+          "badgeColor": "green",
+          "points": [
+            "命名空间级别",
+            "用户存储请求",
+            "绑定到匹配的 PV",
+            "Pod 通过 PVC 使用存储"
+          ]
+        },
+        {
+          "title": "StorageClass",
+          "badge": "SC",
+          "badgeColor": "amber",
+          "points": [
+            "存储类抽象",
+            "动态创建 PV",
+            "定义供给器和参数",
+            "无需手动创建 PV"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "PV 和 PVC 示例",
+      "language": "yaml",
+      "code": "# PersistentVolume (管理员创建)\napiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: pv-nfs-data\nspec:\n  capacity:\n    storage: 100Gi\n  accessModes:\n    - ReadWriteMany\n  persistentVolumeReclaimPolicy: Retain\n  storageClassName: nfs\n  nfs:\n    server: 192.168.1.100\n    path: /data/k8s\n---\n# PersistentVolumeClaim (用户创建)\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-claim\nspec:\n  accessModes:\n    - ReadWriteMany\n  resources:\n    requests:\n      storage: 50Gi\n  storageClassName: nfs\n---\n# Pod 使用 PVC\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    volumeMounts:\n    - name: data\n      mountPath: /app/data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: data-claim"
+    },
+    {
+      "type": "table",
+      "title": "访问模式 (Access Modes)",
+      "highlightFirst": true,
+      "headers": [
+        "模式",
+        "缩写",
+        "说明"
+      ],
+      "rows": [
+        [
+          "ReadWriteOnce",
+          "RWO",
+          "单节点读写"
+        ],
+        [
+          "ReadOnlyMany",
+          "ROX",
+          "多节点只读"
+        ],
+        [
+          "ReadWriteMany",
+          "RWX",
+          "多节点读写"
+        ],
+        [
+          "ReadWriteOncePod",
+          "RWOP",
+          "单 Pod 读写 (K8s 1.22+)"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": "回收策略 (Reclaim Policy)",
+      "highlightFirst": true,
+      "headers": [
+        "策略",
+        "说明"
+      ],
+      "rows": [
+        [
+          "Retain",
+          "保留数据，手动清理"
+        ],
+        [
+          "Delete",
+          "删除 PV 和后端存储"
+        ],
+        [
+          "Recycle",
+          "已废弃，清空数据重用"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "StorageClass 动态供给",
+      "language": "yaml",
+      "code": "# StorageClass 定义\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: fast-ssd\nprovisioner: kubernetes.io/aws-ebs  # 或 pd.csi.storage.gke.io\nparameters:\n  type: gp3\n  iopsPerGB: \"10\"\n  fsType: ext4\nreclaimPolicy: Delete\nvolumeBindingMode: WaitForFirstConsumer  # 延迟绑定\nallowVolumeExpansion: true  # 允许扩容\n---\n# 使用 StorageClass 的 PVC\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: fast-storage\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: fast-ssd\n  resources:\n    requests:\n      storage: 100Gi\n\n# PV 会自动创建并绑定"
+    },
+    {
+      "type": "codeBlock",
+      "title": "常用存储类型",
+      "language": "yaml",
+      "code": "# 云厂商存储\n# AWS EBS\nprovisioner: ebs.csi.aws.com\n# GCP PD\nprovisioner: pd.csi.storage.gke.io\n# Azure Disk\nprovisioner: disk.csi.azure.com\n\n# 本地存储\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: local-storage\nprovisioner: kubernetes.io/no-provisioner\nvolumeBindingMode: WaitForFirstConsumer\n---\n# Local PV\napiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: local-pv\nspec:\n  capacity:\n    storage: 100Gi\n  accessModes:\n    - ReadWriteOnce\n  persistentVolumeReclaimPolicy: Retain\n  storageClassName: local-storage\n  local:\n    path: /mnt/disks/ssd1\n  nodeAffinity:\n    required:\n      nodeSelectorTerms:\n      - matchExpressions:\n        - key: kubernetes.io/hostname\n          operator: In\n          values:\n          - node-1"
+    },
+    {
+      "type": "codeBlock",
+      "title": "卷扩容",
+      "language": "bash",
+      "code": "# StorageClass 必须设置 allowVolumeExpansion: true\n\n# 编辑 PVC 增加容量\nkubectl patch pvc data-claim -p '{\"spec\":{\"resources\":{\"requests\":{\"storage\":\"200Gi\"}}}}'\n\n# 查看扩容状态\nkubectl get pvc data-claim\n\n# 某些存储需要重启 Pod 才能完成文件系统扩容\nkubectl delete pod <pod-using-pvc>"
+    },
+    {
+      "type": "codeBlock",
+      "title": "快照与克隆",
+      "language": "yaml",
+      "code": "# VolumeSnapshot (需要 CSI 驱动支持)\napiVersion: snapshot.storage.k8s.io/v1\nkind: VolumeSnapshot\nmetadata:\n  name: data-snapshot\nspec:\n  volumeSnapshotClassName: csi-snapclass\n  source:\n    persistentVolumeClaimName: data-claim\n---\n# 从快照恢复\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: restored-data\nspec:\n  storageClassName: fast-ssd\n  dataSource:\n    name: data-snapshot\n    kind: VolumeSnapshot\n    apiGroup: snapshot.storage.k8s.io\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 100Gi"
+    },
+    {
+      "type": "list",
+      "title": "存储最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 StorageClass",
+          "description": "动态供给，减少手动管理"
+        },
+        {
+          "label": "WaitForFirstConsumer",
+          "description": "延迟绑定，支持拓扑调度"
+        },
+        {
+          "label": "启用卷扩容",
+          "description": "allowVolumeExpansion: true"
+        },
+        {
+          "label": "定期快照备份",
+          "description": "关键数据使用 VolumeSnapshot"
+        },
+        {
+          "label": "选择合适的访问模式",
+          "description": "RWO 用于数据库，RWX 用于共享文件"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "StatefulSet",
+    "Pod",
+    "云存储",
+    "备份恢复"
+  ]
+}

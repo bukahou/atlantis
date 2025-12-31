@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "title": "Docker ストレージ",
+    "description": "Docker データ永続化：Volume、Bind Mount とストレージドライバ",
+    "order": 4,
+    "tags": ["Docker", "ストレージ", "Volume", "データ永続化"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "コンテナファイルシステムは一時的で、コンテナ削除でデータも消失",
+        "Volume は Docker が管理する永続化ストレージ",
+        "Bind Mount はホストディレクトリを直接マッピング",
+        "tmpfs はメモリに保存、機密データに適する"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ストレージタイプ比較",
+      "columns": [
+        {
+          "title": "Volume",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "管理方式", "description": "Docker が管理" },
+            { "label": "保存場所", "description": "/var/lib/docker/volumes/" },
+            { "label": "移植性", "description": "高い、クロスプラットフォーム" },
+            { "label": "推奨シナリオ", "description": "本番環境のデータ永続化" }
+          ]
+        },
+        {
+          "title": "Bind Mount",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "管理方式", "description": "ユーザーが管理" },
+            { "label": "保存場所", "description": "任意のホストパス" },
+            { "label": "移植性", "description": "低い、ホストに依存" },
+            { "label": "推奨シナリオ", "description": "開発環境のコードマウント" }
+          ]
+        },
+        {
+          "title": "tmpfs",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            { "label": "管理方式", "description": "メモリストレージ" },
+            { "label": "保存場所", "description": "ホストメモリ" },
+            { "label": "移植性", "description": "中、Linux のみ" },
+            { "label": "推奨シナリオ", "description": "機密データ/一時キャッシュ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Volume 操作",
+      "language": "bash",
+      "code": "# Volume を作成\ndocker volume create mydata\n\n# Volume 一覧を表示\ndocker volume ls\n\n# Volume 詳細を表示\ndocker volume inspect mydata\n\n# Volume を使用してコンテナを実行\ndocker run -d \\\n  --name myapp \\\n  -v mydata:/app/data \\\n  nginx\n\n# 匿名 Volume (自動作成)\ndocker run -d -v /app/data nginx\n\n# Volume を削除\ndocker volume rm mydata\n\n# 未使用の Volume をクリーンアップ\ndocker volume prune"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Bind Mount の使用",
+      "language": "bash",
+      "code": "# ホストディレクトリをマウント (--mount 推奨)\ndocker run -d \\\n  --name devapp \\\n  --mount type=bind,source=/home/user/code,target=/app \\\n  node:18\n\n# -v 短縮形式を使用\ndocker run -d \\\n  -v /home/user/code:/app \\\n  node:18\n\n# 読み取り専用マウント\ndocker run -d \\\n  -v /home/user/config:/app/config:ro \\\n  myapp\n\n# 開発環境ホットリロード例\ndocker run -d \\\n  -v $(pwd):/app \\\n  -v /app/node_modules \\\n  -p 3000:3000 \\\n  node:18 npm run dev"
+    },
+    {
+      "type": "codeBlock",
+      "title": "tmpfs マウント",
+      "language": "bash",
+      "code": "# tmpfs マウント (データはメモリに保存)\ndocker run -d \\\n  --name secure-app \\\n  --tmpfs /app/secrets:rw,size=64m \\\n  myapp\n\n# --mount 構文を使用\ndocker run -d \\\n  --mount type=tmpfs,target=/app/tmp,tmpfs-size=100m \\\n  myapp"
+    },
+    {
+      "type": "cards",
+      "title": "Volume 高度な機能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Volume ドライバ",
+          "badge": "拡張",
+          "badgeColor": "blue",
+          "points": [
+            "local: デフォルトローカルストレージ",
+            "nfs: NFS ネットワークストレージ",
+            "ceph: Ceph 分散ストレージ",
+            "サードパーティプラグインをサポート"
+          ]
+        },
+        {
+          "title": "データ共有",
+          "badge": "コンテナ間",
+          "badgeColor": "green",
+          "points": [
+            "複数コンテナが同じ Volume を共有",
+            "--volumes-from でマウントを複製",
+            "並行書き込みに注意"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Volume バックアップとリストア",
+      "language": "bash",
+      "code": "# Volume データをバックアップ\ndocker run --rm \\\n  -v mydata:/source:ro \\\n  -v $(pwd):/backup \\\n  alpine tar czf /backup/mydata-backup.tar.gz -C /source .\n\n# Volume データをリストア\ndocker run --rm \\\n  -v mydata:/target \\\n  -v $(pwd):/backup \\\n  alpine tar xzf /backup/mydata-backup.tar.gz -C /target\n\n# NFS Volume ドライバを使用\ndocker volume create \\\n  --driver local \\\n  --opt type=nfs \\\n  --opt o=addr=192.168.1.100,rw \\\n  --opt device=:/path/to/dir \\\n  nfs-data"
+    },
+    {
+      "type": "table",
+      "title": "ストレージ選択ガイド",
+      "highlightFirst": true,
+      "headers": ["シナリオ", "推奨タイプ", "理由"],
+      "rows": [
+        ["データベースデータ", "Volume", "Docker が管理、バックアップが容易"],
+        ["開発コードマウント", "Bind Mount", "ホストファイルとリアルタイム同期"],
+        ["設定ファイル", "Bind Mount (読み取り専用)", "変更とバージョン管理が容易"],
+        ["機密情報/キー", "tmpfs", "ディスクに書き込まない、より安全"],
+        ["ログファイル", "Volume", "永続化し収集が容易"],
+        ["キャッシュデータ", "tmpfs/Volume", "永続化が必要かどうかで選択"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ストレージベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "本番では Volume を使用", "description": "Bind Mount より安全で管理が容易" },
+        { "label": "名前付き Volume", "description": "匿名 Volume を避け、管理を容易に" },
+        { "label": "定期的なバックアップ", "description": "重要データのバックアップ戦略を確立" },
+        { "label": "読み取り専用マウント", "description": "設定ファイルは :ro で意図しない変更を防止" },
+        { "label": "機密データの保存を避ける", "description": "キーは Secret 管理または tmpfs を使用" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker 基礎", "Docker Compose", "Kubernetes ストレージ"]
+}

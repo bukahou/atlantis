@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "title": "Helm 包管理",
+    "description": "Helm Chart 开发与应用部署",
+    "order": 4,
+    "tags": ["Kubernetes", "Helm", "包管理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Helm 是 Kubernetes 的包管理器",
+        "Chart 是 Helm 的打包格式",
+        "支持模板化和参数配置",
+        "Release 是 Chart 的运行实例"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Helm",
+      "content": "Helm 被称为 Kubernetes 的包管理器，类似于 apt 或 yum。它将复杂的 Kubernetes 应用打包成 Chart，支持版本管理、参数化配置和一键部署，大大简化了应用的分发和部署。"
+    },
+    {
+      "type": "flow",
+      "title": "Helm 工作流",
+      "subtitle": "从 Chart 到 Release",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Chart", "description": "应用模板", "color": "bg-gray-500" },
+        { "label": "values.yaml", "description": "配置参数", "color": "bg-blue-500" },
+        { "label": "helm install", "description": "渲染模板", "color": "bg-purple-500" },
+        { "label": "Release", "description": "部署实例", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Chart 目录结构",
+      "language": "text",
+      "code": "mychart/\n├── Chart.yaml          # Chart 元数据\n├── values.yaml         # 默认配置值\n├── charts/             # 依赖 Chart\n├── templates/          # 模板文件\n│   ├── deployment.yaml\n│   ├── service.yaml\n│   ├── ingress.yaml\n│   ├── _helpers.tpl    # 模板助手函数\n│   └── NOTES.txt       # 安装说明\n└── .helmignore         # 忽略文件"
+    },
+    {
+      "type": "codeBlock",
+      "title": "模板示例",
+      "language": "yaml",
+      "code": "# templates/deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{ include \"mychart.fullname\" . }}\n  labels:\n    {{- include \"mychart.labels\" . | nindent 4 }}\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels:\n      {{- include \"mychart.selectorLabels\" . | nindent 6 }}\n  template:\n    metadata:\n      labels:\n        {{- include \"mychart.selectorLabels\" . | nindent 8 }}\n    spec:\n      containers:\n      - name: {{ .Chart.Name }}\n        image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n        ports:\n        - containerPort: {{ .Values.service.port }}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "values.yaml 示例",
+      "language": "yaml",
+      "code": "# 默认配置\nreplicaCount: 1\n\nimage:\n  repository: nginx\n  tag: \"1.24\"\n  pullPolicy: IfNotPresent\n\nservice:\n  type: ClusterIP\n  port: 80\n\ningress:\n  enabled: false\n  className: nginx\n  hosts:\n    - host: example.local\n      paths:\n        - path: /\n          pathType: Prefix\n\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi"
+    },
+    {
+      "type": "table",
+      "title": "Helm 常用命令",
+      "highlightFirst": true,
+      "headers": ["命令", "说明"],
+      "rows": [
+        ["helm repo add bitnami https://charts.bitnami.com/bitnami", "添加仓库"],
+        ["helm search repo nginx", "搜索 Chart"],
+        ["helm install my-nginx bitnami/nginx", "安装 Chart"],
+        ["helm upgrade my-nginx bitnami/nginx", "升级 Release"],
+        ["helm list", "列出 Release"],
+        ["helm uninstall my-nginx", "卸载 Release"],
+        ["helm template ./mychart", "渲染模板（不安装）"],
+        ["helm package ./mychart", "打包 Chart"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "模板函数",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "内置对象",
+          "badge": "Objects",
+          "badgeColor": "blue",
+          "points": [
+            ".Values - 配置值",
+            ".Chart - Chart 元数据",
+            ".Release - Release 信息",
+            ".Files - 访问文件"
+          ]
+        },
+        {
+          "title": "常用函数",
+          "badge": "Functions",
+          "badgeColor": "green",
+          "points": [
+            "include - 引用模板",
+            "default - 默认值",
+            "quote - 添加引号",
+            "toYaml - 转 YAML"
+          ]
+        },
+        {
+          "title": "流程控制",
+          "badge": "Control",
+          "badgeColor": "amber",
+          "points": [
+            "if/else - 条件判断",
+            "range - 循环遍历",
+            "with - 作用域",
+            "define - 定义模板"
+          ]
+        },
+        {
+          "title": "管道操作",
+          "badge": "Pipeline",
+          "badgeColor": "purple",
+          "points": [
+            "| nindent N - 缩进",
+            "| trim - 去空白",
+            "| b64enc - Base64",
+            "| required - 必填"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 _helpers.tpl", "description": "定义可复用的模板片段" },
+        { "label": "提供合理默认值", "description": "values.yaml 中配置生产可用的默认值" },
+        { "label": "使用 Chart 依赖", "description": "通过 Chart.yaml 管理依赖" },
+        { "label": "版本语义化", "description": "遵循 SemVer 版本规范" },
+        { "label": "编写 NOTES.txt", "description": "提供安装后的使用说明" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Kubernetes", "GitOps", "ArgoCD"]
+}

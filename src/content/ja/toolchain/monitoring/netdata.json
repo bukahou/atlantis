@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "title": "Netdata",
+    "description": "Netdata リアルタイムパフォーマンス監視・可視化プラットフォーム",
+    "order": 5,
+    "tags": ["Netdata", "監視", "リアルタイム", "可視化"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "Netdata はオープンソースのリアルタイムパフォーマンス監視ツール",
+        "ゼロ設定、数千のメトリクスを自動検出",
+        "ミリ秒単位のデータ収集、極めて低いリソース消費",
+        "内蔵 Web UI、追加設定不要"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要機能",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "リアルタイム監視",
+          "badge": "1秒粒度",
+          "badgeColor": "green",
+          "points": [
+            "毎秒データ収集",
+            "リアルタイムグラフ",
+            "遅延なしアラート"
+          ]
+        },
+        {
+          "title": "ゼロ設定",
+          "badge": "自動検出",
+          "badgeColor": "blue",
+          "points": [
+            "サービス自動検出",
+            "すぐに使える",
+            "スマートデフォルト"
+          ]
+        },
+        {
+          "title": "軽量",
+          "badge": "低オーバーヘッド",
+          "badgeColor": "purple",
+          "points": [
+            "シングルコア 1-3% CPU",
+            "低メモリ使用量",
+            "エッジデバイス対応"
+          ]
+        },
+        {
+          "title": "豊富なメトリクス",
+          "badge": "2000+",
+          "badgeColor": "amber",
+          "points": [
+            "システム/コンテナ",
+            "アプリケーション",
+            "ハードウェアセンサー"
+          ]
+        },
+        {
+          "title": "内蔵アラート",
+          "badge": "ML 駆動",
+          "badgeColor": "red",
+          "points": [
+            "事前設定ルール",
+            "異常検知",
+            "マルチチャンネル通知"
+          ]
+        },
+        {
+          "title": "分散型",
+          "badge": "Cloud",
+          "badgeColor": "cyan",
+          "points": [
+            "Netdata Cloud",
+            "集中管理",
+            "クロスノードクエリ"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "クイックインストール",
+      "language": "bash",
+      "code": "# ワンクリックインストール (推奨)\nbash <(curl -Ss https://get.netdata.cloud/kickstart.sh)\n\n# Docker 実行\ndocker run -d --name=netdata \\\n  --pid=host \\\n  --network=host \\\n  -v netdataconfig:/etc/netdata \\\n  -v netdatalib:/var/lib/netdata \\\n  -v netdatacache:/var/cache/netdata \\\n  -v /etc/passwd:/host/etc/passwd:ro \\\n  -v /etc/group:/host/etc/group:ro \\\n  -v /etc/localtime:/etc/localtime:ro \\\n  -v /proc:/host/proc:ro \\\n  -v /sys:/host/sys:ro \\\n  -v /etc/os-release:/host/etc/os-release:ro \\\n  -v /var/log:/host/var/log:ro \\\n  -v /var/run/docker.sock:/var/run/docker.sock:ro \\\n  --restart unless-stopped \\\n  --cap-add SYS_PTRACE \\\n  --security-opt apparmor=unconfined \\\n  netdata/netdata\n\n# Web UI アクセス\n# http://localhost:19999"
+    },
+    {
+      "type": "flow",
+      "title": "アーキテクチャモード",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Agent", "description": "ノードコレクター", "color": "bg-blue-500" },
+        { "label": "Parent", "description": "ストリーミング集約", "color": "bg-purple-500" },
+        { "label": "Cloud", "description": "集中管理", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "設定ファイル netdata.conf",
+      "language": "ini",
+      "code": "[global]\n  # データ保存ディレクトリ\n  cache directory = /var/cache/netdata\n  # 履歴データ保持\n  history = 3996\n  # 更新頻度 (秒)\n  update every = 1\n  # メモリモード: ram, save, map, dbengine\n  memory mode = dbengine\n\n[web]\n  # Web UI ポート\n  default port = 19999\n  # バインドアドレス\n  bind to = *\n\n[plugins]\n  # プラグイン有効/無効\n  proc = yes\n  diskspace = yes\n  cgroups = yes\n  tc = no\n\n[plugin:proc]\n  # /proc ファイルシステム収集設定\n  /proc/net/dev = yes\n  /proc/diskstats = yes\n  /proc/net/snmp = yes"
+    },
+    {
+      "type": "codeBlock",
+      "title": "アラート設定",
+      "language": "yaml",
+      "code": "# /etc/netdata/health.d/custom.conf\n\n# CPU 使用率アラート\nalarm: cpu_usage_high\n    on: system.cpu\nlookup: average -3m percentage of user,system,softirq,irq,guest\n every: 1m\n  warn: $this > 80\n  crit: $this > 95\n  info: CPU utilization is high\n    to: sysadmin\n\n# ディスク容量アラート\nalarm: disk_space_low\n    on: disk.space\nlookup: average -1m percentage of avail\n every: 1m\n  warn: $this < 20\n  crit: $this < 10\n  info: Disk space is running low\n    to: sysadmin\n\n# メモリ使用アラート\nalarm: ram_usage_high\n    on: system.ram\nlookup: average -3m percentage of used\n every: 1m\n  warn: $this > 80\n  crit: $this > 90"
+    },
+    {
+      "type": "codeBlock",
+      "title": "通知設定",
+      "language": "bash",
+      "code": "# /etc/netdata/health_alarm_notify.conf\n\n# Slack 通知\nSLACK_WEBHOOK_URL=\"https://hooks.slack.com/services/xxx\"\nDEFAULT_RECIPIENT_SLACK=\"#alerts\"\n\n# Email 通知\nEMAIL_SENDER=\"netdata@example.com\"\nDEFAULT_RECIPIENT_EMAIL=\"admin@example.com\"\n\n# PagerDuty\nPD_SERVICE_KEY=\"your-pagerduty-key\"\n\n# Telegram\nTELEGRAM_BOT_TOKEN=\"your-bot-token\"\nDEFAULT_RECIPIENT_TELEGRAM=\"your-chat-id\"\n\n# ロール設定\nrole_recipients_slack[sysadmin]=\"#ops-alerts\"\nrole_recipients_email[sysadmin]=\"ops@example.com\""
+    },
+    {
+      "type": "table",
+      "title": "監視カバレッジ",
+      "highlightFirst": true,
+      "headers": ["カテゴリ", "メトリクス例", "コレクター"],
+      "rows": [
+        ["システム", "CPU、メモリ、ディスク、ネットワーク", "proc.plugin"],
+        ["コンテナ", "Docker、K8s Pod リソース", "cgroups.plugin"],
+        ["データベース", "MySQL、PostgreSQL、Redis", "python.d.plugin"],
+        ["Web サーバー", "Nginx、Apache、Tomcat", "go.d.plugin"],
+        ["メッセージキュー", "Kafka、RabbitMQ", "go.d.plugin"],
+        ["ハードウェア", "温度、ファン、電圧", "sensors"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Netdata vs 他のソリューション",
+      "columns": [
+        {
+          "title": "Netdata",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "デプロイ", "description": "ワンクリック、すぐに使える" },
+            { "label": "粒度", "description": "1秒リアルタイム" },
+            { "label": "リソース", "description": "極めて低い CPU/メモリ" }
+          ]
+        },
+        {
+          "title": "Prometheus",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "デプロイ", "description": "Exporter 設定が必要" },
+            { "label": "粒度", "description": "15-60 秒" },
+            { "label": "リソース", "description": "中程度" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "dbengine 使用", "description": "長期履歴データ保存、圧縮対応" },
+        { "label": "Parent-Child アーキテクチャ", "description": "大規模デプロイでストリーミング集約" },
+        { "label": "Netdata Cloud", "description": "マルチノード集中管理とアラート" },
+        { "label": "カスタムダッシュボード", "description": "業務要件に応じた監視パネル作成" },
+        { "label": "Prometheus 連携", "description": "メトリクスを Prometheus エコシステムへエクスポート" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Prometheus", "Grafana", "システム監視", "オブザーバビリティ"]
+}

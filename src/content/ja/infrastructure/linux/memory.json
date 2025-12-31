@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "title": "メモリ管理",
+    "description": "Linux メモリ管理：仮想メモリ、Page Cache と OOM",
+    "order": 3,
+    "tags": ["Linux", "メモリ", "仮想メモリ", "OOM"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "仮想メモリは各プロセスに独立したアドレス空間を提供",
+        "ページ (Page) はメモリ管理の基本単位 (通常 4KB)",
+        "Page Cache はディスクデータをキャッシュして I/O を高速化",
+        "OOM Killer はメモリ枯渇時にプロセスを終了"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "仮想メモリから物理メモリへ",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "仮想アドレス", "description": "プロセスアドレス空間", "color": "bg-blue-500" },
+        { "label": "MMU", "description": "アドレス変換", "color": "bg-purple-500" },
+        { "label": "ページテーブル", "description": "Page Table", "color": "bg-cyan-500" },
+        { "label": "物理アドレス", "description": "RAM/Swap", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "プロセスメモリレイアウト",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "テキストセグメント (Text)",
+          "badge": "読み取り専用",
+          "badgeColor": "gray",
+          "points": [
+            "実行可能命令",
+            "読み取り専用、共有",
+            "ELF ファイルからロード"
+          ]
+        },
+        {
+          "title": "データセグメント (Data/BSS)",
+          "badge": "読み書き",
+          "badgeColor": "blue",
+          "points": [
+            "初期化済みグローバル変数",
+            "未初期化変数 (BSS)",
+            "プロセス固有"
+          ]
+        },
+        {
+          "title": "ヒープ (Heap)",
+          "badge": "動的",
+          "badgeColor": "green",
+          "points": [
+            "malloc/free で割り当て",
+            "高アドレス方向に成長",
+            "brk/mmap で管理"
+          ]
+        },
+        {
+          "title": "スタック (Stack)",
+          "badge": "自動",
+          "badgeColor": "amber",
+          "points": [
+            "関数呼び出し、ローカル変数",
+            "低アドレス方向に成長",
+            "自動管理"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "メモリ情報の確認",
+      "language": "bash",
+      "code": "# システムメモリ\nfree -h                   # 全体メモリ使用量\ncat /proc/meminfo         # 詳細情報\nvmstat 1 5                # 動的監視\n\n# プロセスメモリ\nps aux --sort=-%mem | head  # メモリ順でソート\npmap -x <pid>               # プロセスメモリマッピング\ncat /proc/<pid>/status | grep -i mem\ncat /proc/<pid>/smaps       # 詳細メモリマッピング\n\n# メモリ統計\nsar -r 1 5                # メモリ使用率\nsmem -tk                  # プロセス別統計"
+    },
+    {
+      "type": "table",
+      "title": "/proc/meminfo の主要フィールド",
+      "highlightFirst": true,
+      "headers": ["フィールド", "説明"],
+      "rows": [
+        ["MemTotal", "物理メモリ総量"],
+        ["MemFree", "空き物理メモリ"],
+        ["MemAvailable", "利用可能メモリ (回収可能キャッシュ含む)"],
+        ["Buffers", "ブロックデバイスバッファ"],
+        ["Cached", "Page Cache キャッシュ"],
+        ["SwapTotal", "Swap 領域総量"],
+        ["SwapFree", "Swap 空き領域"],
+        ["Dirty", "ディスク書き戻し待ちダーティページ"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Page Cache vs Buffer Cache",
+      "columns": [
+        {
+          "title": "Page Cache",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "キャッシュ対象", "description": "ファイルデータ" },
+            { "label": "単位", "description": "ページ (Page)" },
+            { "label": "用途", "description": "ファイル I/O 高速化" },
+            { "label": "確認", "description": "meminfo の Cached" }
+          ]
+        },
+        {
+          "title": "Buffer Cache",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "キャッシュ対象", "description": "ブロックデバイスメタデータ" },
+            { "label": "単位", "description": "ブロック (Block)" },
+            { "label": "用途", "description": "ブロックデバイスアクセス高速化" },
+            { "label": "確認", "description": "meminfo の Buffers" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "メモリ回収機構",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Page Reclaim",
+          "badge": "回収",
+          "badgeColor": "blue",
+          "points": [
+            "LRU アルゴリズム",
+            "非アクティブページを回収",
+            "kswapd バックグラウンド回収"
+          ]
+        },
+        {
+          "title": "Swap",
+          "badge": "スワップ",
+          "badgeColor": "amber",
+          "points": [
+            "匿名ページのスワップアウト",
+            "利用可能メモリを拡張",
+            "swappiness で制御"
+          ]
+        },
+        {
+          "title": "OOM Killer",
+          "badge": "保護",
+          "badgeColor": "red",
+          "points": [
+            "メモリ枯渇時にトリガー",
+            "プロセスを選択して終了",
+            "oom_score でスコアリング"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Swap 管理",
+      "language": "bash",
+      "code": "# Swap 確認\nswapon --show\nfree -h\n\n# Swap ファイル作成\ndd if=/dev/zero of=/swapfile bs=1G count=4\nchmod 600 /swapfile\nmkswap /swapfile\nswapon /swapfile\n\n# 永続マウント (/etc/fstab)\n/swapfile none swap sw 0 0\n\n# swappiness 調整 (0-100)\nsysctl vm.swappiness=10\necho 'vm.swappiness=10' >> /etc/sysctl.conf"
+    },
+    {
+      "type": "codeBlock",
+      "title": "OOM 関連設定",
+      "language": "bash",
+      "code": "# プロセス OOM スコア確認\ncat /proc/<pid>/oom_score\ncat /proc/<pid>/oom_score_adj   # 調整値 (-1000 〜 1000)\n\n# 重要プロセスの保護 (キルされにくくする)\necho -1000 > /proc/<pid>/oom_score_adj\n\n# OOM ログ確認\ndmesg | grep -i 'oom\\|killed'\njournalctl -k | grep -i oom\n\n# メモリオーバーコミットポリシー\n# 0: ヒューリスティック (デフォルト), 1: 常に許可, 2: 厳格制限\nsysctl vm.overcommit_memory"
+    },
+    {
+      "type": "table",
+      "title": "メモリチューニングパラメータ",
+      "highlightFirst": true,
+      "headers": ["パラメータ", "デフォルト", "説明"],
+      "rows": [
+        ["vm.swappiness", "60", "Swap 使用傾向 (0-100)"],
+        ["vm.dirty_ratio", "20", "ダーティページ比率閾値、同期書き込みトリガー"],
+        ["vm.dirty_background_ratio", "10", "バックグラウンド書き戻し閾値"],
+        ["vm.vfs_cache_pressure", "100", "キャッシュ回収傾向"],
+        ["vm.min_free_kbytes", "変動", "最小空きメモリ予約"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "メモリ最適化のヒント",
+      "style": "check",
+      "items": [
+        { "label": "MemAvailable を監視", "description": "MemFree より利用可能メモリを正確に反映" },
+        { "label": "適切な Swap 設定", "description": "SSD では小さめの Swap を設定可能" },
+        { "label": "swappiness の調整", "description": "データベースサーバーでは 10 を推奨" },
+        { "label": "重要プロセスの保護", "description": "oom_score_adj=-1000 を設定" },
+        { "label": "大ページの使用", "description": "HugePages で TLB キャッシュ圧力を軽減" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Linux カーネル", "プロセス管理", "パフォーマンスチューニング"]
+}

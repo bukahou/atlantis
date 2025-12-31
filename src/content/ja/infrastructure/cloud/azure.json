@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "title": "Microsoft Azure",
+    "description": "Azure クラウドサービスとエンタープライズソリューション",
+    "order": 3,
+    "tags": ["Azure", "クラウドコンピューティング", "エンタープライズ"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Azure は Microsoft のパブリッククラウドプラットフォーム",
+        "Microsoft エコシステムと深く統合",
+        "ハイブリッドクラウドソリューションでリード",
+        "エンタープライズグレードのセキュリティコンプライアンス"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Azure 概要",
+      "content": "Microsoft Azure は、Windows、Office 365、Active Directory との深い統合により、企業のデジタルトランスフォーメーションの第一選択となっています。Azure は包括的なハイブリッドクラウドソリューションを提供し、オンプレミスデータセンターとクラウドのシームレスな接続をサポートします。"
+    },
+    {
+      "type": "cards",
+      "title": "コアサービス",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "コンピュートサービス",
+          "badge": "Compute",
+          "badgeColor": "blue",
+          "points": [
+            "Virtual Machines",
+            "AKS - Kubernetes",
+            "Azure Functions",
+            "App Service"
+          ]
+        },
+        {
+          "title": "ストレージサービス",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "Blob Storage - オブジェクトストレージ",
+            "Managed Disks - ブロックストレージ",
+            "Azure Files - ファイル共有",
+            "Archive Storage"
+          ]
+        },
+        {
+          "title": "データベースサービス",
+          "badge": "Database",
+          "badgeColor": "amber",
+          "points": [
+            "Azure SQL Database",
+            "Cosmos DB - マルチモデル",
+            "Azure Cache for Redis",
+            "Azure Database for PostgreSQL"
+          ]
+        },
+        {
+          "title": "ID とセキュリティ",
+          "badge": "Identity",
+          "badgeColor": "purple",
+          "points": [
+            "Azure AD - ID 管理",
+            "Key Vault - キー管理",
+            "Security Center",
+            "Sentinel - SIEM"
+          ]
+        },
+        {
+          "title": "DevOps",
+          "badge": "DevOps",
+          "badgeColor": "cyan",
+          "points": [
+            "Azure DevOps",
+            "Azure Pipelines",
+            "ARM Templates",
+            "Azure Monitor"
+          ]
+        },
+        {
+          "title": "ハイブリッドクラウド",
+          "badge": "Hybrid",
+          "badgeColor": "red",
+          "points": [
+            "Azure Arc",
+            "Azure Stack",
+            "ExpressRoute",
+            "VPN Gateway"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "コンピュートサービス比較",
+      "columns": [
+        {
+          "title": "Virtual Machines",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "タイプ", "description": "IaaS" },
+            { "label": "制御", "description": "OS を完全制御" },
+            { "label": "適用", "description": "従来アプリの移行" }
+          ]
+        },
+        {
+          "title": "App Service",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "タイプ", "description": "PaaS" },
+            { "label": "制御", "description": "マネージドプラットフォーム" },
+            { "label": "適用", "description": "Web アプリ、API" }
+          ]
+        },
+        {
+          "title": "Azure Functions",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "タイプ", "description": "FaaS" },
+            { "label": "制御", "description": "関数レベル" },
+            { "label": "適用", "description": "イベント駆動、マイクロサービス" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "Azure DevOps パイプライン",
+      "subtitle": "CI/CD 自動化フロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "コード", "description": "Azure Repos", "color": "bg-gray-500" },
+        { "label": "ビルド", "description": "Pipelines", "color": "bg-blue-500" },
+        { "label": "テスト", "description": "Test Plans", "color": "bg-purple-500" },
+        { "label": "アーティファクト", "description": "Artifacts", "color": "bg-cyan-500" },
+        { "label": "デプロイ", "description": "Release", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Azure AD バージョン比較",
+      "highlightFirst": true,
+      "headers": ["バージョン", "機能", "適用シナリオ"],
+      "rows": [
+        ["Free", "基本 SSO、MFA", "小規模組織"],
+        ["P1", "条件付きアクセス、セルフサービスパスワード", "中規模企業"],
+        ["P2", "ID 保護、PIM", "大企業、コンプライアンス要件"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "Azure ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "Azure AD を使用", "description": "統一 ID 管理で SSO を実現" },
+        { "label": "リソース整理", "description": "管理グループ、サブスクリプション、リソースグループ階層で管理" },
+        { "label": "コスト管理", "description": "Azure Cost Management で支出を監視" },
+        { "label": "Infrastructure as Code", "description": "ARM Templates または Bicep を使用" },
+        { "label": "ハイブリッド接続", "description": "ExpressRoute で専用線接続を確立" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Azure DevOps", "Active Directory", "Terraform"]
+}

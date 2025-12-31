@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "title": "服务发现",
+    "description": "服务注册、发现与负载均衡",
+    "order": 2,
+    "tags": ["微服务", "服务发现", "负载均衡"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "服务注册：服务启动时注册到注册中心",
+        "服务发现：客户端从注册中心获取服务地址",
+        "健康检查：定期检测服务可用性",
+        "负载均衡：将请求分发到多个实例"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "发现模式",
+      "columns": [
+        {
+          "title": "客户端发现",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "方式", "description": "客户端查询注册中心" },
+            { "label": "负载均衡", "description": "客户端实现" },
+            { "label": "代表", "description": "Eureka, Consul" }
+          ]
+        },
+        {
+          "title": "服务端发现",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "方式", "description": "通过负载均衡器" },
+            { "label": "负载均衡", "description": "代理层实现" },
+            { "label": "代表", "description": "Kubernetes, AWS ELB" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主流方案",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Consul",
+          "badge": "HashiCorp",
+          "badgeColor": "red",
+          "points": [
+            "服务发现 + KV 存储",
+            "健康检查",
+            "多数据中心"
+          ]
+        },
+        {
+          "title": "Nacos",
+          "badge": "阿里",
+          "badgeColor": "blue",
+          "points": [
+            "服务发现 + 配置管理",
+            "动态 DNS",
+            "流量管理"
+          ]
+        },
+        {
+          "title": "etcd",
+          "badge": "CNCF",
+          "badgeColor": "cyan",
+          "points": [
+            "分布式 KV 存储",
+            "Kubernetes 核心",
+            "强一致性"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "服务注册流程",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "服务启动", "description": "初始化", "color": "bg-gray-500" },
+        { "label": "注册", "description": "上报地址", "color": "bg-blue-500" },
+        { "label": "心跳", "description": "保持活跃", "color": "bg-green-500" },
+        { "label": "发现", "description": "获取列表", "color": "bg-amber-500" },
+        { "label": "调用", "description": "负载均衡", "color": "bg-purple-500" }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "健康检查", "description": "配置合适的检查间隔和超时" },
+        { "label": "优雅下线", "description": "服务停止前先从注册中心注销" },
+        { "label": "本地缓存", "description": "缓存服务列表，避免注册中心故障影响" },
+        { "label": "多注册中心", "description": "跨区域部署，提高可用性" }
+      ]
+    }
+  ],
+  "relatedTopics": ["微服务", "负载均衡", "Kubernetes"]
+}

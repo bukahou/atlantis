@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "title": "Shell スクリプティング",
+    "description": "Bash スクリプト構文、変数、条件分岐とループ",
+    "order": 7,
+    "tags": ["Linux", "Shell", "Bash", "スクリプト"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Shell はユーザーと OS の間のインターフェース",
+        "Bash は最も広く使われている Shell インタープリタ",
+        "スクリプトで繰り返しタスクを自動化",
+        "変数、条件分岐、ループなどのプログラミング構造をサポート"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Shell スクリプトとは",
+      "content": "Shell スクリプトは一連のコマンドをファイルに保存し、順番に実行するものです。システム管理者や開発者が日常タスクを自動化するための重要なツールです。Bash（Bourne Again Shell）は Linux システムのデフォルト Shell で、強力な機能を持ち広く使われています。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "スクリプトの基本構造",
+      "language": "bash",
+      "code": "#!/bin/bash\n# これはコメント\n\n# 変数定義\nNAME=\"World\"\nCOUNT=5\n\n# 変数の使用\necho \"Hello, $NAME!\"\necho \"Count is: ${COUNT}\"\n\n# コマンド置換\nCURRENT_DATE=$(date +%Y-%m-%d)\necho \"Today is: $CURRENT_DATE\""
+    },
+    {
+      "type": "cards",
+      "title": "変数タイプ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "ローカル変数",
+          "badge": "基本",
+          "badgeColor": "green",
+          "points": [
+            "VAR=value（スペースなし）",
+            "$VAR または ${VAR} で参照",
+            "現在の Shell でのみ有効"
+          ]
+        },
+        {
+          "title": "環境変数",
+          "badge": "システム",
+          "badgeColor": "blue",
+          "points": [
+            "export VAR=value",
+            "$PATH, $HOME, $USER",
+            "子プロセスに継承"
+          ]
+        },
+        {
+          "title": "特殊変数",
+          "badge": "組み込み",
+          "badgeColor": "amber",
+          "points": [
+            "$0 - スクリプト名",
+            "$1-$9 - 位置パラメータ",
+            "$# - 引数の数",
+            "$? - 直前のコマンド終了コード"
+          ]
+        },
+        {
+          "title": "配列",
+          "badge": "応用",
+          "badgeColor": "purple",
+          "points": [
+            "arr=(a b c)",
+            "${arr[0]} - 要素アクセス",
+            "${arr[@]} - 全要素",
+            "${#arr[@]} - 配列長"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "条件分岐",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# if-else 構造\nif [ $# -eq 0 ]; then\n    echo \"No arguments provided\"\nelif [ $# -eq 1 ]; then\n    echo \"One argument: $1\"\nelse\n    echo \"Multiple arguments: $@\"\nfi\n\n# ファイルテスト\nif [ -f \"/etc/passwd\" ]; then\n    echo \"File exists\"\nfi\n\n# 文字列比較\nif [ \"$NAME\" = \"admin\" ]; then\n    echo \"Welcome admin\"\nfi\n\n# 数値比較\nif [ $COUNT -gt 10 ]; then\n    echo \"Count is greater than 10\"\nfi"
+    },
+    {
+      "type": "table",
+      "title": "テスト演算子",
+      "highlightFirst": true,
+      "headers": ["タイプ", "演算子", "説明"],
+      "rows": [
+        ["ファイル", "-f file", "通常ファイルかどうか"],
+        ["ファイル", "-d dir", "ディレクトリかどうか"],
+        ["ファイル", "-r/-w/-x", "読み取り/書き込み/実行権限"],
+        ["文字列", "= / !=", "等しい/等しくない"],
+        ["文字列", "-z / -n", "空/非空"],
+        ["数値", "-eq/-ne", "等しい/等しくない"],
+        ["数値", "-lt/-gt", "小さい/大きい"],
+        ["論理", "-a / -o", "かつ/または"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ループ構造",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# for ループ\nfor i in 1 2 3 4 5; do\n    echo \"Number: $i\"\ndone\n\n# C スタイル for\nfor ((i=0; i<5; i++)); do\n    echo \"Index: $i\"\ndone\n\n# ファイル走査\nfor file in *.txt; do\n    echo \"Processing: $file\"\ndone\n\n# while ループ\ncount=0\nwhile [ $count -lt 5 ]; do\n    echo \"Count: $count\"\n    ((count++))\ndone\n\n# ファイル読み込み\nwhile IFS= read -r line; do\n    echo \"Line: $line\"\ndone < input.txt"
+    },
+    {
+      "type": "codeBlock",
+      "title": "関数定義",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# 関数定義\ngreet() {\n    local name=$1  # ローカル変数\n    echo \"Hello, $name!\"\n}\n\n# 戻り値のある関数\nadd() {\n    local result=$(($1 + $2))\n    echo $result\n}\n\n# 関数呼び出し\ngreet \"Alice\"\nsum=$(add 5 3)\necho \"Sum: $sum\"\n\n# 関数の戻り値チェック\ncheck_file() {\n    [ -f \"$1\" ]\n}\n\nif check_file \"/etc/passwd\"; then\n    echo \"File exists\"\nfi"
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "set -e を使用", "description": "エラー発生時に即座に終了、継続実行を防止" },
+        { "label": "set -u を使用", "description": "未定義変数使用時にエラー" },
+        { "label": "変数をクォート", "description": "\"$VAR\" でスペースや特殊文字の問題を防止" },
+        { "label": "関数を使用", "description": "コードをモジュール化、可読性と再利用性を向上" },
+        { "label": "コメントを追加", "description": "スクリプトの目的と重要なロジックを説明" },
+        { "label": "エラー処理", "description": "コマンドの戻り値をチェック、意味のあるエラーメッセージを提供" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Linux システム管理", "自動化運用", "CI/CD"]
+}

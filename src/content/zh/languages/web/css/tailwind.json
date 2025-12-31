@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "title": "Tailwind CSS",
+    "description": "实用优先的 CSS 框架",
+    "order": 1,
+    "tags": ["CSS", "Tailwind", "前端"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "实用优先（Utility-First）的 CSS 框架",
+        "直接在 HTML 中使用原子类",
+        "高度可定制的设计系统",
+        "生产构建自动清除未使用的 CSS"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础示例",
+      "language": "html",
+      "code": "<!-- 按钮组件 -->\n<button class=\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\">\n  Button\n</button>\n\n<!-- 卡片组件 -->\n<div class=\"max-w-sm rounded-lg overflow-hidden shadow-lg bg-white\">\n  <img class=\"w-full h-48 object-cover\" src=\"/image.jpg\" alt=\"\">\n  <div class=\"p-6\">\n    <h3 class=\"font-bold text-xl mb-2 text-gray-900\">Card Title</h3>\n    <p class=\"text-gray-600 text-base\">Card description goes here.</p>\n  </div>\n</div>\n\n<!-- Flex 布局 -->\n<div class=\"flex items-center justify-between gap-4\">\n  <div class=\"flex-1\">Content</div>\n  <div class=\"shrink-0\">Fixed</div>\n</div>"
+    },
+    {
+      "type": "cards",
+      "title": "常用工具类",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "布局",
+          "badge": "Layout",
+          "badgeColor": "blue",
+          "points": [
+            "flex, grid",
+            "justify-*, items-*",
+            "gap-*, space-*"
+          ]
+        },
+        {
+          "title": "尺寸",
+          "badge": "Sizing",
+          "badgeColor": "green",
+          "points": [
+            "w-*, h-*",
+            "max-w-*, min-h-*",
+            "p-*, m-*"
+          ]
+        },
+        {
+          "title": "排版",
+          "badge": "Typography",
+          "badgeColor": "amber",
+          "points": [
+            "text-*, font-*",
+            "leading-*, tracking-*",
+            "truncate, line-clamp"
+          ]
+        },
+        {
+          "title": "颜色",
+          "badge": "Colors",
+          "badgeColor": "purple",
+          "points": [
+            "bg-*, text-*",
+            "border-*",
+            "from-*, to-* 渐变"
+          ]
+        },
+        {
+          "title": "效果",
+          "badge": "Effects",
+          "badgeColor": "red",
+          "points": [
+            "shadow-*, opacity-*",
+            "blur-*, backdrop-*",
+            "transition-*, animate-*"
+          ]
+        },
+        {
+          "title": "响应式",
+          "badge": "Responsive",
+          "badgeColor": "cyan",
+          "points": [
+            "sm:, md:, lg:, xl:",
+            "dark: 暗色模式",
+            "hover:, focus:, active:"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "配置文件",
+      "language": "js",
+      "code": "// tailwind.config.js\nmodule.exports = {\n  content: ['./src/**/*.{js,ts,jsx,tsx,vue}'],\n  theme: {\n    extend: {\n      colors: {\n        brand: {\n          50: '#f0f9ff',\n          500: '#0ea5e9',\n          900: '#0c4a6e'\n        }\n      },\n      fontFamily: {\n        sans: ['Inter', 'sans-serif']\n      },\n      spacing: {\n        '128': '32rem'\n      }\n    }\n  },\n  plugins: [\n    require('@tailwindcss/forms'),\n    require('@tailwindcss/typography')\n  ]\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "Tailwind vs 传统 CSS",
+      "columns": [
+        {
+          "title": "Tailwind CSS",
+          "color": "from-cyan-500 to-blue-500",
+          "items": [
+            { "label": "开发速度", "description": "快速原型开发" },
+            { "label": "体积", "description": "生产构建很小" },
+            { "label": "一致性", "description": "设计系统内置" }
+          ]
+        },
+        {
+          "title": "传统 CSS",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            { "label": "开发速度", "description": "需要命名和组织" },
+            { "label": "体积", "description": "可能有未用代码" },
+            { "label": "一致性", "description": "需要额外约束" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "组件抽象", "description": "重复样式抽取为组件而非 @apply" },
+        { "label": "使用设计令牌", "description": "在 config 中定义品牌色、间距等" },
+        { "label": "响应式优先", "description": "移动优先，逐步增加断点样式" },
+        { "label": "利用 IDE 插件", "description": "Tailwind CSS IntelliSense 提高效率" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CSS", "响应式设计", "设计系统"]
+}

@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "varnish",
+      "title": "Varnish Cache",
+      "description": "高性能 HTTP 高速化キャッシュプロキシ",
+      "href": "/backend/cache/varnish",
+      "order": 1
+    },
+    {
+      "slug": "cdn",
+      "title": "CDN コンテンツ配信ネットワーク",
+      "description": "グローバルコンテンツ配信とエッジ高速化",
+      "href": "/backend/cache/cdn",
+      "order": 2
+    }
+  ]
+}

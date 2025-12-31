@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "React",
+    "description": "React フレームワークのコアコンセプト、Hooks とエコシステム",
+    "icon": "layout"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "重要ポイント",
+      "items": [
+        "コンポーネント開発と JSX",
+        "Hooks API と状態管理",
+        "Virtual DOM とパフォーマンス最適化",
+        "Next.js サーバーサイドレンダリング"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "React は Facebook が開発した UI ライブラリで、コンポーネント化と宣言的プログラミングパラダイムを採用し、現在最も人気のあるフロントエンドフレームワークの一つです。"
+    },
+    {
+      "type": "flow",
+      "title": "React データフロー",
+      "subtitle": "単方向データフローと状態更新",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "State", "description": "状態定義", "color": "bg-blue-500" },
+        { "label": "Render", "description": "UI レンダリング", "color": "bg-cyan-500" },
+        { "label": "Event", "description": "ユーザー操作", "color": "bg-green-500" },
+        { "label": "Update", "description": "状態更新", "color": "bg-yellow-500" },
+        { "label": "Re-render", "description": "再レンダリング", "color": "bg-orange-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コア Hooks",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "useState",
+          "badge": "基礎",
+          "badgeColor": "green",
+          "points": [
+            "コンポーネント状態管理",
+            "再レンダリングトリガー",
+            "関数更新"
+          ]
+        },
+        {
+          "title": "useEffect",
+          "badge": "基礎",
+          "badgeColor": "green",
+          "points": [
+            "副作用処理",
+            "ライフサイクル代替",
+            "依存配列制御"
+          ]
+        },
+        {
+          "title": "useContext",
+          "badge": "基礎",
+          "badgeColor": "green",
+          "points": [
+            "クロスコンポーネント値渡し",
+            "prop drilling 回避",
+            "グローバル状態共有"
+          ]
+        },
+        {
+          "title": "useMemo",
+          "badge": "最適化",
+          "badgeColor": "amber",
+          "points": [
+            "計算値キャッシュ",
+            "重複計算回避",
+            "依存変化時のみ更新"
+          ]
+        },
+        {
+          "title": "useCallback",
+          "badge": "最適化",
+          "badgeColor": "amber",
+          "points": [
+            "関数参照キャッシュ",
+            "子コンポーネント再レンダリング回避",
+            "memo と併用"
+          ]
+        },
+        {
+          "title": "useReducer",
+          "badge": "上級",
+          "badgeColor": "purple",
+          "points": [
+            "複雑な状態ロジック",
+            "Redux パターン",
+            "予測可能な状態変化"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "エコシステム",
+      "highlightFirst": true,
+      "headers": ["カテゴリ", "推奨方式", "説明"],
+      "rows": [
+        ["フルスタックフレームワーク", "Next.js", "SSR/SSG/ISR サポート"],
+        ["状態管理", "Zustand / Jotai", "軽量状態ライブラリ"],
+        ["データリクエスト", "TanStack Query", "サーバー状態管理"],
+        ["スタイル方式", "Tailwind CSS", "アトミック CSS"],
+        ["フォーム処理", "React Hook Form", "高性能フォーム"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "コンポーネント分割", "description": "コンポーネントは小さく専念" },
+        { "label": "状態を下げる", "description": "状態を適切なレイヤーに配置" },
+        { "label": "過剰レンダリング回避", "description": "memo、useMemo を使用" },
+        { "label": "TypeScript", "description": "型で保守性を向上" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Next.js", "TypeScript", "状態管理"],
+  "articles": [
+    {
+      "slug": "components",
+      "title": "コンポーネント開発",
+      "description": "React コンポーネント設計パターンとベストプラクティス",
+      "priority": "recommended"
+    },
+    {
+      "slug": "hooks",
+      "title": "Hooks 詳解",
+      "description": "組み込み Hooks とカスタム Hook 開発",
+      "priority": "essential"
+    },
+    {
+      "slug": "ssr",
+      "title": "サーバーサイドレンダリング",
+      "description": "Next.js SSR/SSG とパフォーマンス最適化",
+      "priority": "important"
+    }
+  ]
+}

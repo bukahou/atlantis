@@ -2,14 +2,187 @@
   "slug": "indexing",
   "meta": {
     "title": "インデックス設計",
-    "description": "データベースインデックス原理、設計戦略とパフォーマンス最適化",
+    "description": "データベースインデックスの原理、設計戦略と性能最適化",
     "order": 2,
     "tags": [
-      "database",
-      "modeling",
-      "indexing",
-      "performance"
+      "インデックス",
+      "性能最適化",
+      "B+Tree"
     ]
   },
-  "content": "<h1>インデックス設計</h1>\n<h2>インデックス原理</h2>\n<p>インデックスはデータベースでデータ検索を高速化するためのデータ構造で、追加のストレージスペースと引き換えにクエリ性能を向上させます。</p>\n<pre><code>インデックスデータ構造\n├── B-Tree/B+Tree - 範囲クエリ、ソート\n├── Hash - 等値クエリ\n├── 全文インデックス - テキスト検索\n├── 空間インデックス - 地理位置\n└── ビットマップインデックス - 低カーディナリティ列\n</code></pre>\n<h2>B+Tree インデックス</h2>\n<h3>構造特性</h3>\n<pre><code>B+Tree 特性\n├── 全データはリーフノードに格納\n├── リーフノードはポインタで接続\n├── 非リーフノードはインデックスのみ格納\n├── 高さバランス、クエリ複雑度 O(log n)\n└── 範囲クエリとソートに適合\n\nクラスタードインデックス vs 非クラスタードインデックス\n├── クラスタードインデックス: データはインデックス順に格納\n│   └── InnoDB 主キーインデックス\n└── 非クラスタードインデックス: インデックスとデータ分離\n    └── セカンダリインデックス、MyISAM インデックス\n</code></pre>\n<h3>インデックスタイプ</h3>\n<pre><code class=\"language-sql\">-- 主キーインデックス (クラスタード)\nCREATE TABLE users (\n    id INT PRIMARY KEY,\n    email VARCHAR(100)\n);\n\n-- ユニークインデックス\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 通常インデックス\nCREATE INDEX idx_name ON users(name);\n\n-- 複合インデックス\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- プレフィックスインデックス\nCREATE INDEX idx_email_prefix ON users(email(20));\n\n-- 降順インデックス\nCREATE INDEX idx_created_desc ON orders(created_at DESC);\n</code></pre>\n<h2>複合インデックス設計</h2>\n<h3>最左プレフィックス原則</h3>\n<pre><code class=\"language-sql\">-- インデックス: (a, b, c)\n-- 使用可能なクエリ\nWHERE a = 1                    -- a を使用\nWHERE a = 1 AND b = 2          -- a, b を使用\nWHERE a = 1 AND b = 2 AND c = 3 -- a, b, c を使用\nWHERE a = 1 AND c = 3          -- a のみ使用\n\n-- 使用不可なクエリ\nWHERE b = 2                    -- 使用不可\nWHERE b = 2 AND c = 3          -- 使用不可\nWHERE c = 3                    -- 使用不可\n</code></pre>\n<h3>設計戦略</h3>\n<pre><code class=\"language-sql\">-- 等値クエリを先に、範囲クエリを後に\nCREATE INDEX idx_status_created ON orders(status, created_at);\n\n-- 高選択性列を先に\n-- status が 3 値、user_id が 100 万値の場合\nCREATE INDEX idx_user_status ON orders(user_id, status);\n\n-- カバリングインデックス\n-- クエリの列がすべてインデックス内にあり、テーブルアクセス回避\nCREATE INDEX idx_cover ON orders(user_id, status, created_at);\nSELECT user_id, status, created_at FROM orders WHERE user_id = 1;\n</code></pre>\n<h2>インデックス選択戦略</h2>\n<h3>インデックス作成タイミング</h3>\n<pre><code class=\"language-yaml\">インデックス作成に適した場合:\n  - WHERE 句で頻繁に使用される列\n  - JOIN 結合条件列\n  - ORDER BY ソート列\n  - GROUP BY グループ化列\n  - 高選択性列 (ユニーク値が多い)\n\nインデックス作成に不適な場合:\n  - 頻繁に更新される列\n  - 低選択性列 (性別など)\n  - 小テーブル (フルスキャンが速い)\n  - ほとんどクエリされない列\n</code></pre>\n<h3>インデックス評価</h3>\n<pre><code class=\"language-sql\">-- インデックス使用状況確認\nEXPLAIN SELECT * FROM users WHERE email = 'test@example.com';\n\n-- 主要指標\n-- type: const > eq_ref > ref > range > index > ALL\n-- key: 使用されるインデックス\n-- rows: スキャン行数\n-- Extra: Using index (カバリングインデックス)\n\n-- インデックス強制使用\nSELECT * FROM users FORCE INDEX(idx_email) WHERE email = 'test@example.com';\n\n-- インデックス統計\nSHOW INDEX FROM users;\n</code></pre>\n<h2>インデックス最適化</h2>\n<h3>インデックス無効化の回避</h3>\n<pre><code class=\"language-sql\">-- 1. インデックス列での関数使用を避ける\n-- 無効化\nSELECT * FROM users WHERE YEAR(created_at) = 2024;\n-- 最適化\nSELECT * FROM users WHERE created_at >= '2024-01-01' AND created_at &#x3C; '2025-01-01';\n\n-- 2. 暗黙の型変換を避ける\n-- 無効化 (phone は VARCHAR)\nSELECT * FROM users WHERE phone = 13800138000;\n-- 最適化\nSELECT * FROM users WHERE phone = '13800138000';\n\n-- 3. OR の使用を避ける (UNION を検討)\n-- 無効化の可能性\nSELECT * FROM users WHERE name = 'Alice' OR age = 25;\n-- 最適化\nSELECT * FROM users WHERE name = 'Alice'\nUNION\nSELECT * FROM users WHERE age = 25;\n\n-- 4. LIKE 前方一致\n-- インデックス使用\nSELECT * FROM users WHERE name LIKE 'Ali%';\n-- インデックス不使用\nSELECT * FROM users WHERE name LIKE '%ice';\n\n-- 5. NOT IN / NOT EXISTS\n-- インデックス使用しない可能性\nSELECT * FROM users WHERE id NOT IN (1, 2, 3);\n</code></pre>\n<h3>インデックスメンテナンス</h3>\n<pre><code class=\"language-sql\">-- インデックス再構築\nALTER TABLE users ENGINE=InnoDB;\n\n-- テーブル分析 (統計情報更新)\nANALYZE TABLE users;\n\n-- テーブル最適化 (フラグメンテーション整理)\nOPTIMIZE TABLE users;\n\n-- 未使用インデックス削除\nDROP INDEX idx_unused ON users;\n</code></pre>\n<h2>特殊インデックス</h2>\n<h3>全文インデックス</h3>\n<pre><code class=\"language-sql\">-- 全文インデックス作成\nCREATE FULLTEXT INDEX idx_content ON articles(title, content);\n\n-- 全文検索\nSELECT * FROM articles\nWHERE MATCH(title, content) AGAINST('database optimization' IN NATURAL LANGUAGE MODE);\n\n-- ブーリアンモード\nSELECT * FROM articles\nWHERE MATCH(title, content) AGAINST('+database -mysql' IN BOOLEAN MODE);\n</code></pre>\n<h3>空間インデックス</h3>\n<pre><code class=\"language-sql\">-- 空間インデックス作成\nCREATE TABLE locations (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    position POINT NOT NULL,\n    SPATIAL INDEX(position)\n);\n\n-- 空間クエリ\nSELECT * FROM locations\nWHERE ST_Contains(\n    ST_GeomFromText('POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))'),\n    position\n);\n</code></pre>\n<h2>インデックス監視</h2>\n<pre><code class=\"language-sql\">-- インデックス使用統計確認 (MySQL 8.0+)\nSELECT * FROM sys.schema_index_statistics\nWHERE table_schema = 'mydb';\n\n-- 未使用インデックス確認\nSELECT * FROM sys.schema_unused_indexes;\n\n-- 冗長インデックス確認\nSELECT * FROM sys.schema_redundant_indexes;\n</code></pre>\n<h2>まとめ</h2>\n<p>インデックス設計のポイント：</p>\n<ol>\n<li><strong>原理</strong> - B+Tree 構造、クラスタード vs 非クラスタード</li>\n<li><strong>複合インデックス</strong> - 最左プレフィックス、高選択性優先</li>\n<li><strong>カバリングインデックス</strong> - テーブルアクセス回避、性能向上</li>\n<li><strong>無効化回避</strong> - 関数、型変換、LIKE</li>\n<li><strong>監視メンテナンス</strong> - 定期分析、冗長性クリーンアップ</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "インデックスはデータ検索を高速化するデータ構造",
+        "B+Tree は最も一般的なインデックス構造",
+        "空間と時間のトレードオフ：クエリ高速化だが書き込みオーバーヘッド増加",
+        "複合インデックスは最左プレフィックス原則に従う"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "インデックスデータ構造",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "B+Tree",
+          "badge": "デフォルト",
+          "badgeColor": "blue",
+          "points": [
+            "リーフノードにデータを保存",
+            "範囲クエリをサポート",
+            "O(log n) 計算量"
+          ]
+        },
+        {
+          "title": "Hash",
+          "badge": "等値",
+          "badgeColor": "green",
+          "points": [
+            "O(1) クエリ",
+            "等値のみサポート",
+            "範囲非対応"
+          ]
+        },
+        {
+          "title": "全文インデックス",
+          "badge": "検索",
+          "badgeColor": "purple",
+          "points": [
+            "転置インデックス",
+            "形態素マッチ",
+            "テキスト検索"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "クラスタード vs ノンクラスタードインデックス",
+      "columns": [
+        {
+          "title": "クラスタードインデックス",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "ストレージ",
+              "description": "データはインデックス順に保存"
+            },
+            {
+              "label": "数量",
+              "description": "テーブルごとに1つのみ"
+            },
+            {
+              "label": "例",
+              "description": "InnoDB 主キーインデックス"
+            }
+          ]
+        },
+        {
+          "title": "ノンクラスタードインデックス",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "ストレージ",
+              "description": "インデックスとデータが分離"
+            },
+            {
+              "label": "数量",
+              "description": "複数可能"
+            },
+            {
+              "label": "例",
+              "description": "セカンダリインデックス"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "インデックスタイプ",
+      "language": "sql",
+      "code": "-- 主キーインデックス (クラスタード)\nCREATE TABLE users (id INT PRIMARY KEY);\n\n-- ユニークインデックス\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 通常インデックス\nCREATE INDEX idx_name ON users(name);\n\n-- 複合インデックス\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- プレフィックスインデックス\nCREATE INDEX idx_email ON users(email(20));"
+    },
+    {
+      "type": "codeBlock",
+      "title": "最左プレフィックス原則",
+      "language": "sql",
+      "code": "-- インデックス: (a, b, c)\n-- インデックス使用可能\nWHERE a = 1\nWHERE a = 1 AND b = 2\nWHERE a = 1 AND b = 2 AND c = 3\n\n-- 部分的にのみ使用\nWHERE a = 1 AND c = 3  -- a のみ使用\n\n-- インデックス使用不可\nWHERE b = 2\nWHERE c = 3\nWHERE b = 2 AND c = 3"
+    },
+    {
+      "type": "table",
+      "title": "インデックスが無効になるシナリオ",
+      "highlightFirst": true,
+      "headers": [
+        "シナリオ",
+        "無効理由",
+        "最適化方法"
+      ],
+      "rows": [
+        [
+          "関数操作",
+          "YEAR(date) = 2024",
+          "date >= '2024-01-01'"
+        ],
+        [
+          "型変換",
+          "phone = 138001380",
+          "phone = '138001380'"
+        ],
+        [
+          "LIKE プレフィックス",
+          "LIKE '%test'",
+          "LIKE 'test%'"
+        ],
+        [
+          "OR 条件",
+          "全テーブルスキャンの可能性",
+          "UNION で代替"
+        ],
+        [
+          "NOT IN",
+          "インデックス不使用の可能性",
+          "LEFT JOIN + IS NULL"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "実行計画分析",
+      "language": "sql",
+      "code": "EXPLAIN SELECT * FROM users WHERE email = 'test@example.com';\n\n-- 主要指標\n-- type: const > eq_ref > ref > range > index > ALL\n-- key: 使用されるインデックス名\n-- rows: 推定スキャン行数\n-- Extra: Using index はカバリングインデックスを示す"
+    },
+    {
+      "type": "list",
+      "title": "設計戦略",
+      "style": "check",
+      "items": [
+        {
+          "label": "高選択性カラム優先",
+          "description": "ユニーク値が多いカラムを前に配置"
+        },
+        {
+          "label": "等値を前、範囲を後",
+          "description": "WHERE status = 1 AND date > ?"
+        },
+        {
+          "label": "カバリングインデックス",
+          "description": "クエリカラムがすべてインデックス内、テーブルアクセス回避"
+        },
+        {
+          "label": "冗長インデックス回避",
+          "description": "(a,b) は既に (a) を含む"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "MySQL",
+    "PostgreSQL",
+    "クエリ最適化"
+  ]
 }

@@ -5,11 +5,184 @@
     "description": "Rust 所有权系统、内存安全与系统编程",
     "order": 2,
     "tags": [
-      "rust",
-      "compiled",
-      "memory-safety",
-      "systems"
+      "Rust",
+      "内存安全",
+      "系统编程"
     ]
   },
-  "content": "<h1>Rust 语言基础</h1>\n<h2>Rust 概述</h2>\n<p>Rust 是一门注重安全、并发和性能的系统编程语言，通过所有权系统在编译时保证内存安全，无需垃圾回收。</p>\n<pre><code>Rust 特点\n├── 内存安全 - 无空指针、无数据竞争\n├── 零成本抽象 - 高级特性无运行时开销\n├── 所有权系统 - 编译时内存管理\n├── 无 GC - 可预测的性能\n└── 跨平台 - 系统级到 WebAssembly\n</code></pre>\n<h2>基础语法</h2>\n<h3>变量与类型</h3>\n<pre><code class=\"language-rust\">fn main() {\n    // 不可变变量 (默认)\n    let x = 5;\n    // x = 6;  // 错误！\n\n    // 可变变量\n    let mut y = 5;\n    y = 6;  // OK\n\n    // 类型标注\n    let z: i32 = 10;\n\n    // 常量 (必须标注类型)\n    const MAX_POINTS: u32 = 100_000;\n\n    // 遮蔽 (Shadowing)\n    let x = x + 1;\n    let x = x * 2;\n\n    // 基本类型\n    let i: i8 = 127;           // i8, i16, i32, i64, i128\n    let u: u32 = 255;          // u8, u16, u32, u64, u128\n    let f: f64 = 3.14;         // f32, f64\n    let b: bool = true;\n    let c: char = '中';        // Unicode 字符\n\n    // 元组\n    let tup: (i32, f64, u8) = (500, 6.4, 1);\n    let (x, y, z) = tup;       // 解构\n    let first = tup.0;         // 索引访问\n\n    // 数组 (固定长度)\n    let arr: [i32; 5] = [1, 2, 3, 4, 5];\n    let arr2 = [3; 5];         // [3, 3, 3, 3, 3]\n}\n</code></pre>\n<h3>函数</h3>\n<pre><code class=\"language-rust\">// 基本函数\nfn add(a: i32, b: i32) -> i32 {\n    a + b  // 表达式作为返回值，无分号\n}\n\n// 无返回值\nfn print_value(x: i32) {\n    println!(\"Value: {}\", x);\n}\n\n// 多返回值 (元组)\nfn swap(a: i32, b: i32) -> (i32, i32) {\n    (b, a)\n}\n\n// 提前返回\nfn abs(x: i32) -> i32 {\n    if x &#x3C; 0 {\n        return -x;\n    }\n    x\n}\n</code></pre>\n<h3>控制流</h3>\n<pre><code class=\"language-rust\">// if 表达式\nlet number = 6;\nlet result = if number % 2 == 0 { \"even\" } else { \"odd\" };\n\n// loop\nlet mut counter = 0;\nlet result = loop {\n    counter += 1;\n    if counter == 10 {\n        break counter * 2;  // 可返回值\n    }\n};\n\n// while\nwhile counter > 0 {\n    counter -= 1;\n}\n\n// for\nfor i in 0..5 {        // 0, 1, 2, 3, 4\n    println!(\"{}\", i);\n}\n\nfor i in 0..=5 {       // 0, 1, 2, 3, 4, 5 (包含)\n    println!(\"{}\", i);\n}\n\nlet arr = [10, 20, 30];\nfor element in arr.iter() {\n    println!(\"{}\", element);\n}\n\n// match (模式匹配)\nlet number = 13;\nmatch number {\n    1 => println!(\"one\"),\n    2 | 3 | 5 | 7 | 11 | 13 => println!(\"prime\"),\n    13..=19 => println!(\"teen\"),\n    _ => println!(\"other\"),\n}\n\n// if let (简化 match)\nlet some_value = Some(5);\nif let Some(x) = some_value {\n    println!(\"Got: {}\", x);\n}\n</code></pre>\n<h2>所有权系统</h2>\n<h3>所有权规则</h3>\n<pre><code class=\"language-rust\">// 规则：\n// 1. 每个值都有一个所有者\n// 2. 同一时刻只能有一个所有者\n// 3. 所有者离开作用域时，值被丢弃\n\nfn main() {\n    let s1 = String::from(\"hello\");\n    let s2 = s1;  // s1 移动到 s2，s1 不再有效\n    // println!(\"{}\", s1);  // 错误！\n\n    // 克隆 (深拷贝)\n    let s3 = s2.clone();\n    println!(\"{} {}\", s2, s3);  // OK\n\n    // Copy trait (栈上数据)\n    let x = 5;\n    let y = x;  // 拷贝，x 仍有效\n    println!(\"{} {}\", x, y);  // OK\n}\n\n// 函数与所有权\nfn takes_ownership(s: String) {\n    println!(\"{}\", s);\n}  // s 被丢弃\n\nfn gives_ownership() -> String {\n    String::from(\"hello\")\n}\n\nfn main() {\n    let s = String::from(\"hello\");\n    takes_ownership(s);\n    // println!(\"{}\", s);  // 错误！s 已被移动\n\n    let s2 = gives_ownership();  // 接收所有权\n}\n</code></pre>\n<h3>引用与借用</h3>\n<pre><code class=\"language-rust\">// 不可变引用\nfn calculate_length(s: &#x26;String) -> usize {\n    s.len()\n}  // s 离开作用域，但不丢弃原值\n\nfn main() {\n    let s = String::from(\"hello\");\n    let len = calculate_length(&#x26;s);  // 借用\n    println!(\"{} has length {}\", s, len);  // s 仍有效\n}\n\n// 可变引用\nfn append_world(s: &#x26;mut String) {\n    s.push_str(\", world\");\n}\n\nfn main() {\n    let mut s = String::from(\"hello\");\n    append_world(&#x26;mut s);\n    println!(\"{}\", s);  // \"hello, world\"\n}\n\n// 引用规则：\n// 1. 任意数量的不可变引用 OR\n// 2. 一个可变引用\n// (不能同时存在)\n\nfn main() {\n    let mut s = String::from(\"hello\");\n\n    let r1 = &#x26;s;      // OK\n    let r2 = &#x26;s;      // OK\n    println!(\"{} {}\", r1, r2);\n\n    let r3 = &#x26;mut s;  // OK，r1 和 r2 不再使用\n    println!(\"{}\", r3);\n}\n</code></pre>\n<h3>生命周期</h3>\n<pre><code class=\"language-rust\">// 生命周期标注\nfn longest&#x3C;'a>(x: &#x26;'a str, y: &#x26;'a str) -> &#x26;'a str {\n    if x.len() > y.len() { x } else { y }\n}\n\n// 结构体中的生命周期\nstruct Excerpt&#x3C;'a> {\n    part: &#x26;'a str,\n}\n\nimpl&#x3C;'a> Excerpt&#x3C;'a> {\n    fn level(&#x26;self) -> i32 {\n        3\n    }\n\n    fn announce(&#x26;self, announcement: &#x26;str) -> &#x26;str {\n        println!(\"Attention: {}\", announcement);\n        self.part\n    }\n}\n\n// 静态生命周期\nlet s: &#x26;'static str = \"I live forever\";\n</code></pre>\n<h2>结构体与枚举</h2>\n<h3>结构体</h3>\n<pre><code class=\"language-rust\">// 定义结构体\nstruct User {\n    username: String,\n    email: String,\n    active: bool,\n    sign_in_count: u64,\n}\n\n// 创建实例\nlet user = User {\n    username: String::from(\"alice\"),\n    email: String::from(\"alice@example.com\"),\n    active: true,\n    sign_in_count: 1,\n};\n\n// 字段简写\nfn build_user(email: String, username: String) -> User {\n    User {\n        email,      // 等同于 email: email\n        username,\n        active: true,\n        sign_in_count: 1,\n    }\n}\n\n// 结构体更新语法\nlet user2 = User {\n    email: String::from(\"bob@example.com\"),\n    ..user  // 其余字段来自 user\n};\n\n// 元组结构体\nstruct Color(i32, i32, i32);\nstruct Point(i32, i32, i32);\n\n// 单元结构体\nstruct AlwaysEqual;\n\n// 方法\nimpl User {\n    // 关联函数 (构造器)\n    fn new(email: String, username: String) -> Self {\n        Self {\n            email,\n            username,\n            active: true,\n            sign_in_count: 1,\n        }\n    }\n\n    // 方法\n    fn is_active(&#x26;self) -> bool {\n        self.active\n    }\n\n    fn deactivate(&#x26;mut self) {\n        self.active = false;\n    }\n}\n</code></pre>\n<h3>枚举</h3>\n<pre><code class=\"language-rust\">// 基本枚举\nenum Direction {\n    Up,\n    Down,\n    Left,\n    Right,\n}\n\n// 带数据的枚举\nenum Message {\n    Quit,\n    Move { x: i32, y: i32 },\n    Write(String),\n    ChangeColor(i32, i32, i32),\n}\n\n// Option&#x3C;T> - 处理空值\nenum Option&#x3C;T> {\n    Some(T),\n    None,\n}\n\nlet some_number = Some(5);\nlet no_number: Option&#x3C;i32> = None;\n\n// Result&#x3C;T, E> - 错误处理\nenum Result&#x3C;T, E> {\n    Ok(T),\n    Err(E),\n}\n\n// 模式匹配\nfn process(msg: Message) {\n    match msg {\n        Message::Quit => println!(\"Quit\"),\n        Message::Move { x, y } => println!(\"Move to ({}, {})\", x, y),\n        Message::Write(text) => println!(\"Write: {}\", text),\n        Message::ChangeColor(r, g, b) => println!(\"Color: {}, {}, {}\", r, g, b),\n    }\n}\n</code></pre>\n<h2>Trait (特征)</h2>\n<pre><code class=\"language-rust\">// 定义 trait\ntrait Summary {\n    fn summarize(&#x26;self) -> String;\n\n    // 默认实现\n    fn read_more(&#x26;self) -> String {\n        String::from(\"(Read more...)\")\n    }\n}\n\n// 实现 trait\nstruct Article {\n    title: String,\n    content: String,\n}\n\nimpl Summary for Article {\n    fn summarize(&#x26;self) -> String {\n        format!(\"{}: {}\", self.title, &#x26;self.content[..50])\n    }\n}\n\n// trait 作为参数\nfn notify(item: &#x26;impl Summary) {\n    println!(\"Breaking: {}\", item.summarize());\n}\n\n// trait bound\nfn notify&#x3C;T: Summary>(item: &#x26;T) {\n    println!(\"Breaking: {}\", item.summarize());\n}\n\n// 多个 trait bound\nfn notify&#x3C;T: Summary + Display>(item: &#x26;T) { }\n\n// where 子句\nfn some_function&#x3C;T, U>(t: &#x26;T, u: &#x26;U) -> i32\nwhere\n    T: Display + Clone,\n    U: Clone + Debug,\n{ }\n\n// 返回实现 trait 的类型\nfn returns_summarizable() -> impl Summary {\n    Article {\n        title: String::from(\"Title\"),\n        content: String::from(\"Content...\"),\n    }\n}\n\n// 派生 trait\n#[derive(Debug, Clone, PartialEq)]\nstruct Point {\n    x: i32,\n    y: i32,\n}\n</code></pre>\n<h2>错误处理</h2>\n<pre><code class=\"language-rust\">use std::fs::File;\nuse std::io::{self, Read};\n\n// Result 处理\nfn read_file(path: &#x26;str) -> Result&#x3C;String, io::Error> {\n    let mut file = File::open(path)?;  // ? 传播错误\n    let mut content = String::new();\n    file.read_to_string(&#x26;mut content)?;\n    Ok(content)\n}\n\n// match 处理\nfn main() {\n    let result = read_file(\"hello.txt\");\n    match result {\n        Ok(content) => println!(\"{}\", content),\n        Err(e) => println!(\"Error: {}\", e),\n    }\n}\n\n// unwrap 和 expect\nlet file = File::open(\"hello.txt\").unwrap();  // panic if error\nlet file = File::open(\"hello.txt\").expect(\"Failed to open file\");\n\n// 自定义错误\nuse thiserror::Error;\n\n#[derive(Error, Debug)]\nenum AppError {\n    #[error(\"IO error: {0}\")]\n    Io(#[from] io::Error),\n\n    #[error(\"Parse error: {0}\")]\n    Parse(String),\n\n    #[error(\"Not found: {0}\")]\n    NotFound(String),\n}\n</code></pre>\n<h2>并发</h2>\n<pre><code class=\"language-rust\">use std::thread;\nuse std::sync::{Arc, Mutex, mpsc};\n\n// 线程\nlet handle = thread::spawn(|| {\n    println!(\"Hello from thread\");\n});\nhandle.join().unwrap();\n\n// 移动所有权到线程\nlet v = vec![1, 2, 3];\nlet handle = thread::spawn(move || {\n    println!(\"{:?}\", v);\n});\n\n// Channel\nlet (tx, rx) = mpsc::channel();\n\nthread::spawn(move || {\n    tx.send(String::from(\"hello\")).unwrap();\n});\n\nlet received = rx.recv().unwrap();\nprintln!(\"Got: {}\", received);\n\n// 多生产者\nlet (tx, rx) = mpsc::channel();\nlet tx1 = tx.clone();\n\nthread::spawn(move || {\n    tx.send(\"from tx\").unwrap();\n});\n\nthread::spawn(move || {\n    tx1.send(\"from tx1\").unwrap();\n});\n\n// Mutex\nlet counter = Arc::new(Mutex::new(0));\nlet mut handles = vec![];\n\nfor _ in 0..10 {\n    let counter = Arc::clone(&#x26;counter);\n    let handle = thread::spawn(move || {\n        let mut num = counter.lock().unwrap();\n        *num += 1;\n    });\n    handles.push(handle);\n}\n\nfor handle in handles {\n    handle.join().unwrap();\n}\n</code></pre>\n<h2>异步编程</h2>\n<pre><code class=\"language-rust\">use tokio;\n\n// async 函数\nasync fn fetch_data() -> String {\n    // 模拟异步操作\n    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;\n    String::from(\"data\")\n}\n\n// 运行异步代码\n#[tokio::main]\nasync fn main() {\n    let result = fetch_data().await;\n    println!(\"{}\", result);\n\n    // 并发执行\n    let (r1, r2) = tokio::join!(\n        fetch_data(),\n        fetch_data()\n    );\n}\n</code></pre>\n<h2>常用 Crate</h2>\n<pre><code class=\"language-toml\"># Cargo.toml\n[dependencies]\nserde = { version = \"1.0\", features = [\"derive\"] }\nserde_json = \"1.0\"\ntokio = { version = \"1\", features = [\"full\"] }\nreqwest = { version = \"0.11\", features = [\"json\"] }\nanyhow = \"1.0\"\nthiserror = \"1.0\"\nclap = { version = \"4\", features = [\"derive\"] }\ntracing = \"0.1\"\n</code></pre>\n<h2>总结</h2>\n<p>Rust 核心要点：</p>\n<ol>\n<li><strong>所有权系统</strong> - 编译时内存安全保证</li>\n<li><strong>借用检查器</strong> - 防止数据竞争</li>\n<li><strong>零成本抽象</strong> - 高级特性无运行时开销</li>\n<li><strong>强类型系统</strong> - 丰富的类型表达能力</li>\n<li><strong>现代工具链</strong> - Cargo 包管理器</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Rust 是注重安全、并发和性能的系统语言",
+        "所有权系统在编译时保证内存安全",
+        "零成本抽象，无运行时开销",
+        "无垃圾回收，可预测性能"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "所有权规则",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "唯一所有者",
+          "badge": "规则1",
+          "badgeColor": "blue",
+          "points": [
+            "每个值有一个所有者",
+            "同时只能有一个",
+            "离开作用域时释放"
+          ]
+        },
+        {
+          "title": "移动语义",
+          "badge": "规则2",
+          "badgeColor": "green",
+          "points": [
+            "赋值转移所有权",
+            "原变量失效",
+            "Clone 深拷贝"
+          ]
+        },
+        {
+          "title": "借用",
+          "badge": "规则3",
+          "badgeColor": "purple",
+          "points": [
+            "& 不可变借用",
+            "&mut 可变借用",
+            "不能同时存在"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "所有权示例",
+      "language": "rust",
+      "code": "fn main() {\n    let s1 = String::from(\"hello\");\n    let s2 = s1;  // s1 移动到 s2\n    // println!(\"{}\", s1);  // 错误! s1 已失效\n    \n    // 借用 (不转移所有权)\n    let s3 = String::from(\"world\");\n    let len = calculate_length(&s3);  // 借用\n    println!(\"{} len: {}\", s3, len);  // s3 仍有效\n}\n\nfn calculate_length(s: &String) -> usize {\n    s.len()\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "引用规则",
+      "columns": [
+        {
+          "title": "不可变引用 &T",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "数量",
+              "description": "可以有多个"
+            },
+            {
+              "label": "读写",
+              "description": "只读"
+            },
+            {
+              "label": "生命周期",
+              "description": "借用检查"
+            }
+          ]
+        },
+        {
+          "title": "可变引用 &mut T",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "数量",
+              "description": "只能有一个"
+            },
+            {
+              "label": "读写",
+              "description": "可读写"
+            },
+            {
+              "label": "生命周期",
+              "description": "独占访问"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "结构体与 Trait",
+      "language": "rust",
+      "code": "#[derive(Debug, Clone)]\nstruct User {\n    name: String,\n    age: u32,\n}\n\nimpl User {\n    fn new(name: String) -> Self {\n        Self { name, age: 0 }\n    }\n}\n\n// Trait 定义行为\ntrait Summary {\n    fn summarize(&self) -> String;\n}\n\nimpl Summary for User {\n    fn summarize(&self) -> String {\n        format!(\"{}, age {}\", self.name, self.age)\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "错误处理",
+      "language": "rust",
+      "code": "use std::fs::File;\nuse std::io::{self, Read};\n\nfn read_file(path: &str) -> Result<String, io::Error> {\n    let mut file = File::open(path)?;  // ? 传播错误\n    let mut content = String::new();\n    file.read_to_string(&mut content)?;\n    Ok(content)\n}\n\n// 使用\nmatch read_file(\"hello.txt\") {\n    Ok(content) => println!(\"{}\", content),\n    Err(e) => eprintln!(\"Error: {}\", e),\n}"
+    },
+    {
+      "type": "table",
+      "title": "常用 Crate",
+      "highlightFirst": true,
+      "headers": [
+        "Crate",
+        "用途",
+        "功能"
+      ],
+      "rows": [
+        [
+          "serde",
+          "序列化",
+          "JSON/YAML/TOML"
+        ],
+        [
+          "tokio",
+          "异步运行时",
+          "async/await"
+        ],
+        [
+          "reqwest",
+          "HTTP 客户端",
+          "异步请求"
+        ],
+        [
+          "anyhow",
+          "错误处理",
+          "简化错误类型"
+        ],
+        [
+          "clap",
+          "CLI 解析",
+          "命令行参数"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "核心要点",
+      "style": "check",
+      "items": [
+        {
+          "label": "所有权系统",
+          "description": "编译时内存安全保证"
+        },
+        {
+          "label": "借用检查器",
+          "description": "防止数据竞争"
+        },
+        {
+          "label": "模式匹配",
+          "description": "match 表达式强大"
+        },
+        {
+          "label": "Cargo",
+          "description": "优秀的包管理和构建工具"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Go",
+    "C++",
+    "系统编程"
+  ]
 }

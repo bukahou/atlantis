@@ -2,14 +2,346 @@
   "slug": "load-balancer",
   "meta": {
     "title": "负载均衡",
-    "description": "负载均衡原理、算法与实践配置",
-    "order": 4,
+    "description": "L3/L4/L7 负载均衡策略、算法与高可用架构",
+    "order": 7,
     "tags": [
-      "network",
-      "load-balancer",
-      "nginx",
-      "haproxy"
+      "负载均衡",
+      "L3",
+      "L4",
+      "L7",
+      "高可用"
     ]
   },
-  "content": "<h1>负载均衡</h1>\n<h2>什么是负载均衡</h2>\n<p>负载均衡是将网络流量分发到多台服务器的技术，用于提高应用的可用性、可靠性和性能。</p>\n<pre><code>                    ┌─────────────┐\n                    │   客户端    │\n                    └──────┬──────┘\n                           │\n                    ┌──────▼──────┐\n                    │  负载均衡器  │\n                    └──────┬──────┘\n              ┌────────────┼────────────┐\n              │            │            │\n        ┌─────▼─────┐┌─────▼─────┐┌─────▼─────┐\n        │  服务器1  ││  服务器2  ││  服务器3  │\n        └───────────┘└───────────┘└───────────┘\n</code></pre>\n<h2>负载均衡类型</h2>\n<h3>按 OSI 层级</h3>\n<table>\n<thead>\n<tr>\n<th>类型</th>\n<th>层级</th>\n<th>特点</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>L4 负载均衡</strong></td>\n<td>传输层</td>\n<td>基于 IP + 端口，性能高</td>\n</tr>\n<tr>\n<td><strong>L7 负载均衡</strong></td>\n<td>应用层</td>\n<td>基于内容 (URL、Header)，功能强</td>\n</tr>\n</tbody>\n</table>\n<h3>L4 vs L7</h3>\n<pre><code>L4 负载均衡:\n客户端 ──TCP──> 负载均衡器 ──TCP──> 后端服务器\n              只看 IP:Port\n\nL7 负载均衡:\n客户端 ──HTTP──> 负载均衡器 ──HTTP──> 后端服务器\n                解析 URL/Header/Cookie\n</code></pre>\n<h2>负载均衡算法</h2>\n<h3>轮询 (Round Robin)</h3>\n<pre><code>请求依次分发到每台服务器\n\n请求1 → Server1\n请求2 → Server2\n请求3 → Server3\n请求4 → Server1\n...\n</code></pre>\n<h3>加权轮询 (Weighted Round Robin)</h3>\n<pre><code>根据权重比例分发\n\nServer1 (weight=3): 3 个请求\nServer2 (weight=2): 2 个请求\nServer3 (weight=1): 1 个请求\n</code></pre>\n<h3>最少连接 (Least Connections)</h3>\n<pre><code>选择当前连接数最少的服务器\n\nServer1: 10 连接\nServer2: 5 连接  ← 新请求\nServer3: 8 连接\n</code></pre>\n<h3>IP 哈希 (IP Hash)</h3>\n<pre><code>相同客户端 IP 始终访问同一服务器\n\nhash(客户端IP) % 服务器数量 = 目标服务器\n</code></pre>\n<h3>一致性哈希 (Consistent Hash)</h3>\n<pre><code>解决服务器增减时的重新分配问题\n\n     0\n    /   \\\n   S1    S3\n  /        \\\n S2 ────── hash环\n</code></pre>\n<h2>Nginx 配置</h2>\n<h3>基本配置</h3>\n<pre><code class=\"language-nginx\">http {\n    upstream backend {\n        server 192.168.1.101:8080;\n        server 192.168.1.102:8080;\n        server 192.168.1.103:8080;\n    }\n\n    server {\n        listen 80;\n        server_name example.com;\n\n        location / {\n            proxy_pass http://backend;\n            proxy_set_header Host $host;\n            proxy_set_header X-Real-IP $remote_addr;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        }\n    }\n}\n</code></pre>\n<h3>负载均衡算法</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    # 默认轮询\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_weighted {\n    # 加权轮询\n    server 192.168.1.101:8080 weight=3;\n    server 192.168.1.102:8080 weight=2;\n    server 192.168.1.103:8080 weight=1;\n}\n\nupstream backend_least_conn {\n    # 最少连接\n    least_conn;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_ip_hash {\n    # IP 哈希\n    ip_hash;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_hash {\n    # 一致性哈希\n    hash $request_uri consistent;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n</code></pre>\n<h3>健康检查</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    server 192.168.1.101:8080 max_fails=3 fail_timeout=30s;\n    server 192.168.1.102:8080 max_fails=3 fail_timeout=30s;\n    server 192.168.1.103:8080 backup;  # 备用服务器\n}\n</code></pre>\n<h3>会话保持</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    ip_hash;  # 基于 IP 的会话保持\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\n# 或使用 sticky cookie (需要 nginx-sticky-module)\nupstream backend {\n    sticky cookie srv_id expires=1h;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n</code></pre>\n<h2>HAProxy 配置</h2>\n<h3>基本配置</h3>\n<pre><code class=\"language-haproxy\">global\n    daemon\n    maxconn 4096\n\ndefaults\n    mode http\n    timeout connect 5s\n    timeout client 50s\n    timeout server 50s\n\nfrontend http_front\n    bind *:80\n    default_backend http_back\n\nbackend http_back\n    balance roundrobin\n    server server1 192.168.1.101:8080 check\n    server server2 192.168.1.102:8080 check\n    server server3 192.168.1.103:8080 check\n</code></pre>\n<h3>负载均衡算法</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    # 轮询\n    balance roundrobin\n\n    # 最少连接\n    balance leastconn\n\n    # 源 IP 哈希\n    balance source\n\n    # URI 哈希\n    balance uri\n\n    server server1 192.168.1.101:8080 check weight 3\n    server server2 192.168.1.102:8080 check weight 2\n</code></pre>\n<h3>健康检查</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    option httpchk GET /health\n    http-check expect status 200\n\n    server server1 192.168.1.101:8080 check inter 5s fall 3 rise 2\n    server server2 192.168.1.102:8080 check inter 5s fall 3 rise 2\n</code></pre>\n<h3>会话保持</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    balance roundrobin\n    cookie SERVERID insert indirect nocache\n\n    server server1 192.168.1.101:8080 check cookie s1\n    server server2 192.168.1.102:8080 check cookie s2\n</code></pre>\n<h2>云服务负载均衡</h2>\n<h3>AWS ALB/NLB</h3>\n<pre><code>ALB (Application Load Balancer):\n- L7 负载均衡\n- 支持路径路由、主机路由\n- WebSocket 支持\n\nNLB (Network Load Balancer):\n- L4 负载均衡\n- 超高性能\n- 静态 IP 支持\n</code></pre>\n<h3>阿里云 SLB</h3>\n<pre><code>CLB (传统负载均衡):\n- L4/L7 支持\n- 按量付费\n\nALB (应用负载均衡):\n- L7 专用\n- 灰度发布支持\n</code></pre>\n<h2>高可用架构</h2>\n<h3>主备模式</h3>\n<pre><code>         ┌──────────────┐\n         │   虚拟 IP    │\n         │ (Keepalived) │\n         └──────┬───────┘\n          ┌─────┴─────┐\n    ┌─────▼─────┐┌────▼────┐\n    │  LB 主    ││  LB 备  │\n    └─────┬─────┘└────┬────┘\n          └─────┬─────┘\n         后端服务器集群\n</code></pre>\n<h3>Keepalived 配置</h3>\n<pre><code class=\"language-bash\"># /etc/keepalived/keepalived.conf\n\nvrrp_instance VI_1 {\n    state MASTER\n    interface eth0\n    virtual_router_id 51\n    priority 100\n    advert_int 1\n\n    authentication {\n        auth_type PASS\n        auth_pass 1234\n    }\n\n    virtual_ipaddress {\n        192.168.1.100\n    }\n}\n</code></pre>\n<h2>监控指标</h2>\n<h3>关键指标</h3>\n<table>\n<thead>\n<tr>\n<th>指标</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>QPS</td>\n<td>每秒查询数</td>\n</tr>\n<tr>\n<td>响应时间</td>\n<td>请求处理耗时</td>\n</tr>\n<tr>\n<td>错误率</td>\n<td>失败请求比例</td>\n</tr>\n<tr>\n<td>连接数</td>\n<td>当前活跃连接</td>\n</tr>\n<tr>\n<td>后端健康状态</td>\n<td>各服务器状态</td>\n</tr>\n</tbody>\n</table>\n<h3>Nginx 状态监控</h3>\n<pre><code class=\"language-nginx\">location /nginx_status {\n    stub_status on;\n    allow 127.0.0.1;\n    deny all;\n}\n</code></pre>\n<pre><code class=\"language-bash\"># 输出示例\nActive connections: 291\nserver accepts handled requests\n 16630948 16630948 31070465\nReading: 6 Writing: 179 Waiting: 106\n</code></pre>\n<h2>总结</h2>\n<p>负载均衡核心要点：</p>\n<ol>\n<li><strong>选择层级</strong>: L4 高性能，L7 功能强</li>\n<li><strong>选择算法</strong>: 根据业务场景选择合适算法</li>\n<li><strong>健康检查</strong>: 自动剔除故障节点</li>\n<li><strong>会话保持</strong>: 需要时配置会话亲和</li>\n<li><strong>高可用</strong>: 负载均衡器本身也需要冗余</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "负载均衡分发流量到多个后端服务器",
+        "按 OSI 层级分：L3/L4/L7 负载均衡",
+        "多种算法：轮询、权重、最少连接、哈希",
+        "健康检查确保流量只发往健康节点"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "负载均衡概述",
+      "content": "负载均衡是将网络流量分发到多个服务器的技术，按工作层级可分为：L3（网络层，基于 IP）、L4（传输层，基于 IP+端口）、L7（应用层，基于内容）。它是构建高可用分布式系统的核心组件。"
+    },
+    {
+      "type": "table",
+      "title": "负载均衡层级对比",
+      "highlightFirst": true,
+      "headers": [
+        "层级",
+        "依据",
+        "技术/设备",
+        "特点"
+      ],
+      "rows": [
+        [
+          "L3 网络层",
+          "IP 地址",
+          "DNS 轮询、ECMP、BGP Anycast",
+          "简单高效，无状态"
+        ],
+        [
+          "L4 传输层",
+          "IP + 端口",
+          "LVS、IPVS、NLB",
+          "高性能，四层转发"
+        ],
+        [
+          "L7 应用层",
+          "URL/Header/Cookie",
+          "Nginx、HAProxy、ALB",
+          "智能路由，内容感知"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "L3 网络层负载均衡",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "DNS 轮询",
+          "badge": "DNS",
+          "badgeColor": "gray",
+          "points": [
+            "一个域名多个 A 记录",
+            "DNS 服务器轮询返回",
+            "简单但不感知服务状态",
+            "依赖 TTL 缓存"
+          ]
+        },
+        {
+          "title": "ECMP",
+          "badge": "路由",
+          "badgeColor": "blue",
+          "points": [
+            "等价多路径路由",
+            "路由器层面分发",
+            "基于流的哈希",
+            "高性能数据中心"
+          ]
+        },
+        {
+          "title": "BGP Anycast",
+          "badge": "全球",
+          "badgeColor": "green",
+          "points": [
+            "多节点相同 IP",
+            "就近路由访问",
+            "CDN 广泛使用",
+            "天然容灾"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "L4 vs L7 负载均衡",
+      "columns": [
+        {
+          "title": "L4 负载均衡",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "工作层",
+              "description": "传输层 (TCP/UDP)"
+            },
+            {
+              "label": "依据",
+              "description": "IP + 端口"
+            },
+            {
+              "label": "性能",
+              "description": "极高，内核态转发"
+            },
+            {
+              "label": "功能",
+              "description": "简单转发"
+            },
+            {
+              "label": "代表",
+              "description": "LVS、IPVS、F5"
+            }
+          ]
+        },
+        {
+          "title": "L7 负载均衡",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "工作层",
+              "description": "应用层 (HTTP)"
+            },
+            {
+              "label": "依据",
+              "description": "URL、Header、Cookie"
+            },
+            {
+              "label": "性能",
+              "description": "相对较低，用户态"
+            },
+            {
+              "label": "功能",
+              "description": "内容路由、SSL 终止"
+            },
+            {
+              "label": "代表",
+              "description": "Nginx、HAProxy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "负载均衡算法",
+      "highlightFirst": true,
+      "headers": [
+        "算法",
+        "原理",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "轮询 (Round Robin)",
+          "依次分发",
+          "服务器性能相近"
+        ],
+        [
+          "加权轮询",
+          "按权重比例分发",
+          "服务器性能不同"
+        ],
+        [
+          "最少连接",
+          "分发给连接数最少的",
+          "长连接场景"
+        ],
+        [
+          "IP 哈希",
+          "相同 IP 固定到同一服务器",
+          "会话保持"
+        ],
+        [
+          "一致性哈希",
+          "环形哈希映射",
+          "缓存服务器"
+        ],
+        [
+          "最快响应",
+          "分发给响应最快的",
+          "性能敏感场景"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "多层负载均衡架构",
+      "subtitle": "典型企业架构",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "L3 DNS",
+          "description": "Anycast/轮询",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "L4 LB",
+          "description": "LVS/NLB",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "L7 LB",
+          "description": "Nginx/HAProxy",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "App Server",
+          "description": "应用服务",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主流负载均衡方案",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "LVS/IPVS",
+          "badge": "L4",
+          "badgeColor": "blue",
+          "points": [
+            "Linux 内核模块",
+            "极高性能",
+            "DR/NAT/TUN 模式",
+            "开源免费"
+          ]
+        },
+        {
+          "title": "Nginx",
+          "badge": "L7",
+          "badgeColor": "green",
+          "points": [
+            "HTTP 反向代理",
+            "丰富的路由规则",
+            "SSL 终止和缓存",
+            "开源免费"
+          ]
+        },
+        {
+          "title": "HAProxy",
+          "badge": "L4/L7",
+          "badgeColor": "purple",
+          "points": [
+            "专业负载均衡器",
+            "高性能高可用",
+            "详细的统计信息",
+            "灵活的健康检查"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "LVS DR 模式配置",
+      "language": "bash",
+      "code": "# Director (负载均衡器)\nipvsadm -A -t 10.0.0.100:80 -s rr\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.1:80 -g\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.2:80 -g\n\n# Real Server (后端服务器)\n# 配置 VIP 在 lo 上，并抑制 ARP\nip addr add 10.0.0.100/32 dev lo\necho 1 > /proc/sys/net/ipv4/conf/all/arp_ignore\necho 2 > /proc/sys/net/ipv4/conf/all/arp_announce"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Nginx 负载均衡配置",
+      "language": "nginx",
+      "code": "upstream backend {\n    # 加权轮询\n    server 10.0.0.1:8080 weight=3;\n    server 10.0.0.2:8080 weight=2;\n    server 10.0.0.3:8080 backup;  # 备用\n    \n    # 健康检查 (Nginx Plus)\n    # health_check interval=5s;\n    \n    keepalive 32;\n}\n\nserver {\n    listen 80;\n    \n    location / {\n        proxy_pass http://backend;\n        proxy_http_version 1.1;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "健康检查",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "主动健康检查",
+          "badge": "Active",
+          "badgeColor": "green",
+          "points": [
+            "定期发送探测请求",
+            "TCP 端口检查",
+            "HTTP 状态码检查",
+            "自定义健康接口"
+          ]
+        },
+        {
+          "title": "被动健康检查",
+          "badge": "Passive",
+          "badgeColor": "amber",
+          "points": [
+            "监控实际请求",
+            "连续失败标记不健康",
+            "响应超时检测",
+            "零额外开销"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "高可用设计要点",
+      "style": "check",
+      "items": [
+        {
+          "label": "负载均衡器冗余",
+          "description": "Keepalived 主备或集群"
+        },
+        {
+          "label": "多层负载均衡",
+          "description": "L3 + L4 + L7 组合使用"
+        },
+        {
+          "label": "完善的健康检查",
+          "description": "合理设置检查间隔和阈值"
+        },
+        {
+          "label": "优雅降级",
+          "description": "配置备用服务器和降级策略"
+        },
+        {
+          "label": "会话保持",
+          "description": "根据业务选择合适的方案"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "L4 传输层",
+    "L7 应用层",
+    "高可用架构"
+  ]
 }

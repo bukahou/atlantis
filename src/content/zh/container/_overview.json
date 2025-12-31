@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "title": "容器化",
+    "description": "容器技术基础：VM vs 容器、镜像原理与容器编排",
+    "icon": "box"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "容器是轻量级的进程隔离技术",
+        "Namespace 提供资源隔离，cgroups 提供资源限制",
+        "容器镜像采用分层存储，共享基础层",
+        "Kubernetes 是容器编排的事实标准"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "虚拟机 vs 容器",
+      "columns": [
+        {
+          "title": "虚拟机 (VM)",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "虚拟化层", "description": "Hypervisor 硬件虚拟化" },
+            { "label": "系统", "description": "完整 Guest OS" },
+            { "label": "启动时间", "description": "分钟级" },
+            { "label": "资源占用", "description": "GB 级别" },
+            { "label": "隔离性", "description": "强隔离 (硬件级)" }
+          ]
+        },
+        {
+          "title": "容器 (Container)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "虚拟化层", "description": "共享宿主机内核" },
+            { "label": "系统", "description": "仅应用和依赖" },
+            { "label": "启动时间", "description": "秒级/毫秒级" },
+            { "label": "资源占用", "description": "MB 级别" },
+            { "label": "隔离性", "description": "进程级隔离" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "容器架构",
+      "direction": "vertical",
+      "steps": [
+        { "label": "容器应用", "description": "App + Libraries", "color": "bg-blue-500" },
+        { "label": "容器运行时", "description": "containerd / CRI-O", "color": "bg-cyan-500" },
+        { "label": "Linux 内核", "description": "Namespace + cgroups", "color": "bg-purple-500" },
+        { "label": "宿主机", "description": "Host OS", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Linux 容器核心技术",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Namespace (命名空间)",
+          "badge": "隔离",
+          "badgeColor": "blue",
+          "points": [
+            "PID: 进程 ID 隔离",
+            "NET: 网络栈隔离",
+            "MNT: 文件系统挂载隔离",
+            "UTS: 主机名隔离",
+            "IPC: 进程间通信隔离",
+            "USER: 用户/组 ID 隔离"
+          ]
+        },
+        {
+          "title": "cgroups (控制组)",
+          "badge": "限制",
+          "badgeColor": "green",
+          "points": [
+            "CPU: 限制 CPU 使用",
+            "Memory: 限制内存使用",
+            "I/O: 限制磁盘读写",
+            "Network: 限制网络带宽",
+            "资源统计与监控"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "容器镜像分层",
+      "direction": "vertical",
+      "steps": [
+        { "label": "可写层", "description": "Container Layer (读写)", "color": "bg-red-500" },
+        { "label": "应用层", "description": "App Code + Configs", "color": "bg-blue-500" },
+        { "label": "依赖层", "description": "Libraries + Packages", "color": "bg-cyan-500" },
+        { "label": "基础镜像", "description": "Base OS (只读)", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "基础镜像选择",
+      "highlightFirst": true,
+      "headers": ["镜像", "大小", "特点", "适用场景"],
+      "rows": [
+        ["alpine", "~5MB", "musl libc，最小化", "生产环境，轻量应用"],
+        ["debian/ubuntu", "~100MB", "完整 glibc，兼容性好", "开发调试，复杂依赖"],
+        ["distroless", "~20MB", "无 shell，无包管理", "安全敏感的生产环境"],
+        ["scratch", "0MB", "空镜像", "Go/Rust 静态编译"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "容器生态",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Docker",
+          "badge": "运行时",
+          "badgeColor": "blue",
+          "points": [
+            "容器技术事实标准",
+            "完整的构建/运行工具链",
+            "适合开发和单机部署"
+          ]
+        },
+        {
+          "title": "Kubernetes",
+          "badge": "编排",
+          "badgeColor": "green",
+          "points": [
+            "容器编排平台",
+            "自动化部署/扩缩容",
+            "适合生产级集群管理"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker", "Kubernetes", "微服务", "CI/CD"]
+}

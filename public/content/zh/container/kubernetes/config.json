@@ -1,0 +1,217 @@
+{
+  "slug": "config",
+  "meta": {
+    "title": "配置管理",
+    "description": "Kubernetes 配置管理：Namespace、ConfigMap 与 Secret",
+    "order": 4,
+    "tags": [
+      "Kubernetes",
+      "ConfigMap",
+      "Secret",
+      "Namespace"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Namespace 实现资源隔离和多租户",
+        "ConfigMap 存储非敏感配置数据",
+        "Secret 存储敏感信息 (Base64 编码)",
+        "配置与应用分离，便于环境切换"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "配置资源类型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Namespace",
+          "badge": "隔离",
+          "badgeColor": "blue",
+          "points": [
+            "资源逻辑隔离",
+            "多环境/多租户",
+            "资源配额限制",
+            "RBAC 权限边界"
+          ]
+        },
+        {
+          "title": "ConfigMap",
+          "badge": "配置",
+          "badgeColor": "green",
+          "points": [
+            "键值对配置",
+            "配置文件存储",
+            "环境变量注入",
+            "卷挂载方式"
+          ]
+        },
+        {
+          "title": "Secret",
+          "badge": "敏感",
+          "badgeColor": "red",
+          "points": [
+            "密码/密钥存储",
+            "Base64 编码",
+            "TLS 证书",
+            "Docker 认证"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Namespace 管理",
+      "language": "yaml",
+      "code": "# 创建 Namespace\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: production\n  labels:\n    env: production\n---\n# 资源配额\napiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: prod-quota\n  namespace: production\nspec:\n  hard:\n    requests.cpu: \"10\"\n    requests.memory: 20Gi\n    limits.cpu: \"20\"\n    limits.memory: 40Gi\n    pods: \"50\"\n    services: \"10\"\n---\n# LimitRange (默认资源限制)\napiVersion: v1\nkind: LimitRange\nmetadata:\n  name: default-limits\n  namespace: production\nspec:\n  limits:\n  - default:\n      cpu: 500m\n      memory: 512Mi\n    defaultRequest:\n      cpu: 100m\n      memory: 128Mi\n    type: Container"
+    },
+    {
+      "type": "codeBlock",
+      "title": "ConfigMap 创建与使用",
+      "language": "yaml",
+      "code": "# ConfigMap 定义\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  # 键值对\n  DATABASE_HOST: mysql.default.svc\n  LOG_LEVEL: info\n  # 配置文件\n  nginx.conf: |\n    server {\n      listen 80;\n      location / {\n        proxy_pass http://backend:3000;\n      }\n    }\n---\n# Pod 中使用 ConfigMap\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    # 方式1: 环境变量\n    env:\n    - name: DB_HOST\n      valueFrom:\n        configMapKeyRef:\n          name: app-config\n          key: DATABASE_HOST\n    # 方式2: 全部导入\n    envFrom:\n    - configMapRef:\n        name: app-config\n    # 方式3: 卷挂载\n    volumeMounts:\n    - name: config\n      mountPath: /etc/nginx/nginx.conf\n      subPath: nginx.conf\n  volumes:\n  - name: config\n    configMap:\n      name: app-config"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Secret 创建与使用",
+      "language": "yaml",
+      "code": "# 命令行创建\n# kubectl create secret generic db-secret \\\n#   --from-literal=username=admin \\\n#   --from-literal=password=secret123\n\n# YAML 定义 (值需要 Base64 编码)\napiVersion: v1\nkind: Secret\nmetadata:\n  name: db-secret\ntype: Opaque\nstringData:  # 使用 stringData 可直接写明文\n  username: admin\n  password: secret123\n---\n# TLS Secret\napiVersion: v1\nkind: Secret\nmetadata:\n  name: tls-secret\ntype: kubernetes.io/tls\ndata:\n  tls.crt: <base64-encoded-cert>\n  tls.key: <base64-encoded-key>\n---\n# Pod 中使用 Secret\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    env:\n    - name: DB_PASSWORD\n      valueFrom:\n        secretKeyRef:\n          name: db-secret\n          key: password\n    volumeMounts:\n    - name: secrets\n      mountPath: /etc/secrets\n      readOnly: true\n  volumes:\n  - name: secrets\n    secret:\n      secretName: db-secret"
+    },
+    {
+      "type": "table",
+      "title": "Secret 类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "用途",
+        "必需字段"
+      ],
+      "rows": [
+        [
+          "Opaque",
+          "通用 Secret",
+          "任意"
+        ],
+        [
+          "kubernetes.io/tls",
+          "TLS 证书",
+          "tls.crt, tls.key"
+        ],
+        [
+          "kubernetes.io/dockerconfigjson",
+          "镜像拉取认证",
+          ".dockerconfigjson"
+        ],
+        [
+          "kubernetes.io/basic-auth",
+          "Basic 认证",
+          "username, password"
+        ],
+        [
+          "kubernetes.io/ssh-auth",
+          "SSH 认证",
+          "ssh-privatekey"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Registry Secret",
+      "language": "bash",
+      "code": "# 创建镜像拉取 Secret\nkubectl create secret docker-registry regcred \\\n  --docker-server=registry.example.com \\\n  --docker-username=user \\\n  --docker-password=password \\\n  --docker-email=user@example.com\n\n# 在 Pod 中使用\n# spec:\n#   imagePullSecrets:\n#   - name: regcred\n\n# 配置 ServiceAccount 自动使用\nkubectl patch serviceaccount default \\\n  -p '{\"imagePullSecrets\": [{\"name\": \"regcred\"}]}'"
+    },
+    {
+      "type": "codeBlock",
+      "title": "配置热更新",
+      "language": "yaml",
+      "code": "# ConfigMap 更新后，卷挂载的文件会自动更新\n# (延迟约 1 分钟，可配置 kubelet sync 周期)\n\n# 对于环境变量方式，需要重启 Pod\n# 可以使用 Deployment 的 annotation 触发滚动更新\n\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: myapp\nspec:\n  template:\n    metadata:\n      annotations:\n        # 修改此值触发重新部署\n        configmap-version: \"v2\"\n    spec:\n      containers:\n      - name: app\n        image: myapp:v1\n        envFrom:\n        - configMapRef:\n            name: app-config"
+    },
+    {
+      "type": "comparison",
+      "title": "ConfigMap vs Secret",
+      "columns": [
+        {
+          "title": "ConfigMap",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "非敏感配置"
+            },
+            {
+              "label": "存储",
+              "description": "明文存储"
+            },
+            {
+              "label": "大小限制",
+              "description": "1MB"
+            },
+            {
+              "label": "示例",
+              "description": "数据库地址、日志级别"
+            }
+          ]
+        },
+        {
+          "title": "Secret",
+          "color": "from-red-500 to-pink-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "敏感信息"
+            },
+            {
+              "label": "存储",
+              "description": "Base64 编码 (非加密)"
+            },
+            {
+              "label": "大小限制",
+              "description": "1MB"
+            },
+            {
+              "label": "示例",
+              "description": "密码、API 密钥、证书"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 Namespace 隔离环境",
+          "description": "dev/staging/production 分离"
+        },
+        {
+          "label": "不要在 Git 中存储 Secret",
+          "description": "使用 SealedSecrets 或 External Secrets"
+        },
+        {
+          "label": "启用 Secret 加密",
+          "description": "配置 etcd 加密存储"
+        },
+        {
+          "label": "使用 RBAC 限制访问",
+          "description": "最小权限原则"
+        },
+        {
+          "label": "优先使用卷挂载",
+          "description": "支持热更新，比环境变量更灵活"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Pod",
+    "RBAC",
+    "Helm",
+    "GitOps"
+  ]
+}

@@ -20,6 +20,13 @@
       "description": "Elasticsearch 全文搜索引擎、索引与查询 DSL",
       "href": "/database/nosql/elasticsearch",
       "order": 3
+    },
+    {
+      "slug": "dynamodb",
+      "title": "DynamoDB",
+      "description": "AWS DynamoDB 完全托管的 NoSQL 数据库服务",
+      "href": "/database/nosql/dynamodb",
+      "order": 4
     }
   ]
 }

@@ -34,7 +34,7 @@ Atlantis/
 │   └── DEVELOPMENT.md       # 开发规范
 │
 ├── scripts/                 # 构建脚本
-│   └── build-content.mjs    # Markdown → JSON 转换
+│   └── build-content.mjs    # 内容处理脚本
 │
 ├── public/                  # 静态资源 (可直接访问)
 │   └── content/             # [自动生成] 内容 JSON 文件
@@ -91,34 +91,45 @@ Atlantis/
 
 ### `src/content/` - 知识内容
 
-这是编写知识文章的核心目录。
+这是编写知识文章的核心目录。内容使用 **JSON 格式**存储，支持灵活的 UI 组件渲染。
 
 ```
 content/
 ├── zh/                              # 中文
 │   └── infrastructure/              # 一级分类
 │       └── linux/                   # 二级分类
-│           ├── _meta.json           # 分类元数据
-│           └── shell.md             # 文章
+│           ├── _overview.json       # 分类概览
+│           └── shell.json           # 文章
 └── ja/                              # 日文 (结构相同)
 ```
 
-**文章格式:**
+**文章格式 (JSON):**
 
-```markdown
----
-title: 文章标题
-description: 简短描述
-order: 1
-tags:
-  - tag1
-  - tag2
----
-
-# 正文内容
-
-使用标准 Markdown 语法...
+```json
+{
+  "meta": {
+    "title": "文章标题",
+    "description": "简短描述",
+    "order": 1,
+    "tags": ["tag1", "tag2"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心要点",
+      "items": ["要点1", "要点2"]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "正文内容..."
+    }
+  ],
+  "relatedTopics": ["相关主题"]
+}
 ```
+
+**支持的 Section 类型:** keyPoints, text, cards, comparison, flow, table, list, codeBlock
 
 ### `src/components/` - 组件库
 
@@ -171,7 +182,11 @@ tags:
 
 ## 添加新内容
 
-1. 在 `src/content/zh/{category}/{subcategory}/` 创建 `.md` 文件
+1. 在 `src/content/zh/{category}/{subcategory}/` 创建 `.json` 文件
 2. 在 `src/content/ja/{category}/{subcategory}/` 创建对应日文版本
-3. 运行 `npm run dev` 自动构建
+3. 运行 `npm run dev` 启动开发服务器
 4. 访问 `/{category}/{subcategory}/{slug}` 查看
+
+## AI 开发上下文
+
+详见 [CLAUDE.md](CLAUDE.md) - 包含日语化进度和翻译工作流说明。

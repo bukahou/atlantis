@@ -1,0 +1,208 @@
+{
+  "slug": "networking",
+  "meta": {
+    "title": "Docker 网络",
+    "description": "Docker 网络模式、容器通信与网络配置",
+    "order": 2,
+    "tags": [
+      "Docker",
+      "网络",
+      "容器通信"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Docker 提供多种网络驱动模式",
+        "容器通过网络进行服务发现和通信",
+        "自定义网络实现容器隔离",
+        "DNS 自动解析容器名"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "网络驱动",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "bridge",
+          "badge": "默认",
+          "badgeColor": "blue",
+          "points": [
+            "默认网络驱动",
+            "容器间通过 IP 通信",
+            "NAT 方式访问外部",
+            "端口映射暴露服务"
+          ]
+        },
+        {
+          "title": "host",
+          "badge": "高性能",
+          "badgeColor": "green",
+          "points": [
+            "共享主机网络栈",
+            "无网络隔离",
+            "最佳网络性能",
+            "直接使用主机端口"
+          ]
+        },
+        {
+          "title": "overlay",
+          "badge": "跨主机",
+          "badgeColor": "purple",
+          "points": [
+            "多主机容器通信",
+            "Swarm/K8s 集群使用",
+            "VXLAN 封装",
+            "跨节点服务发现"
+          ]
+        },
+        {
+          "title": "none",
+          "badge": "隔离",
+          "badgeColor": "gray",
+          "points": [
+            "禁用网络",
+            "完全网络隔离",
+            "自定义网络场景",
+            "安全敏感应用"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "网络操作命令",
+      "language": "bash",
+      "code": "# 创建自定义网络\ndocker network create --driver bridge my-network\n\n# 查看网络列表\ndocker network ls\n\n# 查看网络详情\ndocker network inspect my-network\n\n# 运行容器加入网络\ndocker run -d --name app --network my-network nginx\n\n# 将已运行容器连接到网络\ndocker network connect my-network container-name\n\n# 从网络断开容器\ndocker network disconnect my-network container-name\n\n# 删除网络\ndocker network rm my-network"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Compose 网络配置",
+      "language": "yaml",
+      "code": "version: '3.8'\n\nservices:\n  web:\n    image: nginx\n    networks:\n      - frontend\n      - backend\n    ports:\n      - \"80:80\"\n\n  api:\n    image: node:18\n    networks:\n      - backend\n    expose:\n      - \"3000\"\n\n  db:\n    image: postgres:14\n    networks:\n      - backend\n    # 只在 backend 网络可访问\n\nnetworks:\n  frontend:\n    driver: bridge\n  backend:\n    driver: bridge\n    internal: true  # 禁止外部访问"
+    },
+    {
+      "type": "comparison",
+      "title": "端口映射 vs expose",
+      "columns": [
+        {
+          "title": "ports",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "映射到主机端口"
+            },
+            {
+              "label": "访问",
+              "description": "外部可访问"
+            },
+            {
+              "label": "语法",
+              "description": "\"8080:80\""
+            }
+          ]
+        },
+        {
+          "title": "expose",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "容器间通信"
+            },
+            {
+              "label": "访问",
+              "description": "仅内部网络"
+            },
+            {
+              "label": "语法",
+              "description": "\"3000\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "容器 DNS 与服务发现",
+      "language": "bash",
+      "code": "# 自定义网络中，容器名即为 DNS 名\ndocker network create app-net\n\n# 启动数据库\ndocker run -d --name db --network app-net postgres:14\n\n# 应用通过容器名访问数据库\ndocker run -d --name app --network app-net \\\n  -e DATABASE_URL=\"postgresql://db:5432/mydb\" \\\n  my-app\n\n# 在 app 容器内可以直接 ping db\ndocker exec app ping db\n\n# 使用别名\ndocker run -d --name db --network app-net \\\n  --network-alias database \\\n  postgres:14"
+    },
+    {
+      "type": "table",
+      "title": "网络驱动对比",
+      "highlightFirst": true,
+      "headers": [
+        "驱动",
+        "隔离性",
+        "性能",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "bridge",
+          "容器隔离",
+          "良好",
+          "单机多容器"
+        ],
+        [
+          "host",
+          "无隔离",
+          "最佳",
+          "性能敏感应用"
+        ],
+        [
+          "overlay",
+          "跨主机隔离",
+          "良好",
+          "Swarm/K8s 集群"
+        ],
+        [
+          "macvlan",
+          "物理网络",
+          "良好",
+          "需要物理 IP"
+        ],
+        [
+          "none",
+          "完全隔离",
+          "-",
+          "安全/自定义"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用自定义网络",
+          "description": "避免使用默认 bridge，获得 DNS 解析"
+        },
+        {
+          "label": "网络隔离",
+          "description": "不同服务组使用不同网络"
+        },
+        {
+          "label": "internal 网络",
+          "description": "数据库等内部服务禁止外部访问"
+        },
+        {
+          "label": "避免 host 模式",
+          "description": "除非性能要求极高"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Docker 基础",
+    "Kubernetes",
+    "微服务"
+  ]
+}

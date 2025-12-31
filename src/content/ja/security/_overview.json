@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "title": "セキュリティ",
+    "description": "認証・認可、暗号化技術、ネットワークセキュリティとセキュリティ監査",
+    "icon": "shield"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "認証・認可：身元確認とアクセス制御",
+        "暗号化技術：データの機密性と完全性",
+        "ネットワークセキュリティ：トランスポート層とアプリケーション層の防護",
+        "セキュリティ監査：ログ記録とコンプライアンス"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "セキュリティはシステム設計の重要な側面であり、認証、暗号化、ネットワーク防護、監査コンプライアンスなど多層にわたります。OWASP Top 10 は最も一般的な Web セキュリティリスクをリストアップしており、セキュリティ防護の重要な参考資料です。セキュリティは一度きりの作業ではなく、継続的なプロセスです。"
+    },
+    {
+      "type": "cards",
+      "title": "セキュリティ層",
+      "layout": "grid",
+      "columns": 4,
+      "items": [
+        {
+          "title": "アイデンティティ",
+          "badge": "認証",
+          "badgeColor": "blue",
+          "points": [
+            "OAuth 2.0",
+            "OIDC",
+            "MFA"
+          ]
+        },
+        {
+          "title": "データ保護",
+          "badge": "暗号化",
+          "badgeColor": "green",
+          "points": [
+            "転送時暗号化",
+            "保存時暗号化",
+            "鍵管理"
+          ]
+        },
+        {
+          "title": "ネットワーク",
+          "badge": "防護",
+          "badgeColor": "purple",
+          "points": [
+            "WAF",
+            "DDoS 対策",
+            "ゼロトラスト"
+          ]
+        },
+        {
+          "title": "監査",
+          "badge": "監視",
+          "badgeColor": "orange",
+          "points": [
+            "監査ログ",
+            "脆弱性スキャン",
+            "コンプライアンス"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "OWASP Top 10 (2021)",
+      "highlightFirst": true,
+      "headers": ["ランク", "リスク", "対策"],
+      "rows": [
+        ["A01", "アクセス制御の不備", "RBAC、最小権限の原則"],
+        ["A02", "暗号化の失敗", "TLS、AES-256、鍵ローテーション"],
+        ["A03", "インジェクション", "パラメータ化クエリ、入力検証"],
+        ["A04", "安全でない設計", "脅威モデリング、セキュア設計パターン"],
+        ["A05", "セキュリティ設定ミス", "セキュリティベースライン、自動スキャン"]
+      ]
+    }
+  ],
+  "relatedTopics": ["DevSecOps", "ゼロトラスト", "コンプライアンス"],
+  "articles": [
+    {
+      "slug": "auth",
+      "title": "認証・認可",
+      "description": "OAuth、JWT と RBAC アクセス制御",
+      "priority": "essential"
+    },
+    {
+      "slug": "encryption",
+      "title": "暗号化技術",
+      "description": "共通鍵暗号、公開鍵暗号とハッシュアルゴリズム",
+      "priority": "essential"
+    },
+    {
+      "slug": "network-security",
+      "title": "ネットワークセキュリティ",
+      "description": "TLS/SSL、ファイアウォールと WAF",
+      "priority": "recommended"
+    },
+    {
+      "slug": "audit",
+      "title": "セキュリティ監査",
+      "description": "監査ログ、脆弱性スキャンとコンプライアンス",
+      "priority": "important"
+    }
+  ]
+}

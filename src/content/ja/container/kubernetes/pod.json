@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "Pod 詳解",
+    "description": "Pod のライフサイクル、設定とスケジューリング戦略",
+    "order": 1,
+    "tags": ["Kubernetes", "Pod", "コンテナ"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Pod は Kubernetes の最小スケジューリング単位",
+        "1つの Pod に複数のコンテナを含めることが可能",
+        "Pod 内のコンテナはネットワークとストレージを共有",
+        "Pod は一時的であり、いつでも再作成される可能性がある"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Pod とは",
+      "content": "Pod は Kubernetes における最小のデプロイ可能な単位であり、1つ以上のコンテナ、ストレージリソース、ネットワーク IP、およびコンテナの実行オプションをカプセル化します。Pod 内のコンテナは常に同じノードにスケジュールされ、ネットワーク名前空間（IP とポート）を共有します。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Pod 設定例",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web-app\n  labels:\n    app: web\nspec:\n  containers:\n  - name: nginx\n    image: nginx:1.24\n    ports:\n    - containerPort: 80\n    resources:\n      requests:\n        memory: \"64Mi\"\n        cpu: \"100m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"200m\"\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 80\n      initialDelaySeconds: 10\n      periodSeconds: 5\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 80\n      initialDelaySeconds: 5\n      periodSeconds: 3"
+    },
+    {
+      "type": "flow",
+      "title": "Pod ライフサイクル",
+      "subtitle": "作成から終了までの状態遷移",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Pending", "description": "スケジューリング待ち", "color": "bg-gray-500" },
+        { "label": "Creating", "description": "コンテナ作成中", "color": "bg-blue-500" },
+        { "label": "Running", "description": "実行中", "color": "bg-green-500" },
+        { "label": "Succeeded/Failed", "description": "終了", "color": "bg-yellow-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Pod 設定項目",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "リソース設定",
+          "badge": "Resources",
+          "badgeColor": "blue",
+          "points": [
+            "requests - 最小リソース要求",
+            "limits - 最大リソース制限",
+            "QoS: Guaranteed/Burstable/BestEffort"
+          ]
+        },
+        {
+          "title": "ヘルスチェック",
+          "badge": "Probes",
+          "badgeColor": "green",
+          "points": [
+            "livenessProbe - 生存確認",
+            "readinessProbe - 準備完了確認",
+            "startupProbe - 起動確認"
+          ]
+        },
+        {
+          "title": "環境設定",
+          "badge": "Env",
+          "badgeColor": "amber",
+          "points": [
+            "env - 環境変数",
+            "envFrom - ConfigMap/Secret から取得",
+            "volumeMounts - ボリュームマウント"
+          ]
+        },
+        {
+          "title": "スケジューリング設定",
+          "badge": "Schedule",
+          "badgeColor": "purple",
+          "points": [
+            "nodeSelector - ノード選択",
+            "affinity - アフィニティルール",
+            "tolerations - Taint の許容"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ヘルスチェックの種類",
+      "columns": [
+        {
+          "title": "Liveness Probe",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "用途", "description": "コンテナが生存しているか確認" },
+            { "label": "失敗時の動作", "description": "コンテナを再起動" },
+            { "label": "ユースケース", "description": "デッドロック、無応答の検出" }
+          ]
+        },
+        {
+          "title": "Readiness Probe",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "用途", "description": "コンテナが準備完了か確認" },
+            { "label": "失敗時の動作", "description": "Service から除外" },
+            { "label": "ユースケース", "description": "ウォームアップ、依存関係チェック" }
+          ]
+        },
+        {
+          "title": "Startup Probe",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "用途", "description": "コンテナが起動したか確認" },
+            { "label": "失敗時の動作", "description": "コンテナを再起動" },
+            { "label": "ユースケース", "description": "起動が遅いアプリケーション" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Pod デバッグコマンド",
+      "highlightFirst": true,
+      "headers": ["コマンド", "説明"],
+      "rows": [
+        ["kubectl get pods -o wide", "Pod 一覧とノードを表示"],
+        ["kubectl describe pod <name>", "Pod の詳細とイベントを表示"],
+        ["kubectl logs <pod> -c <container>", "コンテナログを表示"],
+        ["kubectl exec -it <pod> -- bash", "Pod でコマンドを実行"],
+        ["kubectl top pod <name>", "Pod のリソース使用量を表示"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "リソース制限を設定", "description": "常に requests と limits を設定する" },
+        { "label": "ヘルスチェックを設定", "description": "すべての本番 Pod にプローブを設定" },
+        { "label": "ラベルを使用", "description": "適切な labels で管理と選択を容易に" },
+        { "label": "直接 Pod を作成しない", "description": "Deployment などのコントローラーで管理" },
+        { "label": "グレースフルシャットダウン", "description": "terminationGracePeriodSeconds を設定" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Deployment", "Service", "ConfigMap"]
+}

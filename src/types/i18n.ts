@@ -16,20 +16,24 @@ export interface Translations {
     subcategories: string;
     viewMore: string;
     noContent: string;
+    moreItems: string;
+    footer: string;
   };
   nav: {
     infrastructure: NavItem;
     container: NavItem;
     languages: NavItem;
-    frontend: NavItem;
     backend: NavItem;
     database: NavItem;
+    architecture: NavItem;
+    security: NavItem;
     toolchain: NavItem;
   };
   home: {
     title: string;
     subtitle: string;
     description: string;
+    philosophy: string;
     getStarted: string;
     categories: string;
   };

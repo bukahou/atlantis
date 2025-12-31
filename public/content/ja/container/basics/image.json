@@ -1,0 +1,321 @@
+{
+  "slug": "image",
+  "meta": {
+    "title": "コンテナイメージ詳解",
+    "description": "コンテナイメージの原理：レイヤー構造、UnionFS、イメージ構築と最適化",
+    "order": 2,
+    "tags": [
+      "コンテナ",
+      "イメージ",
+      "UnionFS",
+      "OverlayFS",
+      "Dockerfile"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "イメージは読み取り専用のレイヤー構造ファイルシステム",
+        "UnionFS が複数レイヤーを統一ビューに合成",
+        "各 Dockerfile 命令が新しいレイヤーを作成",
+        "コンテナ実行時にイメージ上に書き込み可能レイヤーを追加"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "コンテナイメージとは",
+      "content": "コンテナイメージは、アプリケーション実行に必要なコード、ランタイム、ライブラリ、環境変数、設定ファイルを含む読み取り専用のテンプレートです。イメージはレイヤー構造を採用し、各レイヤーは前のレイヤーからの増分変更です。この設計により、イメージ間でベースレイヤーを効率的に共有でき、ストレージ容量と転送時間を大幅に削減できます。"
+    },
+    {
+      "type": "flow",
+      "title": "イメージのレイヤー構造",
+      "direction": "vertical",
+      "steps": [
+        {
+          "label": "Container Layer",
+          "description": "書き込み可能レイヤー (コンテナ実行時)",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "Layer N",
+          "description": "COPY app.jar",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Layer 3",
+          "description": "RUN apt-get install",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "Layer 2",
+          "description": "RUN apt-get update",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Layer 1 (Base)",
+          "description": "FROM ubuntu:22.04",
+          "color": "bg-gray-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "UnionFS ユニオンファイルシステム",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "OverlayFS",
+          "badge": "主流",
+          "badgeColor": "blue",
+          "points": [
+            "Linux カーネルネイティブサポート (3.18+)",
+            "Docker/containerd のデフォルトドライバー",
+            "高性能、高い安定性",
+            "lower/upper/merged レイヤーで構成"
+          ]
+        },
+        {
+          "title": "その他の実装",
+          "badge": "歴史的",
+          "badgeColor": "gray",
+          "points": [
+            "AUFS: Docker 初期に使用",
+            "Device Mapper: RHEL/CentOS",
+            "Btrfs: Btrfs ファイルシステムが必要",
+            "ZFS: エンタープライズストレージ向け"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "OverlayFS の仕組み",
+      "language": "bash",
+      "code": "# OverlayFS マウント構造\n# lower: 読み取り専用レイヤー (複数可、: で区切る)\n# upper: 書き込み可能レイヤー\n# work: 作業ディレクトリ (OverlayFS 内部使用)\n# merged: 合成後の統一ビュー\n\nmkdir -p /tmp/overlay/{lower,upper,work,merged}\necho 'base file' > /tmp/overlay/lower/file.txt\n\nsudo mount -t overlay overlay \\\n  -o lowerdir=/tmp/overlay/lower,upperdir=/tmp/overlay/upper,workdir=/tmp/overlay/work \\\n  /tmp/overlay/merged\n\n# 合成後のファイルを確認\nls /tmp/overlay/merged/\ncat /tmp/overlay/merged/file.txt\n\n# ファイル修正 (upper レイヤーに書き込み、lower は不変)\necho 'modified' > /tmp/overlay/merged/file.txt\ncat /tmp/overlay/upper/file.txt  # modified\ncat /tmp/overlay/lower/file.txt  # base file (不変)"
+    },
+    {
+      "type": "codeBlock",
+      "title": "イメージレイヤーの確認",
+      "language": "bash",
+      "code": "# イメージ履歴を確認 (各レイヤーは1つの命令に対応)\ndocker history nginx:alpine\n\n# イメージ詳細情報を確認\ndocker inspect nginx:alpine\n\n# イメージレイヤーの保存場所を確認\nls /var/lib/docker/overlay2/\n\n# コンテナの OverlayFS マウントを確認\ndocker inspect <container> | grep -A 10 GraphDriver\n\n# 各レイヤーのサイズを分析\ndocker history --no-trunc nginx:alpine | awk '{print $1, $NF}'"
+    },
+    {
+      "type": "table",
+      "title": "ベースイメージの比較",
+      "highlightFirst": true,
+      "headers": [
+        "イメージ",
+        "サイズ",
+        "パッケージマネージャ",
+        "C ライブラリ",
+        "適用シーン"
+      ],
+      "rows": [
+        [
+          "scratch",
+          "0 MB",
+          "なし",
+          "なし",
+          "静的コンパイルプログラム (Go/Rust)"
+        ],
+        [
+          "alpine",
+          "~5 MB",
+          "apk",
+          "musl",
+          "本番環境、軽量アプリ"
+        ],
+        [
+          "distroless",
+          "~20 MB",
+          "なし",
+          "glibc",
+          "セキュリティ重視の本番環境"
+        ],
+        [
+          "debian-slim",
+          "~80 MB",
+          "apt",
+          "glibc",
+          "glibc 互換性が必要な場合"
+        ],
+        [
+          "ubuntu",
+          "~80 MB",
+          "apt",
+          "glibc",
+          "開発デバッグ、完全なツールチェーン"
+        ],
+        [
+          "centos/rocky",
+          "~200 MB",
+          "yum/dnf",
+          "glibc",
+          "エンタープライズ RHEL 互換"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ベースイメージの選択",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Alpine Linux",
+          "badge": "軽量",
+          "badgeColor": "green",
+          "points": [
+            "極めて小さいイメージ (~5MB)",
+            "musl libc を使用 (glibc ではない)",
+            "apk パッケージマネージャ",
+            "注意: 一部プログラムは musl 非互換の場合あり"
+          ]
+        },
+        {
+          "title": "Distroless",
+          "badge": "セキュア",
+          "badgeColor": "red",
+          "points": [
+            "Google がメンテナンス",
+            "シェルなし、パッケージマネージャなし",
+            "アプリランタイムのみ含む",
+            "攻撃面の最小化"
+          ]
+        },
+        {
+          "title": "Scratch",
+          "badge": "空",
+          "badgeColor": "gray",
+          "points": [
+            "完全に空のイメージ",
+            "静的コンパイルプログラム向け",
+            "Go: CGO_ENABLED=0",
+            "イメージサイズの最小化"
+          ]
+        },
+        {
+          "title": "Debian/Ubuntu",
+          "badge": "汎用",
+          "badgeColor": "blue",
+          "points": [
+            "完全な glibc サポート",
+            "apt パッケージマネージャ",
+            "豊富なパッケージ",
+            "開発デバッグに適している"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "異なるベースイメージの例",
+      "language": "dockerfile",
+      "code": "# === Alpine (軽量) ===\nFROM alpine:3.19\nRUN apk add --no-cache python3 py3-pip\nCOPY app.py /app/\nCMD [\"python3\", \"/app/app.py\"]\n\n# === Distroless (セキュア) ===\n# マルチステージビルド: 完全なイメージでビルドし、distroless にコピー\nFROM golang:1.21 AS builder\nWORKDIR /app\nCOPY . .\nRUN CGO_ENABLED=0 go build -o /app/server\n\nFROM gcr.io/distroless/static-debian12\nCOPY --from=builder /app/server /\nCMD [\"/server\"]\n\n# === Scratch (最小) ===\nFROM golang:1.21 AS builder\nWORKDIR /app\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s -w' -o /app/server\n\nFROM scratch\nCOPY --from=builder /app/server /server\nCOPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/\nENTRYPOINT [\"/server\"]"
+    },
+    {
+      "type": "codeBlock",
+      "title": "イメージレイヤーの最適化テクニック",
+      "language": "dockerfile",
+      "code": "# ❌ 悪い例: 各 RUN が1レイヤーを作成、キャッシュ効率が低い\nFROM ubuntu:22.04\nRUN apt-get update\nRUN apt-get install -y python3\nRUN apt-get install -y python3-pip\nRUN rm -rf /var/lib/apt/lists/*\n\n# ✅ 良い例: RUN 命令を統合、レイヤー数を削減\nFROM ubuntu:22.04\nRUN apt-get update && \\\n    apt-get install -y --no-install-recommends \\\n      python3 \\\n      python3-pip && \\\n    rm -rf /var/lib/apt/lists/*\n\n# ✅ キャッシュの活用: 変更頻度の低いものを先に\nFROM python:3.11-slim\nWORKDIR /app\n\n# 依存関係は変更頻度が低い、先にコピー\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# コードは変更頻度が高い、後にコピー\nCOPY . .\nCMD [\"python\", \"app.py\"]"
+    },
+    {
+      "type": "table",
+      "title": "Dockerfile 命令とレイヤー",
+      "highlightFirst": true,
+      "headers": [
+        "命令",
+        "新レイヤー作成",
+        "説明"
+      ],
+      "rows": [
+        [
+          "FROM",
+          "はい",
+          "ベースイメージを設定"
+        ],
+        [
+          "RUN",
+          "はい",
+          "コマンドを実行しレイヤーを作成"
+        ],
+        [
+          "COPY/ADD",
+          "はい",
+          "ファイルをコピーしレイヤーを作成"
+        ],
+        [
+          "ENV",
+          "はい",
+          "環境変数を設定しレイヤーを作成"
+        ],
+        [
+          "WORKDIR",
+          "はい",
+          "作業ディレクトリを設定しレイヤーを作成"
+        ],
+        [
+          "CMD/ENTRYPOINT",
+          "いいえ",
+          "メタデータのみ設定"
+        ],
+        [
+          "EXPOSE",
+          "いいえ",
+          "ポート宣言のみ"
+        ],
+        [
+          "LABEL",
+          "はい",
+          "メタデータを追加しレイヤーを作成"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "イメージ分析ツール",
+      "language": "bash",
+      "code": "# dive: インタラクティブなイメージレイヤー分析\ndive nginx:alpine\n\n# 各レイヤーのファイル変更を確認\ndocker history --no-trunc <image>\n\n# イメージをエクスポートして内容を分析\ndocker save nginx:alpine | tar -xvf -\nls  # 各ディレクトリが1つのレイヤー\n\n# イメージのセキュリティ脆弱性をスキャン\ntrivy image nginx:alpine\ngrype nginx:alpine"
+    },
+    {
+      "type": "list",
+      "title": "イメージのベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "軽量ベースイメージを使用",
+          "description": "本番環境では Alpine または Distroless を優先"
+        },
+        {
+          "label": "マルチステージビルド",
+          "description": "ビルドと実行を分離し、最終イメージを縮小"
+        },
+        {
+          "label": "RUN 命令の統合",
+          "description": "レイヤー数を削減、同一レイヤー内で一時ファイルを削除"
+        },
+        {
+          "label": "ビルドキャッシュの活用",
+          "description": "変更頻度の低い内容を Dockerfile の前方に配置"
+        },
+        {
+          "label": ".dockerignore の使用",
+          "description": "不要なファイルを除外し、ビルドを高速化"
+        },
+        {
+          "label": "定期的な脆弱性スキャン",
+          "description": "Trivy/Grype でイメージセキュリティをチェック"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Docker",
+    "Kubernetes",
+    "マルチステージビルド",
+    "イメージセキュリティ"
+  ]
+}

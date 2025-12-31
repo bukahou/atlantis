@@ -1,14 +1,215 @@
 {
   "slug": "basics",
   "meta": {
-    "title": "Docker 基础入门",
-    "description": "Docker 容器技术核心概念与基本操作",
+    "title": "Docker 基础",
+    "description": "Docker 核心概念、安装配置与基本操作",
     "order": 1,
     "tags": [
-      "docker",
-      "container",
-      "devops"
+      "Docker",
+      "容器",
+      "DevOps"
     ]
   },
-  "content": "<h1>Docker 基础入门</h1>\n<h2>什么是 Docker</h2>\n<p>Docker 是一个开源的容器化平台，可以将应用程序及其依赖打包到一个可移植的容器中，实现\"一次构建，到处运行\"。</p>\n<h3>核心概念</h3>\n<table>\n<thead>\n<tr>\n<th>概念</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>镜像 (Image)</strong></td>\n<td>只读模板，包含运行应用所需的一切</td>\n</tr>\n<tr>\n<td><strong>容器 (Container)</strong></td>\n<td>镜像的运行实例，相互隔离</td>\n</tr>\n<tr>\n<td><strong>仓库 (Registry)</strong></td>\n<td>存储和分发镜像的服务</td>\n</tr>\n<tr>\n<td><strong>Dockerfile</strong></td>\n<td>定义镜像构建步骤的文本文件</td>\n</tr>\n</tbody>\n</table>\n<h2>安装 Docker</h2>\n<h3>Ubuntu/Debian</h3>\n<pre><code class=\"language-bash\"># 更新包索引\nsudo apt update\n\n# 安装依赖\nsudo apt install -y ca-certificates curl gnupg\n\n# 添加 Docker 官方 GPG 密钥\nsudo install -m 0755 -d /etc/apt/keyrings\ncurl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg\n\n# 设置仓库\necho \\\n  \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \\\n  $(. /etc/os-release &#x26;&#x26; echo \"$VERSION_CODENAME\") stable\" | \\\n  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null\n\n# 安装 Docker\nsudo apt update\nsudo apt install -y docker-ce docker-ce-cli containerd.io\n\n# 将当前用户加入 docker 组\nsudo usermod -aG docker $USER\n</code></pre>\n<h3>验证安装</h3>\n<pre><code class=\"language-bash\">docker --version\ndocker run hello-world\n</code></pre>\n<h2>镜像操作</h2>\n<h3>拉取镜像</h3>\n<pre><code class=\"language-bash\"># 拉取官方镜像\ndocker pull nginx\ndocker pull nginx:1.25\n\n# 拉取指定仓库镜像\ndocker pull registry.example.com/myapp:v1\n</code></pre>\n<h3>查看镜像</h3>\n<pre><code class=\"language-bash\"># 列出本地镜像\ndocker images\n\n# 查看镜像详情\ndocker inspect nginx\n\n# 查看镜像构建历史\ndocker history nginx\n</code></pre>\n<h3>删除镜像</h3>\n<pre><code class=\"language-bash\"># 删除指定镜像\ndocker rmi nginx\n\n# 删除未使用的镜像\ndocker image prune\n\n# 强制删除所有镜像\ndocker rmi -f $(docker images -q)\n</code></pre>\n<h2>容器操作</h2>\n<h3>创建并运行容器</h3>\n<pre><code class=\"language-bash\"># 基本运行\ndocker run nginx\n\n# 后台运行\ndocker run -d nginx\n\n# 指定名称\ndocker run -d --name my-nginx nginx\n\n# 端口映射\ndocker run -d -p 8080:80 nginx\n\n# 挂载目录\ndocker run -d -v /host/path:/container/path nginx\n\n# 设置环境变量\ndocker run -d -e MYSQL_ROOT_PASSWORD=secret mysql\n</code></pre>\n<h3>容器管理</h3>\n<pre><code class=\"language-bash\"># 查看运行中的容器\ndocker ps\n\n# 查看所有容器\ndocker ps -a\n\n# 停止容器\ndocker stop my-nginx\n\n# 启动已停止的容器\ndocker start my-nginx\n\n# 重启容器\ndocker restart my-nginx\n\n# 删除容器\ndocker rm my-nginx\n\n# 强制删除运行中的容器\ndocker rm -f my-nginx\n</code></pre>\n<h3>进入容器</h3>\n<pre><code class=\"language-bash\"># 执行命令\ndocker exec my-nginx ls /etc/nginx\n\n# 交互式 shell\ndocker exec -it my-nginx /bin/bash\n\n# 查看日志\ndocker logs my-nginx\ndocker logs -f my-nginx  # 持续输出\n</code></pre>\n<h2>Dockerfile</h2>\n<h3>基本结构</h3>\n<pre><code class=\"language-dockerfile\"># 基础镜像\nFROM node:18-alpine\n\n# 设置工作目录\nWORKDIR /app\n\n# 复制依赖文件\nCOPY package*.json ./\n\n# 安装依赖\nRUN npm install\n\n# 复制源代码\nCOPY . .\n\n# 构建应用\nRUN npm run build\n\n# 暴露端口\nEXPOSE 3000\n\n# 启动命令\nCMD [\"npm\", \"start\"]\n</code></pre>\n<h3>常用指令</h3>\n<table>\n<thead>\n<tr>\n<th>指令</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>FROM</code></td>\n<td>指定基础镜像</td>\n</tr>\n<tr>\n<td><code>WORKDIR</code></td>\n<td>设置工作目录</td>\n</tr>\n<tr>\n<td><code>COPY</code></td>\n<td>复制文件到镜像</td>\n</tr>\n<tr>\n<td><code>ADD</code></td>\n<td>复制文件，支持 URL 和解压</td>\n</tr>\n<tr>\n<td><code>RUN</code></td>\n<td>构建时执行命令</td>\n</tr>\n<tr>\n<td><code>CMD</code></td>\n<td>容器启动时默认命令</td>\n</tr>\n<tr>\n<td><code>ENTRYPOINT</code></td>\n<td>容器启动入口点</td>\n</tr>\n<tr>\n<td><code>ENV</code></td>\n<td>设置环境变量</td>\n</tr>\n<tr>\n<td><code>EXPOSE</code></td>\n<td>声明端口</td>\n</tr>\n<tr>\n<td><code>VOLUME</code></td>\n<td>声明挂载点</td>\n</tr>\n</tbody>\n</table>\n<h3>构建镜像</h3>\n<pre><code class=\"language-bash\"># 基本构建\ndocker build -t myapp:v1 .\n\n# 指定 Dockerfile\ndocker build -f Dockerfile.prod -t myapp:prod .\n\n# 不使用缓存\ndocker build --no-cache -t myapp:v1 .\n</code></pre>\n<h2>最佳实践</h2>\n<h3>镜像优化</h3>\n<pre><code class=\"language-dockerfile\"># 使用多阶段构建\nFROM node:18 AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nRUN npm run build\n\nFROM node:18-alpine\nWORKDIR /app\nCOPY --from=builder /app/dist ./dist\nCOPY --from=builder /app/node_modules ./node_modules\nCMD [\"node\", \"dist/index.js\"]\n</code></pre>\n<h3>.dockerignore</h3>\n<pre><code>node_modules\n.git\n.env\n*.log\nDockerfile\ndocker-compose.yml\n</code></pre>\n<h2>常用命令速查</h2>\n<pre><code class=\"language-bash\"># 系统信息\ndocker info\ndocker version\n\n# 清理资源\ndocker system prune        # 清理未使用资源\ndocker system prune -a     # 清理所有未使用资源\n\n# 查看资源使用\ndocker stats\n\n# 导出/导入镜像\ndocker save -o image.tar myapp:v1\ndocker load -i image.tar\n</code></pre>\n<h2>总结</h2>\n<p>Docker 是现代应用部署的基础技术：</p>\n<ol>\n<li><strong>镜像</strong>是应用的打包形式</li>\n<li><strong>容器</strong>是镜像的运行实例</li>\n<li><strong>Dockerfile</strong> 定义了镜像的构建过程</li>\n<li>通过端口映射和卷挂载实现与宿主机的交互</li>\n</ol>\n<p>掌握这些基础后，可以进一步学习 Docker Compose 和 Kubernetes。</p>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Docker 将应用与环境打包为可移植容器",
+        "镜像是只读模板，容器是运行实例",
+        "Dockerfile 定义镜像构建步骤",
+        "Docker Compose 编排多容器应用"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Docker",
+      "content": "Docker 是一个开源的容器化平台，可以将应用程序及其依赖打包到一个轻量级、可移植的容器中。容器在任何支持 Docker 的环境中都能一致运行，解决了\"在我机器上能运行\"的问题。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Dockerfile 示例",
+      "language": "dockerfile",
+      "code": "# 基础镜像\nFROM node:18-alpine\n\n# 设置工作目录\nWORKDIR /app\n\n# 复制依赖文件\nCOPY package*.json ./\n\n# 安装依赖\nRUN npm ci --only=production\n\n# 复制源代码\nCOPY . .\n\n# 暴露端口\nEXPOSE 3000\n\n# 启动命令\nCMD [\"node\", \"server.js\"]"
+    },
+    {
+      "type": "table",
+      "title": "Dockerfile 常用指令",
+      "highlightFirst": true,
+      "headers": [
+        "指令",
+        "说明",
+        "示例"
+      ],
+      "rows": [
+        [
+          "FROM",
+          "基础镜像",
+          "FROM node:18-alpine"
+        ],
+        [
+          "WORKDIR",
+          "工作目录",
+          "WORKDIR /app"
+        ],
+        [
+          "COPY",
+          "复制文件",
+          "COPY . ."
+        ],
+        [
+          "RUN",
+          "执行命令（构建时）",
+          "RUN npm install"
+        ],
+        [
+          "CMD",
+          "启动命令",
+          "CMD [\"npm\", \"start\"]"
+        ],
+        [
+          "ENV",
+          "环境变量",
+          "ENV NODE_ENV=production"
+        ],
+        [
+          "EXPOSE",
+          "声明端口",
+          "EXPOSE 3000"
+        ],
+        [
+          "VOLUME",
+          "挂载点",
+          "VOLUME /data"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "常用操作",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "镜像操作",
+          "badge": "Image",
+          "badgeColor": "blue",
+          "points": [
+            "docker build -t app:v1 . - 构建",
+            "docker images - 列出镜像",
+            "docker pull nginx - 拉取镜像",
+            "docker push user/app - 推送镜像"
+          ]
+        },
+        {
+          "title": "容器操作",
+          "badge": "Container",
+          "badgeColor": "green",
+          "points": [
+            "docker run -d -p 80:80 nginx - 运行",
+            "docker ps - 查看运行中容器",
+            "docker stop/start ID - 停止/启动",
+            "docker rm ID - 删除容器"
+          ]
+        },
+        {
+          "title": "调试操作",
+          "badge": "Debug",
+          "badgeColor": "amber",
+          "points": [
+            "docker logs -f ID - 查看日志",
+            "docker exec -it ID bash - 进入容器",
+            "docker inspect ID - 查看详情",
+            "docker stats - 资源使用"
+          ]
+        },
+        {
+          "title": "网络/存储",
+          "badge": "Storage",
+          "badgeColor": "purple",
+          "points": [
+            "docker network ls - 网络列表",
+            "docker volume create - 创建卷",
+            "-v host:container - 挂载目录",
+            "--network=host - 主机网络"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Compose 示例",
+      "language": "yaml",
+      "code": "version: '3.8'\n\nservices:\n  web:\n    build: .\n    ports:\n      - \"3000:3000\"\n    environment:\n      - NODE_ENV=production\n      - DB_HOST=db\n    depends_on:\n      - db\n      - redis\n\n  db:\n    image: postgres:14\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n    environment:\n      - POSTGRES_PASSWORD=secret\n\n  redis:\n    image: redis:alpine\n\nvolumes:\n  postgres_data:"
+    },
+    {
+      "type": "flow",
+      "title": "镜像分层结构",
+      "subtitle": "每条指令创建一个只读层",
+      "direction": "vertical",
+      "steps": [
+        {
+          "label": "FROM",
+          "description": "基础镜像层",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "RUN apt-get",
+          "description": "系统依赖层",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "COPY package.json",
+          "description": "依赖定义层",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "RUN npm install",
+          "description": "依赖安装层",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "COPY .",
+          "description": "源代码层",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用多阶段构建",
+          "description": "减小最终镜像体积，分离构建和运行环境"
+        },
+        {
+          "label": "优化层缓存",
+          "description": "将不常变化的指令放在前面"
+        },
+        {
+          "label": "使用 .dockerignore",
+          "description": "排除不需要的文件"
+        },
+        {
+          "label": "非 root 用户运行",
+          "description": "USER 指令切换用户提高安全性"
+        },
+        {
+          "label": "使用轻量基础镜像",
+          "description": "alpine 比完整发行版小得多"
+        },
+        {
+          "label": "健康检查",
+          "description": "HEALTHCHECK 指令监控容器健康"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Kubernetes",
+    "CI/CD",
+    "微服务"
+  ]
 }

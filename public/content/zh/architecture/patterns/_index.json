@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "creational",
+      "title": "创建型模式",
+      "description": "单例、工厂、建造者等对象创建模式",
+      "href": "/architecture/patterns/creational",
+      "order": 1
+    },
+    {
+      "slug": "structural",
+      "title": "结构型模式",
+      "description": "适配器、装饰器、代理等结构组合模式",
+      "href": "/architecture/patterns/structural",
+      "order": 2
+    },
+    {
+      "slug": "behavioral",
+      "title": "行为型模式",
+      "description": "策略、观察者、责任链等行为交互模式",
+      "href": "/architecture/patterns/behavioral",
+      "order": 3
+    }
+  ]
+}

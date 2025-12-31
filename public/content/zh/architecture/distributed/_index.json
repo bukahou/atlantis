@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "cap",
+      "title": "CAP 理论",
+      "description": "分布式系统的不可能三角",
+      "href": "/architecture/distributed/cap",
+      "order": 1
+    },
+    {
+      "slug": "consistency",
+      "title": "一致性模型",
+      "description": "强一致性、弱一致性与最终一致性",
+      "href": "/architecture/distributed/consistency",
+      "order": 2
+    },
+    {
+      "slug": "transaction",
+      "title": "分布式事务",
+      "description": "2PC、Saga、TCC 事务模式",
+      "href": "/architecture/distributed/transaction",
+      "order": 3
+    }
+  ]
+}

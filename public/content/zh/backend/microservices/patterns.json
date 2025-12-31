@@ -1,15 +1,188 @@
 {
   "slug": "patterns",
   "meta": {
-    "title": "微服务架构模式",
-    "description": "微服务设计模式、架构原则与最佳实践",
+    "title": "微服务设计模式",
+    "description": "微服务架构核心模式与实践",
     "order": 1,
     "tags": [
-      "microservices",
-      "architecture",
-      "patterns",
-      "distributed"
+      "微服务",
+      "架构",
+      "设计模式"
     ]
   },
-  "content": "<h1>微服务架构模式</h1>\n<h2>微服务概述</h2>\n<p>微服务架构将应用拆分为一组小型、独立部署的服务，每个服务围绕特定业务能力构建。</p>\n<pre><code>微服务特点\n├── 单一职责 - 每个服务专注一个业务域\n├── 独立部署 - 服务可独立发布\n├── 技术多样 - 服务可用不同技术栈\n├── 去中心化 - 分布式数据管理\n└── 故障隔离 - 服务故障不影响整体\n</code></pre>\n<h2>服务拆分</h2>\n<h3>拆分策略</h3>\n<pre><code>领域驱动设计 (DDD)\n├── 限界上下文 - 业务边界划分\n├── 聚合根 - 数据一致性边界\n├── 领域事件 - 跨服务通信\n└── 通用语言 - 统一业务术语\n\n拆分维度\n├── 业务能力 - 按业务功能拆分\n├── 子域 - 按 DDD 子域拆分\n├── 数据 - 按数据归属拆分\n└── 团队 - 按康威定律拆分\n</code></pre>\n<h3>服务划分示例</h3>\n<pre><code>电商系统\n├── user-service         # 用户服务\n├── product-service      # 商品服务\n├── order-service        # 订单服务\n├── payment-service      # 支付服务\n├── inventory-service    # 库存服务\n├── notification-service # 通知服务\n└── shipping-service     # 物流服务\n</code></pre>\n<h2>通信模式</h2>\n<h3>同步通信</h3>\n<pre><code>REST/HTTP\n├── 简单直接\n├── 浏览器兼容\n└── 适合 CRUD 操作\n\ngRPC\n├── 高性能\n├── 强类型\n└── 适合内部服务通信\n\nGraphQL\n├── 灵活查询\n├── 减少请求\n└── 适合 BFF 层\n</code></pre>\n<h3>异步通信</h3>\n<pre><code>消息队列\n├── 解耦服务\n├── 削峰填谷\n├── 保证最终一致性\n└── 支持发布订阅\n\n事件驱动\n├── 事件溯源\n├── CQRS 模式\n└── 领域事件\n</code></pre>\n<h2>API 网关</h2>\n<h3>网关职责</h3>\n<pre><code class=\"language-yaml\"># 核心功能\n认证授权:\n  - JWT 验证\n  - OAuth2 集成\n  - API Key 管理\n\n路由转发:\n  - 请求路由\n  - 负载均衡\n  - 协议转换\n\n流量控制:\n  - 限流\n  - 熔断\n  - 降级\n\n可观测性:\n  - 请求日志\n  - 链路追踪\n  - 指标收集\n</code></pre>\n<h3>网关实现</h3>\n<pre><code class=\"language-yaml\"># Kong 配置示例\nservices:\n  - name: user-service\n    url: http://user-service:8080\n    routes:\n      - name: user-route\n        paths:\n          - /api/users\n\nplugins:\n  - name: rate-limiting\n    config:\n      minute: 100\n  - name: jwt\n    config:\n      secret_is_base64: false\n</code></pre>\n<h2>服务发现</h2>\n<h3>客户端发现</h3>\n<pre><code>1. 服务注册到注册中心\n2. 客户端查询注册中心\n3. 客户端选择实例\n4. 客户端直接调用\n\n优点: 灵活、可定制\n缺点: 客户端复杂\n</code></pre>\n<h3>服务端发现</h3>\n<pre><code>1. 服务注册到注册中心\n2. 客户端请求负载均衡器\n3. 负载均衡器查询注册中心\n4. 负载均衡器转发请求\n\n优点: 客户端简单\n缺点: 额外跳转\n</code></pre>\n<h3>注册中心</h3>\n<pre><code>Consul\n├── 健康检查\n├── KV 存储\n├── 多数据中心\n\netcd\n├── 强一致性\n├── 高可用\n├── Kubernetes 集成\n\nNacos\n├── 配置管理\n├── 服务发现\n├── 动态 DNS\n</code></pre>\n<h2>数据管理</h2>\n<h3>数据库模式</h3>\n<pre><code>每服务一数据库 (推荐)\n├── 数据独立\n├── 技术自由\n└── 故障隔离\n\n共享数据库\n├── 实现简单\n├── 强一致性\n└── 耦合度高\n\n混合模式\n├── 核心数据独立\n└── 共享只读数据\n</code></pre>\n<h3>分布式事务</h3>\n<pre><code>Saga 模式\n├── 编排式 Saga\n│   └── 中央协调器控制\n└── 编舞式 Saga\n    └── 事件驱动协调\n\n两阶段提交 (2PC)\n├── 准备阶段\n└── 提交阶段\n(不推荐，性能差)\n\n最终一致性\n├── 异步消息\n├── 补偿事务\n└── 幂等操作\n</code></pre>\n<h2>容错模式</h2>\n<h3>断路器</h3>\n<pre><code class=\"language-go\">// 断路器状态\ntype CircuitBreaker struct {\n    state         State  // CLOSED, OPEN, HALF_OPEN\n    failureCount  int\n    successCount  int\n    lastFailure   time.Time\n    threshold     int\n    timeout       time.Duration\n}\n\nfunc (cb *CircuitBreaker) Call(fn func() error) error {\n    if cb.state == OPEN {\n        if time.Since(cb.lastFailure) > cb.timeout {\n            cb.state = HALF_OPEN\n        } else {\n            return ErrCircuitOpen\n        }\n    }\n\n    err := fn()\n    if err != nil {\n        cb.recordFailure()\n        return err\n    }\n\n    cb.recordSuccess()\n    return nil\n}\n</code></pre>\n<h3>重试与超时</h3>\n<pre><code class=\"language-go\">// 指数退避重试\nfunc RetryWithBackoff(fn func() error, maxRetries int) error {\n    for i := 0; i &#x3C; maxRetries; i++ {\n        err := fn()\n        if err == nil {\n            return nil\n        }\n\n        backoff := time.Duration(math.Pow(2, float64(i))) * time.Second\n        time.Sleep(backoff)\n    }\n    return ErrMaxRetriesExceeded\n}\n\n// 超时控制\nctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\ndefer cancel()\n\nresult, err := service.Call(ctx, request)\n</code></pre>\n<h3>舱壁隔离</h3>\n<pre><code class=\"language-go\">// 限制并发\ntype Bulkhead struct {\n    semaphore chan struct{}\n}\n\nfunc NewBulkhead(maxConcurrent int) *Bulkhead {\n    return &#x26;Bulkhead{\n        semaphore: make(chan struct{}, maxConcurrent),\n    }\n}\n\nfunc (b *Bulkhead) Execute(fn func() error) error {\n    select {\n    case b.semaphore &#x3C;- struct{}{}:\n        defer func() { &#x3C;-b.semaphore }()\n        return fn()\n    default:\n        return ErrBulkheadFull\n    }\n}\n</code></pre>\n<h2>配置管理</h2>\n<pre><code class=\"language-yaml\"># 集中配置\n配置中心:\n  - Consul KV\n  - etcd\n  - Apollo\n  - Nacos\n\n功能:\n  - 环境隔离\n  - 版本管理\n  - 动态更新\n  - 加密敏感信息\n</code></pre>\n<h2>总结</h2>\n<p>微服务架构要点：</p>\n<ol>\n<li><strong>服务拆分</strong> - DDD 驱动，单一职责</li>\n<li><strong>通信模式</strong> - 同步 REST/gRPC，异步消息</li>\n<li><strong>服务治理</strong> - 发现、网关、负载均衡</li>\n<li><strong>数据管理</strong> - 每服务一库，Saga 事务</li>\n<li><strong>容错设计</strong> - 断路器、重试、舱壁</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "微服务将单体应用拆分为独立服务",
+        "每个服务独立部署、扩展、迭代",
+        "服务间通过 API 或消息通信",
+        "需要处理分布式系统复杂性"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心模式",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "API 网关",
+          "badge": "Gateway",
+          "badgeColor": "blue",
+          "points": [
+            "统一入口",
+            "路由、认证、限流",
+            "聚合多个服务"
+          ]
+        },
+        {
+          "title": "服务发现",
+          "badge": "Discovery",
+          "badgeColor": "green",
+          "points": [
+            "服务注册与发现",
+            "健康检查",
+            "负载均衡"
+          ]
+        },
+        {
+          "title": "配置中心",
+          "badge": "Config",
+          "badgeColor": "amber",
+          "points": [
+            "集中配置管理",
+            "动态更新",
+            "环境隔离"
+          ]
+        },
+        {
+          "title": "链路追踪",
+          "badge": "Tracing",
+          "badgeColor": "purple",
+          "points": [
+            "分布式追踪",
+            "性能分析",
+            "问题定位"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "单体 vs 微服务",
+      "columns": [
+        {
+          "title": "单体架构",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            {
+              "label": "部署",
+              "description": "整体部署"
+            },
+            {
+              "label": "扩展",
+              "description": "整体扩展"
+            },
+            {
+              "label": "技术栈",
+              "description": "统一"
+            },
+            {
+              "label": "复杂度",
+              "description": "代码复杂"
+            }
+          ]
+        },
+        {
+          "title": "微服务架构",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "部署",
+              "description": "独立部署"
+            },
+            {
+              "label": "扩展",
+              "description": "按需扩展"
+            },
+            {
+              "label": "技术栈",
+              "description": "可异构"
+            },
+            {
+              "label": "复杂度",
+              "description": "运维复杂"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "服务拆分策略",
+      "subtitle": "按业务领域拆分",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "用户服务",
+          "description": "认证/授权",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "订单服务",
+          "description": "订单管理",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "支付服务",
+          "description": "支付处理",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "库存服务",
+          "description": "库存管理",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "通知服务",
+          "description": "消息推送",
+          "color": "bg-red-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "业务边界清晰",
+          "description": "基于领域驱动设计（DDD）划分服务"
+        },
+        {
+          "label": "数据库隔离",
+          "description": "每个服务拥有独立数据库"
+        },
+        {
+          "label": "API 版本控制",
+          "description": "向后兼容，平滑升级"
+        },
+        {
+          "label": "异步通信",
+          "description": "使用消息队列解耦服务"
+        },
+        {
+          "label": "容错设计",
+          "description": "熔断、重试、超时机制"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "服务发现",
+    "熔断器",
+    "消息队列"
+  ]
 }

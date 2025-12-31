@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Web 服务器",
+    "description": "高性能 Web 服务器配置与优化",
+    "icon": "server"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Web 服务器负责处理 HTTP 请求并返回响应",
+        "支持静态文件服务、反向代理、负载均衡",
+        "性能优化：连接复用、缓存、压缩",
+        "安全配置：SSL/TLS、访问控制、限流"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "Web 服务器是互联网基础设施的核心组件，负责接收客户端请求并返回相应内容。现代 Web 服务器不仅能提供静态文件服务，还能作为反向代理、负载均衡器、API 网关等多种角色。选择合适的 Web 服务器并进行正确配置，对于构建高性能、高可用的 Web 应用至关重要。"
+    },
+    {
+      "type": "comparison",
+      "title": "主流 Web 服务器对比",
+      "columns": [
+        {
+          "title": "Nginx",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "架构", "description": "事件驱动、异步非阻塞" },
+            { "label": "性能", "description": "高并发、低内存占用" },
+            { "label": "适用", "description": "反向代理、静态服务" }
+          ]
+        },
+        {
+          "title": "Apache",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "架构", "description": "多进程/多线程模型" },
+            { "label": "性能", "description": "模块丰富、扩展性强" },
+            { "label": "适用", "description": "动态内容、.htaccess" }
+          ]
+        },
+        {
+          "title": "Caddy",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "架构", "description": "Go 语言编写" },
+            { "label": "性能", "description": "自动 HTTPS、配置简单" },
+            { "label": "适用", "description": "快速部署、开发环境" }
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["负载均衡", "SSL/TLS", "CDN"],
+  "articles": [
+    {
+      "slug": "nginx",
+      "title": "Nginx",
+      "description": "高性能 Web 服务器与反向代理",
+      "priority": "essential"
+    },
+    {
+      "slug": "apache",
+      "title": "Apache",
+      "description": "功能丰富的老牌 Web 服务器",
+      "priority": "recommended"
+    },
+    {
+      "slug": "caddy",
+      "title": "Caddy",
+      "description": "现代化自动 HTTPS Web 服务器",
+      "priority": "optional"
+    }
+  ]
+}

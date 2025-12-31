@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "title": "网络安全",
+    "description": "TLS/SSL、防火墙与 WAF",
+    "icon": "globe-lock"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "TLS/SSL：传输层加密协议",
+        "防火墙：网络访问控制",
+        "WAF：Web 应用防火墙",
+        "零信任：永不信任，始终验证"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "网络安全覆盖从传输层到应用层的多个层面。TLS 保护数据传输安全，防火墙控制网络访问，WAF 防护 Web 攻击。零信任架构打破传统边界概念，对每次访问进行验证，是现代网络安全的发展方向。"
+    },
+    {
+      "type": "comparison",
+      "title": "防护层次",
+      "columns": [
+        {
+          "title": "网络层防护",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "防火墙", "description": "IP/端口访问控制" },
+            { "label": "DDoS 防护", "description": "流量清洗" },
+            { "label": "VPN", "description": "安全隧道" }
+          ]
+        },
+        {
+          "title": "应用层防护",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "WAF", "description": "SQL 注入、XSS 防护" },
+            { "label": "API 网关", "description": "限流、认证" },
+            { "label": "Bot 防护", "description": "爬虫识别" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "TLS 版本演进",
+      "highlightFirst": true,
+      "headers": ["版本", "状态", "说明"],
+      "rows": [
+        ["TLS 1.3", "推荐", "更快、更安全"],
+        ["TLS 1.2", "可用", "需正确配置"],
+        ["TLS 1.1", "废弃", "不应使用"],
+        ["TLS 1.0", "废弃", "不应使用"],
+        ["SSL 3.0", "禁用", "存在严重漏洞"]
+      ]
+    }
+  ],
+  "relatedTopics": ["HTTPS", "证书", "零信任"],
+  "articles": [
+    {
+      "slug": "tls",
+      "title": "TLS/SSL",
+      "description": "TLS 1.3、证书管理与配置",
+      "priority": "essential"
+    },
+    {
+      "slug": "firewall",
+      "title": "防火墙",
+      "description": "网络防火墙与安全组配置",
+      "priority": "recommended"
+    },
+    {
+      "slug": "waf",
+      "title": "WAF",
+      "description": "Web 应用防火墙规则与策略",
+      "priority": "recommended"
+    }
+  ]
+}

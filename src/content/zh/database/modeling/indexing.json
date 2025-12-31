@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "title": "索引设计",
+    "description": "数据库索引原理、设计策略与性能优化",
+    "order": 2,
+    "tags": ["索引", "性能优化", "B+Tree"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "索引是加速数据检索的数据结构",
+        "B+Tree 是最常用的索引结构",
+        "以空间换时间，加速查询但增加写入开销",
+        "复合索引遵循最左前缀原则"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "索引数据结构",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "B+Tree",
+          "badge": "默认",
+          "badgeColor": "blue",
+          "points": [
+            "叶子节点存数据",
+            "支持范围查询",
+            "O(log n) 复杂度"
+          ]
+        },
+        {
+          "title": "Hash",
+          "badge": "等值",
+          "badgeColor": "green",
+          "points": [
+            "O(1) 查询",
+            "仅支持等值",
+            "不支持范围"
+          ]
+        },
+        {
+          "title": "全文索引",
+          "badge": "搜索",
+          "badgeColor": "purple",
+          "points": [
+            "倒排索引",
+            "分词匹配",
+            "文本搜索"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "聚簇 vs 非聚簇索引",
+      "columns": [
+        {
+          "title": "聚簇索引",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "存储", "description": "数据按索引顺序存储" },
+            { "label": "数量", "description": "每表只能有一个" },
+            { "label": "示例", "description": "InnoDB 主键索引" }
+          ]
+        },
+        {
+          "title": "非聚簇索引",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "存储", "description": "索引与数据分离" },
+            { "label": "数量", "description": "可以有多个" },
+            { "label": "示例", "description": "二级索引" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "索引类型",
+      "language": "sql",
+      "code": "-- 主键索引 (聚簇)\nCREATE TABLE users (id INT PRIMARY KEY);\n\n-- 唯一索引\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 普通索引\nCREATE INDEX idx_name ON users(name);\n\n-- 复合索引\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- 前缀索引\nCREATE INDEX idx_email ON users(email(20));"
+    },
+    {
+      "type": "codeBlock",
+      "title": "最左前缀原则",
+      "language": "sql",
+      "code": "-- 索引: (a, b, c)\n-- 可以使用索引\nWHERE a = 1\nWHERE a = 1 AND b = 2\nWHERE a = 1 AND b = 2 AND c = 3\n\n-- 只能部分使用\nWHERE a = 1 AND c = 3  -- 只用 a\n\n-- 无法使用索引\nWHERE b = 2\nWHERE c = 3\nWHERE b = 2 AND c = 3"
+    },
+    {
+      "type": "table",
+      "title": "索引失效场景",
+      "highlightFirst": true,
+      "headers": ["场景", "失效原因", "优化方式"],
+      "rows": [
+        ["函数操作", "YEAR(date) = 2024", "date >= '2024-01-01'"],
+        ["类型转换", "phone = 138001380", "phone = '138001380'"],
+        ["LIKE 前缀", "LIKE '%test'", "LIKE 'test%'"],
+        ["OR 条件", "可能全表扫描", "UNION 替代"],
+        ["NOT IN", "可能不用索引", "LEFT JOIN + IS NULL"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "执行计划分析",
+      "language": "sql",
+      "code": "EXPLAIN SELECT * FROM users WHERE email = 'test@example.com';\n\n-- 关键指标\n-- type: const > eq_ref > ref > range > index > ALL\n-- key: 使用的索引名\n-- rows: 扫描行数估计\n-- Extra: Using index 表示覆盖索引"
+    },
+    {
+      "type": "list",
+      "title": "设计策略",
+      "style": "check",
+      "items": [
+        { "label": "高选择性列优先", "description": "唯一值多的列放前面" },
+        { "label": "等值在前范围在后", "description": "WHERE status = 1 AND date > ?" },
+        { "label": "覆盖索引", "description": "查询列都在索引中，避免回表" },
+        { "label": "避免冗余索引", "description": "(a,b) 已包含 (a)" }
+      ]
+    }
+  ],
+  "relatedTopics": ["MySQL", "PostgreSQL", "查询优化"]
+}

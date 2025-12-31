@@ -1,0 +1,108 @@
+{
+  "slug": "firewall",
+  "meta": {
+    "title": "防火墙",
+    "description": "网络防火墙与安全组配置",
+    "order": 2,
+    "tags": [
+      "防火墙",
+      "iptables",
+      "安全组"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "防火墙：网络流量的访问控制",
+        "有状态防火墙：跟踪连接状态",
+        "安全组：云环境的虚拟防火墙",
+        "默认拒绝原则：只开放必要端口"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "iptables 基础配置",
+      "language": "bash",
+      "code": "# 默认策略：拒绝所有入站\niptables -P INPUT DROP\niptables -P FORWARD DROP\niptables -P OUTPUT ACCEPT\n\n# 允许本地回环\niptables -A INPUT -i lo -j ACCEPT\n\n# 允许已建立的连接\niptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT\n\n# 允许 SSH (限制来源 IP)\niptables -A INPUT -p tcp --dport 22 -s 10.0.0.0/8 -j ACCEPT\n\n# 允许 HTTP/HTTPS\niptables -A INPUT -p tcp --dport 80 -j ACCEPT\niptables -A INPUT -p tcp --dport 443 -j ACCEPT\n\n# 限制 ICMP（防 ping 洪水）\niptables -A INPUT -p icmp --icmp-type echo-request -m limit --limit 1/s -j ACCEPT\n\n# 记录被拒绝的流量\niptables -A INPUT -j LOG --log-prefix \"IPTables-Dropped: \"\n\n# 保存规则\niptables-save > /etc/iptables/rules.v4"
+    },
+    {
+      "type": "codeBlock",
+      "title": "AWS 安全组配置",
+      "language": "yaml",
+      "code": "# Terraform 安全组定义\nresource \"aws_security_group\" \"web\" {\n  name        = \"web-server-sg\"\n  description = \"Security group for web servers\"\n  vpc_id      = aws_vpc.main.id\n\n  # 入站规则\n  ingress {\n    description = \"HTTPS from anywhere\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description = \"HTTP from anywhere\"\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description     = \"SSH from bastion\"\n    from_port       = 22\n    to_port         = 22\n    protocol        = \"tcp\"\n    security_groups = [aws_security_group.bastion.id]\n  }\n\n  # 出站规则\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"web-server-sg\"\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "常见端口安全策略",
+      "highlightFirst": true,
+      "headers": [
+        "端口",
+        "服务",
+        "策略",
+        "说明"
+      ],
+      "rows": [
+        [
+          "22",
+          "SSH",
+          "限制来源 IP",
+          "仅堡垒机访问"
+        ],
+        [
+          "80/443",
+          "HTTP/S",
+          "公开",
+          "Web 服务"
+        ],
+        [
+          "3306",
+          "MySQL",
+          "内网",
+          "禁止公网访问"
+        ],
+        [
+          "6379",
+          "Redis",
+          "内网",
+          "禁止公网访问"
+        ],
+        [
+          "9090",
+          "Prometheus",
+          "内网",
+          "监控服务"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "最小权限",
+          "description": "只开放必要端口"
+        },
+        {
+          "label": "分层防护",
+          "description": "网络层 + 主机层 + 应用层"
+        },
+        {
+          "label": "安全组分离",
+          "description": "不同角色使用不同安全组"
+        },
+        {
+          "label": "日志审计",
+          "description": "记录所有被拒绝的连接"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "网络安全",
+    "零信任",
+    "VPC"
+  ]
+}

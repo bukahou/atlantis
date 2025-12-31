@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "title": "ストレージ管理",
+    "description": "Kubernetes ストレージ：PV、PVC、StorageClass と動的プロビジョニング",
+    "order": 5,
+    "tags": ["Kubernetes", "ストレージ", "PV", "PVC", "StorageClass"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "PersistentVolume (PV) はクラスターレベルのストレージリソース",
+        "PersistentVolumeClaim (PVC) はユーザーのストレージ要求",
+        "StorageClass は動的ストレージプロビジョニングを実現",
+        "ストレージと Pod のライフサイクルを分離"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "ストレージアーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Pod", "description": "PVC を使用", "color": "bg-blue-500" },
+        { "label": "PVC", "description": "ストレージ要求", "color": "bg-cyan-500" },
+        { "label": "PV", "description": "ストレージリソース", "color": "bg-purple-500" },
+        { "label": "Storage", "description": "実際のストレージ", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ストレージリソース",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "PersistentVolume",
+          "badge": "PV",
+          "badgeColor": "blue",
+          "points": [
+            "クラスターレベルリソース",
+            "管理者が事前に作成",
+            "ストレージタイプと容量を定義",
+            "Pod とは独立したライフサイクル"
+          ]
+        },
+        {
+          "title": "PersistentVolumeClaim",
+          "badge": "PVC",
+          "badgeColor": "green",
+          "points": [
+            "名前空間レベル",
+            "ユーザーのストレージ要求",
+            "マッチする PV にバインド",
+            "Pod は PVC を通じてストレージを使用"
+          ]
+        },
+        {
+          "title": "StorageClass",
+          "badge": "SC",
+          "badgeColor": "amber",
+          "points": [
+            "ストレージクラスの抽象化",
+            "PV を動的に作成",
+            "プロビジョナーとパラメータを定義",
+            "手動での PV 作成不要"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "PV と PVC の例",
+      "language": "yaml",
+      "code": "# PersistentVolume（管理者が作成）\napiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: pv-nfs-data\nspec:\n  capacity:\n    storage: 100Gi\n  accessModes:\n    - ReadWriteMany\n  persistentVolumeReclaimPolicy: Retain\n  storageClassName: nfs\n  nfs:\n    server: 192.168.1.100\n    path: /data/k8s\n---\n# PersistentVolumeClaim（ユーザーが作成）\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-claim\nspec:\n  accessModes:\n    - ReadWriteMany\n  resources:\n    requests:\n      storage: 50Gi\n  storageClassName: nfs\n---\n# Pod での PVC 使用\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    volumeMounts:\n    - name: data\n      mountPath: /app/data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: data-claim"
+    },
+    {
+      "type": "table",
+      "title": "アクセスモード (Access Modes)",
+      "highlightFirst": true,
+      "headers": ["モード", "略称", "説明"],
+      "rows": [
+        ["ReadWriteOnce", "RWO", "単一ノードで読み書き"],
+        ["ReadOnlyMany", "ROX", "複数ノードで読み取り専用"],
+        ["ReadWriteMany", "RWX", "複数ノードで読み書き"],
+        ["ReadWriteOncePod", "RWOP", "単一 Pod で読み書き (K8s 1.22+)"]
+      ]
+    },
+    {
+      "type": "table",
+      "title": "回収ポリシー (Reclaim Policy)",
+      "highlightFirst": true,
+      "headers": ["ポリシー", "説明"],
+      "rows": [
+        ["Retain", "データを保持、手動でクリーンアップ"],
+        ["Delete", "PV とバックエンドストレージを削除"],
+        ["Recycle", "非推奨、データをクリアして再利用"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "StorageClass 動的プロビジョニング",
+      "language": "yaml",
+      "code": "# StorageClass 定義\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: fast-ssd\nprovisioner: kubernetes.io/aws-ebs  # または pd.csi.storage.gke.io\nparameters:\n  type: gp3\n  iopsPerGB: \"10\"\n  fsType: ext4\nreclaimPolicy: Delete\nvolumeBindingMode: WaitForFirstConsumer  # 遅延バインディング\nallowVolumeExpansion: true  # 拡張を許可\n---\n# StorageClass を使用した PVC\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: fast-storage\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: fast-ssd\n  resources:\n    requests:\n      storage: 100Gi\n\n# PV は自動的に作成されバインドされる"
+    },
+    {
+      "type": "codeBlock",
+      "title": "よく使用されるストレージタイプ",
+      "language": "yaml",
+      "code": "# クラウドプロバイダーストレージ\n# AWS EBS\nprovisioner: ebs.csi.aws.com\n# GCP PD\nprovisioner: pd.csi.storage.gke.io\n# Azure Disk\nprovisioner: disk.csi.azure.com\n\n# ローカルストレージ\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: local-storage\nprovisioner: kubernetes.io/no-provisioner\nvolumeBindingMode: WaitForFirstConsumer\n---\n# Local PV\napiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: local-pv\nspec:\n  capacity:\n    storage: 100Gi\n  accessModes:\n    - ReadWriteOnce\n  persistentVolumeReclaimPolicy: Retain\n  storageClassName: local-storage\n  local:\n    path: /mnt/disks/ssd1\n  nodeAffinity:\n    required:\n      nodeSelectorTerms:\n      - matchExpressions:\n        - key: kubernetes.io/hostname\n          operator: In\n          values:\n          - node-1"
+    },
+    {
+      "type": "codeBlock",
+      "title": "ボリューム拡張",
+      "language": "bash",
+      "code": "# StorageClass に allowVolumeExpansion: true を設定する必要あり\n\n# PVC を編集して容量を増加\nkubectl patch pvc data-claim -p '{\"spec\":{\"resources\":{\"requests\":{\"storage\":\"200Gi\"}}}}'\n\n# 拡張ステータスを確認\nkubectl get pvc data-claim\n\n# 一部のストレージではファイルシステム拡張のために Pod の再起動が必要\nkubectl delete pod <pod-using-pvc>"
+    },
+    {
+      "type": "codeBlock",
+      "title": "スナップショットとクローン",
+      "language": "yaml",
+      "code": "# VolumeSnapshot（CSI ドライバーのサポートが必要）\napiVersion: snapshot.storage.k8s.io/v1\nkind: VolumeSnapshot\nmetadata:\n  name: data-snapshot\nspec:\n  volumeSnapshotClassName: csi-snapclass\n  source:\n    persistentVolumeClaimName: data-claim\n---\n# スナップショットから復元\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: restored-data\nspec:\n  storageClassName: fast-ssd\n  dataSource:\n    name: data-snapshot\n    kind: VolumeSnapshot\n    apiGroup: snapshot.storage.k8s.io\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 100Gi"
+    },
+    {
+      "type": "list",
+      "title": "ストレージベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "StorageClass を使用", "description": "動的プロビジョニングで手動管理を削減" },
+        { "label": "WaitForFirstConsumer", "description": "遅延バインディングでトポロジースケジューリングをサポート" },
+        { "label": "ボリューム拡張を有効化", "description": "allowVolumeExpansion: true" },
+        { "label": "定期的にスナップショットバックアップ", "description": "重要なデータには VolumeSnapshot を使用" },
+        { "label": "適切なアクセスモードを選択", "description": "RWO はデータベース用、RWX は共有ファイル用" }
+      ]
+    }
+  ],
+  "relatedTopics": ["StatefulSet", "Pod", "クラウドストレージ", "バックアップリカバリ"]
+}

@@ -1,0 +1,166 @@
+{
+  "meta": {
+    "title": "OSI 7層モデル",
+    "description": "OSI 参照モデルと TCP/IP モデルの比較、ネットワーク階層アーキテクチャ詳解",
+    "order": 1,
+    "tags": ["OSI", "ネットワークモデル", "TCP/IP", "プロトコルスタック"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "OSI は理論参照モデル、TCP/IP は実際の実装",
+        "階層設計により関心の分離を実現",
+        "各層は隣接層とのみ通信",
+        "データはカプセル化と解カプセル化を経る"
+      ]
+    },
+    {
+      "type": "table",
+      "title": "OSI 7層モデル詳解",
+      "highlightFirst": true,
+      "headers": ["層", "名称", "機能", "プロトコル/機器", "データ単位"],
+      "rows": [
+        ["L7", "アプリケーション層", "ユーザーインターフェース、アプリサービス", "HTTP, FTP, DNS, SMTP", "データ"],
+        ["L6", "プレゼンテーション層", "データ形式変換、暗号化/復号", "SSL/TLS, JPEG, ASCII", "データ"],
+        ["L5", "セッション層", "セッションの確立/管理/終了", "NetBIOS, RPC", "データ"],
+        ["L4", "トランスポート層", "エンドツーエンド転送、フロー制御", "TCP, UDP", "セグメント/データグラム"],
+        ["L3", "ネットワーク層", "論理アドレス指定、ルーティング", "IP, ICMP, ルーター", "パケット"],
+        ["L2", "データリンク層", "物理アドレス指定、フレーム転送", "Ethernet, スイッチ", "フレーム"],
+        ["L1", "物理層", "ビットストリーム転送", "ケーブル, 光ファイバ, ハブ", "ビット"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "OSI vs TCP/IP モデル",
+      "columns": [
+        {
+          "title": "OSI 7層モデル",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "性質", "description": "理論参照モデル" },
+            { "label": "層数", "description": "7層" },
+            { "label": "特徴", "description": "概念明確、階層が明瞭" },
+            { "label": "用途", "description": "教育、プロトコル分析" }
+          ]
+        },
+        {
+          "title": "TCP/IP 4層モデル",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "性質", "description": "実装モデル" },
+            { "label": "層数", "description": "4層" },
+            { "label": "特徴", "description": "シンプルで実用的" },
+            { "label": "用途", "description": "インターネット実装" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "データカプセル化プロセス",
+      "subtitle": "データがアプリケーション層から下位に転送される際のカプセル化",
+      "direction": "vertical",
+      "steps": [
+        { "label": "アプリケーションデータ", "description": "元データ", "color": "bg-purple-500" },
+        { "label": "+ TCP/UDP ヘッダ", "description": "トランスポート層：セグメント", "color": "bg-blue-500" },
+        { "label": "+ IP ヘッダ", "description": "ネットワーク層：パケット", "color": "bg-cyan-500" },
+        { "label": "+ フレームヘッダ + FCS", "description": "データリンク層：フレーム", "color": "bg-green-500" },
+        { "label": "ビットストリーム", "description": "物理層転送", "color": "bg-yellow-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "各層の主要機器",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "L1 物理層",
+          "badge": "Physical",
+          "badgeColor": "gray",
+          "points": [
+            "ハブ (Hub)",
+            "リピータ (Repeater)",
+            "ケーブル、光ファイバ"
+          ]
+        },
+        {
+          "title": "L2 データリンク層",
+          "badge": "Data Link",
+          "badgeColor": "blue",
+          "points": [
+            "スイッチ (Switch)",
+            "ブリッジ (Bridge)",
+            "NIC (ネットワークカード)"
+          ]
+        },
+        {
+          "title": "L3 ネットワーク層",
+          "badge": "Network",
+          "badgeColor": "green",
+          "points": [
+            "ルーター (Router)",
+            "L3 スイッチ",
+            "ファイアウォール"
+          ]
+        },
+        {
+          "title": "L4 トランスポート層",
+          "badge": "Transport",
+          "badgeColor": "amber",
+          "points": [
+            "L4 ロードバランサー",
+            "ファイアウォール (ステートフル)",
+            "NAT ゲートウェイ"
+          ]
+        },
+        {
+          "title": "L7 アプリケーション層",
+          "badge": "Application",
+          "badgeColor": "purple",
+          "points": [
+            "L7 ロードバランサー",
+            "WAF",
+            "プロキシサーバー"
+          ]
+        },
+        {
+          "title": "マルチレイヤー機器",
+          "badge": "Multi-Layer",
+          "badgeColor": "red",
+          "points": [
+            "マルチレイヤースイッチ",
+            "UTM 統合脅威管理",
+            "SDN コントローラー"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "OSI と TCP/IP の層対応",
+      "highlightFirst": true,
+      "headers": ["OSI モデル", "TCP/IP モデル", "主なプロトコル"],
+      "rows": [
+        ["アプリケーション層 + プレゼンテーション層 + セッション層", "アプリケーション層", "HTTP, FTP, DNS, SMTP, SSH"],
+        ["トランスポート層", "トランスポート層", "TCP, UDP, SCTP"],
+        ["ネットワーク層", "ネットワーク層", "IP, ICMP, IGMP, ARP"],
+        ["データリンク層 + 物理層", "ネットワークインターフェース層", "Ethernet, Wi-Fi, PPP"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "なぜ階層化するのか",
+      "style": "check",
+      "items": [
+        { "label": "モジュール設計", "description": "各層を独立して開発・保守可能" },
+        { "label": "標準化インターフェース", "description": "層間は標準インターフェースで通信" },
+        { "label": "障害分離", "description": "問題の特定が容易" },
+        { "label": "柔軟な置換", "description": "他の層に影響なく実装を変更可能" }
+      ]
+    }
+  ],
+  "relatedTopics": ["TCP/IP", "ネットワーク機器", "プロトコル分析"]
+}

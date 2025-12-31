@@ -1,0 +1,375 @@
+{
+  "slug": "l2-datalink",
+  "meta": {
+    "title": "L2 数据链路层",
+    "description": "数据链路层：以太网、MAC 地址、交换机、VLAN 与 STP",
+    "order": 3,
+    "tags": [
+      "数据链路层",
+      "L2",
+      "以太网",
+      "交换机",
+      "VLAN"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "数据链路层负责相邻节点间的帧传输",
+        "使用 MAC 地址进行物理寻址",
+        "提供差错检测（FCS）",
+        "包含 LLC 和 MAC 两个子层"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "数据链路层概述",
+      "content": "数据链路层位于 OSI 模型的第二层，负责在直接相连的两个节点之间可靠地传输数据帧。它将物理层的比特流组织成帧（Frame），并通过 MAC 地址识别网络设备。主要功能包括帧定界、物理寻址、差错检测和介质访问控制。"
+    },
+    {
+      "type": "cards",
+      "title": "L2 核心知识点",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "以太网 (Ethernet)",
+          "badge": "协议",
+          "badgeColor": "blue",
+          "points": [
+            "IEEE 802.3 标准",
+            "CSMA/CD 访问控制",
+            "最广泛的 LAN 技术"
+          ]
+        },
+        {
+          "title": "L2 交换机",
+          "badge": "设备",
+          "badgeColor": "green",
+          "points": [
+            "基于 MAC 地址转发",
+            "MAC 地址表学习",
+            "隔离冲突域"
+          ]
+        },
+        {
+          "title": "VLAN",
+          "badge": "技术",
+          "badgeColor": "purple",
+          "points": [
+            "虚拟局域网隔离",
+            "802.1Q 标签",
+            "广播域划分"
+          ]
+        },
+        {
+          "title": "STP/RSTP",
+          "badge": "协议",
+          "badgeColor": "amber",
+          "points": [
+            "防止环路",
+            "冗余链路管理",
+            "自动收敛"
+          ]
+        },
+        {
+          "title": "ARP",
+          "badge": "协议",
+          "badgeColor": "cyan",
+          "points": [
+            "IP → MAC 映射",
+            "ARP 缓存",
+            "跨 L2/L3 边界"
+          ]
+        },
+        {
+          "title": "链路聚合",
+          "badge": "技术",
+          "badgeColor": "red",
+          "points": [
+            "LACP (802.3ad)",
+            "增加带宽",
+            "链路冗余"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "以太网帧结构",
+      "highlightFirst": true,
+      "headers": [
+        "字段",
+        "大小",
+        "说明"
+      ],
+      "rows": [
+        [
+          "前导码 (Preamble)",
+          "7 字节",
+          "同步时钟"
+        ],
+        [
+          "帧起始符 (SFD)",
+          "1 字节",
+          "帧开始标志 (10101011)"
+        ],
+        [
+          "目的 MAC",
+          "6 字节",
+          "接收方物理地址"
+        ],
+        [
+          "源 MAC",
+          "6 字节",
+          "发送方物理地址"
+        ],
+        [
+          "类型/长度",
+          "2 字节",
+          "0x0800=IPv4, 0x0806=ARP"
+        ],
+        [
+          "数据",
+          "46-1500 字节",
+          "上层协议数据 (MTU)"
+        ],
+        [
+          "FCS",
+          "4 字节",
+          "帧校验序列 (CRC-32)"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "MAC 地址格式",
+      "language": "text",
+      "code": "MAC 地址: 48 位 (6 字节)\n格式: XX:XX:XX:XX:XX:XX 或 XX-XX-XX-XX-XX-XX\n\n示例: 00:1A:2B:3C:4D:5E\n       |_____|  |_____|\n         OUI    设备标识\n\nOUI (前 24 位): 组织唯一标识符，由 IEEE 分配给厂商\n设备标识 (后 24 位): 厂商自行分配\n\n特殊地址:\n- FF:FF:FF:FF:FF:FF  广播地址\n- 01:XX:XX:XX:XX:XX  组播地址 (第一字节最低位为 1)\n- 本地管理地址: 第一字节第二低位为 1"
+    },
+    {
+      "type": "flow",
+      "title": "交换机工作原理",
+      "subtitle": "基于 MAC 地址表的帧转发",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "接收帧",
+          "description": "从端口收到帧",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "学习源 MAC",
+          "description": "记录 MAC-端口映射",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "查表转发",
+          "description": "查找目的 MAC",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "单播/泛洪",
+          "description": "已知单播，未知泛洪",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "交换机 MAC 地址表",
+      "language": "text",
+      "code": "# Cisco 交换机查看 MAC 地址表\nshow mac address-table\n\nMAC Address Table\n-------------------------------------------\nVlan    Mac Address       Type        Ports\n----    -----------       --------    -----\n1       00:1a:2b:3c:4d:5e DYNAMIC     Gi0/1\n1       00:1a:2b:3c:4d:5f DYNAMIC     Gi0/2\n10      00:1a:2b:3c:4d:60 DYNAMIC     Gi0/3\n\n# Linux 查看本机 MAC\nip link show\ncat /sys/class/net/eth0/address\n\n# 查看 ARP 缓存\narp -n\nip neigh show"
+    },
+    {
+      "type": "comparison",
+      "title": "Hub vs Switch",
+      "columns": [
+        {
+          "title": "集线器 (Hub)",
+          "color": "from-gray-500 to-gray-600",
+          "items": [
+            {
+              "label": "层级",
+              "description": "L1 物理层"
+            },
+            {
+              "label": "转发方式",
+              "description": "所有端口广播"
+            },
+            {
+              "label": "冲突域",
+              "description": "所有端口共享"
+            },
+            {
+              "label": "带宽",
+              "description": "所有端口共享"
+            },
+            {
+              "label": "状态",
+              "description": "已淘汰"
+            }
+          ]
+        },
+        {
+          "title": "交换机 (Switch)",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "层级",
+              "description": "L2 数据链路层"
+            },
+            {
+              "label": "转发方式",
+              "description": "基于 MAC 表转发"
+            },
+            {
+              "label": "冲突域",
+              "description": "每端口独立"
+            },
+            {
+              "label": "带宽",
+              "description": "每端口独享"
+            },
+            {
+              "label": "状态",
+              "description": "主流设备"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "VLAN 配置示例 (Cisco)",
+      "language": "text",
+      "code": "# 创建 VLAN\nvlan 10\n  name Engineering\nvlan 20\n  name Sales\n\n# 将端口分配到 VLAN (Access 模式)\ninterface GigabitEthernet0/1\n  switchport mode access\n  switchport access vlan 10\n\n# Trunk 端口 (承载多个 VLAN)\ninterface GigabitEthernet0/24\n  switchport mode trunk\n  switchport trunk allowed vlan 10,20\n  switchport trunk native vlan 1\n\n# 查看 VLAN\nshow vlan brief"
+    },
+    {
+      "type": "table",
+      "title": "VLAN 端口类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "用途",
+        "标签处理"
+      ],
+      "rows": [
+        [
+          "Access",
+          "连接终端设备",
+          "入：加标签，出：去标签"
+        ],
+        [
+          "Trunk",
+          "交换机互连",
+          "保留 802.1Q 标签"
+        ],
+        [
+          "Hybrid",
+          "混合模式",
+          "灵活配置标签策略"
+        ],
+        [
+          "Native VLAN",
+          "Trunk 默认 VLAN",
+          "无标签帧所属 VLAN"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "802.1Q VLAN 标签",
+      "language": "text",
+      "code": "标准以太网帧:\n| Dest MAC | Src MAC | Type | Data | FCS |\n\n802.1Q 标记帧:\n| Dest MAC | Src MAC | 802.1Q Tag | Type | Data | FCS |\n                      |________|\n                        4 字节\n\n802.1Q Tag 结构 (4 字节):\n| TPID (2B) | TCI (2B) |\n| 0x8100    | PCP | DEI | VID |\n              3b    1b   12b\n\nTCI (Tag Control Information):\n- PCP (3 bit): 优先级 (0-7)，QoS 使用\n- DEI (1 bit): 丢弃指示\n- VID (12 bit): VLAN ID (0-4095)"
+    },
+    {
+      "type": "cards",
+      "title": "STP 生成树协议",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "STP 原理",
+          "badge": "802.1D",
+          "badgeColor": "blue",
+          "points": [
+            "选举根桥 (Root Bridge)",
+            "计算最短路径",
+            "阻塞冗余端口防环"
+          ]
+        },
+        {
+          "title": "端口状态",
+          "badge": "状态机",
+          "badgeColor": "green",
+          "points": [
+            "Blocking → Listening",
+            "Listening → Learning",
+            "Learning → Forwarding"
+          ]
+        },
+        {
+          "title": "RSTP 快速收敛",
+          "badge": "802.1w",
+          "badgeColor": "amber",
+          "points": [
+            "收敛时间 < 1秒",
+            "简化端口状态",
+            "主动协商机制"
+          ]
+        },
+        {
+          "title": "MSTP 多实例",
+          "badge": "802.1s",
+          "badgeColor": "purple",
+          "points": [
+            "多 VLAN 负载均衡",
+            "每实例独立拓扑",
+            "大型网络推荐"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Linux VLAN 配置",
+      "language": "bash",
+      "code": "# 安装 vlan 工具\napt install vlan\n\n# 加载 8021q 模块\nmodprobe 8021q\n\n# 创建 VLAN 接口\nip link add link eth0 name eth0.10 type vlan id 10\nip link set eth0.10 up\nip addr add 192.168.10.1/24 dev eth0.10\n\n# 查看 VLAN 接口\ncat /proc/net/vlan/config\nip -d link show eth0.10\n\n# 删除 VLAN 接口\nip link delete eth0.10"
+    },
+    {
+      "type": "list",
+      "title": "L2 最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "启用 STP/RSTP",
+          "description": "防止网络环路导致广播风暴"
+        },
+        {
+          "label": "合理划分 VLAN",
+          "description": "按部门/功能隔离广播域"
+        },
+        {
+          "label": "Trunk 安全",
+          "description": "限制允许的 VLAN，关闭未使用端口"
+        },
+        {
+          "label": "MAC 地址安全",
+          "description": "端口安全限制 MAC 数量"
+        },
+        {
+          "label": "链路聚合",
+          "description": "LACP 提供带宽和冗余"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "OSI 模型",
+    "L3 网络层",
+    "网络安全"
+  ]
+}

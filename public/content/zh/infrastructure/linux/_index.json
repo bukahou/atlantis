@@ -1,18 +1,53 @@
 {
   "items": [
     {
+      "slug": "kernel",
+      "title": "Linux 内核",
+      "description": "Linux 内核架构：用户空间、内核空间与硬件交互",
+      "href": "/infrastructure/linux/kernel",
+      "order": 1
+    },
+    {
       "slug": "shell",
-      "title": "Shell 脚本基础",
-      "description": "Linux Shell 脚本入门教程，掌握 Bash 脚本编写技巧",
+      "title": "Shell 脚本编程",
+      "description": "Bash 脚本语法、变量、条件判断与循环",
       "href": "/infrastructure/linux/shell",
       "order": 1
     },
     {
-      "slug": "system",
-      "title": "Linux 系统管理",
-      "description": "Linux 系统管理核心知识与常用操作",
-      "href": "/infrastructure/linux/system",
+      "slug": "process",
+      "title": "进程与线程",
+      "description": "Linux 进程管理、线程模型与进程间通信",
+      "href": "/infrastructure/linux/process",
       "order": 2
+    },
+    {
+      "slug": "memory",
+      "title": "内存管理",
+      "description": "Linux 内存管理：虚拟内存、页面缓存与 OOM",
+      "href": "/infrastructure/linux/memory",
+      "order": 3
+    },
+    {
+      "slug": "storage",
+      "title": "存储管理",
+      "description": "Linux 存储：文件系统、磁盘管理与 I/O 调度",
+      "href": "/infrastructure/linux/storage",
+      "order": 4
+    },
+    {
+      "slug": "network",
+      "title": "Linux 网络",
+      "description": "Linux 网络栈：配置、诊断与性能调优",
+      "href": "/infrastructure/linux/network",
+      "order": 5
+    },
+    {
+      "slug": "service",
+      "title": "服务管理",
+      "description": "Linux 服务管理：systemd 架构、单元配置与系统引导",
+      "href": "/infrastructure/linux/service",
+      "order": 6
     }
   ]
 }

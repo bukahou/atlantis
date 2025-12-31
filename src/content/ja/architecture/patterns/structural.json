@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "構造パターン",
+    "description": "アダプター、デコレーター、プロキシなどの構造組合せパターン",
+    "order": 2,
+    "tags": ["デザインパターン", "GoF", "オブジェクト構造"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "構造パターンはクラスとオブジェクトの組み合わせに焦点を当てる",
+        "組み合わせにより大きな構造を形成しつつ柔軟性を維持",
+        "7つの古典的パターン：アダプター、ブリッジ、コンポジット、デコレーター、ファサード、フライウェイト、プロキシ"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "よく使うパターン",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "アダプター",
+          "badge": "Adapter",
+          "badgeColor": "blue",
+          "points": [
+            "インターフェース変換",
+            "レガシーコード互換",
+            "オブジェクト/クラスアダプター"
+          ]
+        },
+        {
+          "title": "デコレーター",
+          "badge": "Decorator",
+          "badgeColor": "green",
+          "points": [
+            "動的に機能追加",
+            "継承の代替",
+            "組み合わせ可能"
+          ]
+        },
+        {
+          "title": "プロキシ",
+          "badge": "Proxy",
+          "badgeColor": "purple",
+          "points": [
+            "アクセス制御",
+            "遅延ロード",
+            "リモート/仮想/保護プロキシ"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "アダプターパターン - TypeScript 実装",
+      "language": "typescript",
+      "code": "// ターゲットインターフェース\ninterface PaymentProcessor {\n  pay(amount: number): Promise<boolean>;\n}\n\n// レガシーサードパーティSDK（非互換インターフェース）\nclass LegacyPaymentSDK {\n  processPayment(data: { value: number; currency: string }) {\n    // 支払い処理...\n    return { success: true };\n  }\n}\n\n// アダプター\nclass PaymentAdapter implements PaymentProcessor {\n  constructor(private legacy: LegacyPaymentSDK) {}\n  \n  async pay(amount: number): Promise<boolean> {\n    const result = this.legacy.processPayment({\n      value: amount,\n      currency: 'JPY'\n    });\n    return result.success;\n  }\n}\n\n// 使用例\nconst processor: PaymentProcessor = new PaymentAdapter(new LegacyPaymentSDK());\nawait processor.pay(100);"
+    },
+    {
+      "type": "codeBlock",
+      "title": "デコレーターパターン - Python 実装",
+      "language": "python",
+      "code": "from abc import ABC, abstractmethod\n\n# コンポーネントインターフェース\nclass DataSource(ABC):\n    @abstractmethod\n    def write(self, data: str) -> None: pass\n    \n    @abstractmethod\n    def read(self) -> str: pass\n\n# 具体コンポーネント\nclass FileDataSource(DataSource):\n    def __init__(self, filename: str):\n        self.filename = filename\n    \n    def write(self, data: str) -> None:\n        with open(self.filename, 'w') as f:\n            f.write(data)\n    \n    def read(self) -> str:\n        with open(self.filename, 'r') as f:\n            return f.read()\n\n# デコレーター基底クラス\nclass DataSourceDecorator(DataSource):\n    def __init__(self, source: DataSource):\n        self._source = source\n\n# 暗号化デコレーター\nclass EncryptionDecorator(DataSourceDecorator):\n    def write(self, data: str) -> None:\n        encrypted = self._encrypt(data)\n        self._source.write(encrypted)\n    \n    def read(self) -> str:\n        return self._decrypt(self._source.read())\n\n# 使用：組み合わせ可能\nsource = EncryptionDecorator(\n    CompressionDecorator(\n        FileDataSource('data.txt')\n    )\n)"
+    },
+    {
+      "type": "codeBlock",
+      "title": "プロキシパターン - Go 実装",
+      "language": "go",
+      "code": "// インターフェース\ntype Image interface {\n    Display()\n}\n\n// 実オブジェクト（ロードコストが高い）\ntype RealImage struct {\n    filename string\n    data     []byte\n}\n\nfunc NewRealImage(filename string) *RealImage {\n    img := &RealImage{filename: filename}\n    img.loadFromDisk() // 時間のかかる操作\n    return img\n}\n\nfunc (r *RealImage) Display() {\n    fmt.Println(\"Displaying\", r.filename)\n}\n\n// 仮想プロキシ（遅延ロード）\ntype ProxyImage struct {\n    filename  string\n    realImage *RealImage\n}\n\nfunc (p *ProxyImage) Display() {\n    if p.realImage == nil {\n        p.realImage = NewRealImage(p.filename) // 初回アクセス時にロード\n    }\n    p.realImage.Display()\n}\n\n// 使用例\nvar image Image = &ProxyImage{filename: \"photo.jpg\"}\nimage.Display() // この時点で実際にロード"
+    },
+    {
+      "type": "comparison",
+      "title": "デコレーター vs プロキシ",
+      "columns": [
+        {
+          "title": "デコレーター",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "目的", "description": "機能強化" },
+            { "label": "特徴", "description": "クライアントがデコレートを制御" },
+            { "label": "例", "description": "ログ、キャッシュ、圧縮" }
+          ]
+        },
+        {
+          "title": "プロキシ",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "目的", "description": "アクセス制御" },
+            { "label": "特徴", "description": "プロキシがアクセスを制御" },
+            { "label": "例", "description": "遅延ロード、権限チェック" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "構造パターンまとめ",
+      "highlightFirst": true,
+      "headers": ["パターン", "目的", "典型的な適用例"],
+      "rows": [
+        ["アダプター", "インターフェース変換", "SDK統合、API互換"],
+        ["デコレーター", "動的強化", "ミドルウェア、Streamラッパー"],
+        ["プロキシ", "アクセス制御", "遅延ロード、RPC、AOP"],
+        ["ファサード", "インターフェース簡略化", "サブシステム統一入口"],
+        ["コンポジット", "ツリー構造", "ファイルシステム、UIコンポーネント"]
+      ]
+    }
+  ],
+  "relatedTopics": ["オブジェクト指向", "ミドルウェア", "AOP"]
+}

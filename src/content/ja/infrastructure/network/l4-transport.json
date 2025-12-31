@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "title": "L4 トランスポート層",
+    "description": "トランスポート層プロトコル：TCP 信頼性転送と UDP コネクションレス転送",
+    "order": 5,
+    "tags": ["トランスポート層", "L4", "TCP", "UDP"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "トランスポート層はエンドツーエンドの通信サービスを提供",
+        "TCP はコネクション型、信頼性のある順序付き転送を提供",
+        "UDP はコネクションレス、低遅延で高効率",
+        "ポート番号でアプリケーションプロセスを識別"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "トランスポート層概要",
+      "content": "トランスポート層は OSI モデルの第4層で、送信元ホストと宛先ホスト間でエンドツーエンドのデータ転送サービスを提供する役割を担います。ポート番号で異なるアプリケーションプロセスを区別し、主なプロトコルには TCP（信頼性転送）と UDP（ベストエフォート転送）があります。"
+    },
+    {
+      "type": "comparison",
+      "title": "TCP vs UDP",
+      "columns": [
+        {
+          "title": "TCP",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "接続", "description": "コネクション型（3ウェイハンドシェイク）" },
+            { "label": "信頼性", "description": "信頼性転送、確認応答と再送" },
+            { "label": "順序", "description": "データ順序を保証" },
+            { "label": "フロー制御", "description": "スライディングウィンドウ" },
+            { "label": "ヘッダ", "description": "20-60 バイト" },
+            { "label": "用途", "description": "HTTP、FTP、SSH" }
+          ]
+        },
+        {
+          "title": "UDP",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "接続", "description": "コネクションレス" },
+            { "label": "信頼性", "description": "非信頼性、損失の可能性あり" },
+            { "label": "順序", "description": "順序保証なし" },
+            { "label": "フロー制御", "description": "フロー制御なし" },
+            { "label": "ヘッダ", "description": "8 バイト" },
+            { "label": "用途", "description": "DNS、動画、ゲーム" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "TCP 3ウェイハンドシェイク",
+      "subtitle": "信頼性のある接続を確立",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "SYN", "description": "クライアント → サーバー", "color": "bg-blue-500" },
+        { "label": "SYN+ACK", "description": "サーバー → クライアント", "color": "bg-purple-500" },
+        { "label": "ACK", "description": "クライアント → サーバー", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "TCP 4ウェイハンドシェイク",
+      "subtitle": "接続の切断",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "FIN", "description": "アクティブクローズ", "color": "bg-red-500" },
+        { "label": "ACK", "description": "受信確認", "color": "bg-orange-500" },
+        { "label": "FIN", "description": "パッシブクローズ", "color": "bg-yellow-500" },
+        { "label": "ACK", "description": "最終確認", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "TCP/UDP ヘッダ構造",
+      "language": "text",
+      "code": "TCP ヘッダ (20-60 バイト):\n┌─────────────────┬─────────────────┐\n│  送信元ポート(16) │  宛先ポート(16)  │\n├─────────────────┴─────────────────┤\n│          シーケンス番号 (32)        │\n├───────────────────────────────────┤\n│           確認応答番号 (32)         │\n├────┬──────┬──────┬────────────────┤\n│オフセット│予約│フラグ│ ウィンドウ(16) │\n├────┴──────┴──────┼────────────────┤\n│  チェックサム(16) │緊急ポインタ(16)│\n├──────────────────┴────────────────┤\n│         オプション (可変長)         │\n└───────────────────────────────────┘\n\nフラグ: URG, ACK, PSH, RST, SYN, FIN\n\nUDP ヘッダ (8 バイト):\n┌─────────────────┬─────────────────┐\n│  送信元ポート(16) │  宛先ポート(16)  │\n├─────────────────┼─────────────────┤\n│    長さ (16)    │ チェックサム(16) │\n└─────────────────┴─────────────────┘"
+    },
+    {
+      "type": "cards",
+      "title": "TCP コアメカニズム",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "スライディングウィンドウ",
+          "badge": "フロー制御",
+          "badgeColor": "blue",
+          "points": [
+            "受信側がウィンドウサイズを通知",
+            "送信側はこれに基づき送信速度を制御",
+            "ウィンドウサイズは動的に調整"
+          ]
+        },
+        {
+          "title": "輻輳制御",
+          "badge": "ネットワーク保護",
+          "badgeColor": "amber",
+          "points": [
+            "スロースタート：指数的増加",
+            "輻輳回避：線形的増加",
+            "高速再送と高速リカバリ"
+          ]
+        },
+        {
+          "title": "シーケンス番号",
+          "badge": "信頼性転送",
+          "badgeColor": "green",
+          "points": [
+            "各バイトにシーケンス番号",
+            "確認応答番号は次に期待するバイト",
+            "順序の乱れた再構築をサポート"
+          ]
+        },
+        {
+          "title": "タイムアウト再送",
+          "badge": "エラー回復",
+          "badgeColor": "red",
+          "points": [
+            "RTT からタイムアウトを動的計算",
+            "ACK 未受信で自動再送",
+            "指数バックオフアルゴリズム"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "よく使われるポート",
+      "highlightFirst": true,
+      "headers": ["ポート", "プロトコル", "サービス"],
+      "rows": [
+        ["20/21", "TCP", "FTP (データ/制御)"],
+        ["22", "TCP", "SSH"],
+        ["23", "TCP", "Telnet"],
+        ["25", "TCP", "SMTP"],
+        ["53", "TCP/UDP", "DNS"],
+        ["80", "TCP", "HTTP"],
+        ["443", "TCP", "HTTPS"],
+        ["3306", "TCP", "MySQL"],
+        ["6379", "TCP", "Redis"]
+      ]
+    },
+    {
+      "type": "table",
+      "title": "TCP 状態遷移",
+      "highlightFirst": true,
+      "headers": ["状態", "説明", "トリガー条件"],
+      "rows": [
+        ["LISTEN", "接続待ち", "サーバーがリッスン"],
+        ["SYN_SENT", "SYN 送信済み", "クライアントが接続開始"],
+        ["ESTABLISHED", "確立済み", "3ウェイハンドシェイク完了"],
+        ["FIN_WAIT_1", "アクティブクローズ", "FIN 送信"],
+        ["TIME_WAIT", "2MSL 待機", "ACK 到達を保証"],
+        ["CLOSE_WAIT", "パッシブクローズ", "FIN 受信"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "接続状態の確認",
+      "language": "bash",
+      "code": "# すべての TCP 接続を表示\nss -ant\nnetstat -ant\n\n# 各状態の数を集計\nss -ant | awk 'NR>1 {print $1}' | sort | uniq -c\n\n# リッスンポートを表示\nss -tlnp\nnetstat -tlnp\n\n# UDP 接続を表示\nss -anu"
+    },
+    {
+      "type": "list",
+      "title": "TCP チューニングのヒント",
+      "style": "check",
+      "items": [
+        { "label": "バッファサイズの調整", "description": "net.core.rmem_max / wmem_max" },
+        { "label": "TCP Fast Open", "description": "ハンドシェイク遅延を削減" },
+        { "label": "TIME_WAIT の再利用", "description": "net.ipv4.tcp_tw_reuse" },
+        { "label": "Keepalive", "description": "長時間接続のハートビート検出" }
+      ]
+    }
+  ],
+  "relatedTopics": ["L3 ネットワーク層", "L7 アプリケーション層", "Socket プログラミング"]
+}

@@ -1,18 +1,53 @@
 {
   "items": [
     {
-      "slug": "shell",
-      "title": "シェルスクリプト基礎",
-      "description": "Linux シェルスクリプト入門チュートリアル、Bash スクリプトの書き方をマスター",
-      "href": "/infrastructure/linux/shell",
+      "slug": "kernel",
+      "title": "Linux カーネル",
+      "description": "Linux カーネルアーキテクチャ：ユーザー空間、カーネル空間とハードウェアの相互作用",
+      "href": "/infrastructure/linux/kernel",
       "order": 1
     },
     {
-      "slug": "system",
-      "title": "Linux システム管理",
-      "description": "Linux システム管理の核心知識と一般的な操作",
-      "href": "/infrastructure/linux/system",
+      "slug": "process",
+      "title": "プロセスとスレッド",
+      "description": "Linux プロセス管理、スレッドモデルとプロセス間通信",
+      "href": "/infrastructure/linux/process",
       "order": 2
+    },
+    {
+      "slug": "memory",
+      "title": "メモリ管理",
+      "description": "Linux メモリ管理：仮想メモリ、Page Cache と OOM",
+      "href": "/infrastructure/linux/memory",
+      "order": 3
+    },
+    {
+      "slug": "storage",
+      "title": "ストレージ管理",
+      "description": "Linux ストレージ：ファイルシステム、ディスク管理と I/O スケジューリング",
+      "href": "/infrastructure/linux/storage",
+      "order": 4
+    },
+    {
+      "slug": "network",
+      "title": "Linux ネットワーク",
+      "description": "Linux ネットワークスタック：設定、診断とパフォーマンスチューニング",
+      "href": "/infrastructure/linux/network",
+      "order": 5
+    },
+    {
+      "slug": "service",
+      "title": "サービス管理",
+      "description": "Linux サービス管理：systemd アーキテクチャ、Unit 設定とシステムブート",
+      "href": "/infrastructure/linux/service",
+      "order": 6
+    },
+    {
+      "slug": "shell",
+      "title": "Shell スクリプティング",
+      "description": "Bash スクリプト構文、変数、条件分岐とループ",
+      "href": "/infrastructure/linux/shell",
+      "order": 7
     }
   ]
 }

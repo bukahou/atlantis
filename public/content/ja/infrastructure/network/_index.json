@@ -1,32 +1,53 @@
 {
   "items": [
     {
-      "slug": "tcp-ip",
-      "title": "TCP/IP プロトコル基礎",
-      "description": "ネットワーク通信の核心プロトコルスタックを理解する",
-      "href": "/infrastructure/network/tcp-ip",
+      "slug": "osi-model",
+      "title": "OSI 7層モデル",
+      "description": "OSI 参照モデルと TCP/IP モデルの比較、ネットワーク階層アーキテクチャ詳解",
+      "href": "/infrastructure/network/osi-model",
       "order": 1
     },
     {
-      "slug": "dns",
-      "title": "DNS ドメインネームシステム",
-      "description": "ドメイン名解決の仕組みと DNS 設定を理解する",
-      "href": "/infrastructure/network/dns",
+      "slug": "l1-physical",
+      "title": "L1 物理層",
+      "description": "物理層の基礎：伝送媒体、信号符号化とネットワークトポロジー",
+      "href": "/infrastructure/network/l1-physical",
       "order": 2
     },
     {
-      "slug": "http",
-      "title": "HTTP プロトコル詳解",
-      "description": "HTTP/HTTPS プロトコルの原理と実践を深く理解する",
-      "href": "/infrastructure/network/http",
+      "slug": "l2-datalink",
+      "title": "L2 データリンク層",
+      "description": "データリンク層：イーサネット、MAC アドレス、スイッチ、VLAN と STP",
+      "href": "/infrastructure/network/l2-datalink",
       "order": 3
     },
     {
-      "slug": "load-balancer",
-      "title": "ロードバランシング",
-      "description": "ロードバランシングの原理、アルゴリズム、実践設定",
-      "href": "/infrastructure/network/load-balancer",
+      "slug": "l3-network",
+      "title": "L3 ネットワーク層",
+      "description": "ネットワーク層：IP プロトコル、ルーティング、サブネット分割と NAT",
+      "href": "/infrastructure/network/l3-network",
       "order": 4
+    },
+    {
+      "slug": "l4-transport",
+      "title": "L4 トランスポート層",
+      "description": "トランスポート層プロトコル：TCP 信頼性転送と UDP コネクションレス転送",
+      "href": "/infrastructure/network/l4-transport",
+      "order": 5
+    },
+    {
+      "slug": "l7-application",
+      "title": "L7 アプリケーション層",
+      "description": "アプリケーション層プロトコル：HTTP、DNS、FTP と主要アプリケーションプロトコル",
+      "href": "/infrastructure/network/l7-application",
+      "order": 6
+    },
+    {
+      "slug": "load-balancer",
+      "title": "ロードバランサー",
+      "description": "L3/L4/L7 ロードバランシング戦略、アルゴリズムと高可用性アーキテクチャ",
+      "href": "/infrastructure/network/load-balancer",
+      "order": 7
     }
   ]
 }

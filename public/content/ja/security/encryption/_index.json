@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "symmetric",
+      "title": "対称暗号",
+      "description": "AES、ChaCha20と暗号化モード",
+      "href": "/security/encryption/symmetric",
+      "order": 1
+    },
+    {
+      "slug": "asymmetric",
+      "title": "非対称暗号",
+      "description": "RSA、楕円曲線とデジタル署名",
+      "href": "/security/encryption/asymmetric",
+      "order": 2
+    },
+    {
+      "slug": "hash",
+      "title": "ハッシュアルゴリズム",
+      "description": "SHAシリーズ、パスワードハッシュとHMAC",
+      "href": "/security/encryption/hash",
+      "order": 3
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "title": "Composition API",
+    "description": "Vue 3 组合式 API 与响应式系统",
+    "order": 1,
+    "tags": ["Vue", "Composition API", "响应式"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Composition API 提供更好的逻辑复用",
+        "ref 和 reactive 创建响应式数据",
+        "computed 和 watch 处理派生状态",
+        "setup() 或 <script setup> 入口"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Options API vs Composition API",
+      "columns": [
+        {
+          "title": "Options API",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            { "label": "组织方式", "description": "按选项分类" },
+            { "label": "this 指向", "description": "组件实例" },
+            { "label": "复用方式", "description": "Mixins" }
+          ]
+        },
+        {
+          "title": "Composition API",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "组织方式", "description": "按逻辑功能" },
+            { "label": "this 指向", "description": "无 this" },
+            { "label": "复用方式", "description": "Composables" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础示例",
+      "language": "vue",
+      "code": "<script setup lang=\"ts\">\nimport { ref, reactive, computed, watch, onMounted } from 'vue'\n\n// ref - 基础类型响应式\nconst count = ref(0)\nconst double = computed(() => count.value * 2)\n\n// reactive - 对象响应式\nconst user = reactive({\n  name: 'John',\n  age: 25\n})\n\n// watch 监听\nwatch(count, (newVal, oldVal) => {\n  console.log(`count changed: ${oldVal} -> ${newVal}`)\n})\n\n// 生命周期\nonMounted(() => {\n  console.log('component mounted')\n})\n\nfunction increment() {\n  count.value++\n}\n</script>\n\n<template>\n  <div>\n    <p>Count: {{ count }}, Double: {{ double }}</p>\n    <button @click=\"increment\">+1</button>\n  </div>\n</template>"
+    },
+    {
+      "type": "cards",
+      "title": "响应式 API",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "ref",
+          "badge": "基础",
+          "badgeColor": "blue",
+          "points": [
+            "任意类型响应式",
+            "通过 .value 访问",
+            "模板中自动解包"
+          ]
+        },
+        {
+          "title": "reactive",
+          "badge": "对象",
+          "badgeColor": "green",
+          "points": [
+            "对象深度响应式",
+            "直接访问属性",
+            "不能解构"
+          ]
+        },
+        {
+          "title": "computed",
+          "badge": "计算",
+          "badgeColor": "amber",
+          "points": [
+            "派生状态",
+            "自动缓存",
+            "支持 getter/setter"
+          ]
+        },
+        {
+          "title": "watch/watchEffect",
+          "badge": "监听",
+          "badgeColor": "purple",
+          "points": [
+            "watch 明确依赖",
+            "watchEffect 自动收集",
+            "支持异步"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Composable 示例",
+      "language": "ts",
+      "code": "// composables/useMouse.ts\nimport { ref, onMounted, onUnmounted } from 'vue'\n\nexport function useMouse() {\n  const x = ref(0)\n  const y = ref(0)\n\n  function update(event: MouseEvent) {\n    x.value = event.pageX\n    y.value = event.pageY\n  }\n\n  onMounted(() => window.addEventListener('mousemove', update))\n  onUnmounted(() => window.removeEventListener('mousemove', update))\n\n  return { x, y }\n}\n\n// 使用\nimport { useMouse } from '@/composables/useMouse'\n\nconst { x, y } = useMouse()"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 <script setup>", "description": "更简洁的语法，更好的类型推断" },
+        { "label": "提取 Composables", "description": "将可复用逻辑提取为 composable 函数" },
+        { "label": "ref 优先", "description": "ref 比 reactive 更灵活" },
+        { "label": "toRefs 解构", "description": "解构 reactive 对象时保持响应性" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Pinia", "Vue Router", "TypeScript"]
+}

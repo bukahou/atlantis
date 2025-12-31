@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "title": "高可用性",
+    "description": "冗長化設計、フェイルオーバーと災害復旧",
+    "icon": "shield-check"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "可用性指標：99.9%（スリーナイン）〜 99.999%（ファイブナイン）",
+        "冗長化設計：単一障害点 SPOF の排除",
+        "フェイルオーバー：主従、主主、クラスタモード",
+        "災害復旧：RPO と RTO 指標"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "高可用性（HA）は障害発生時にもサービスを継続提供できる能力です。冗長化、障害検知、自動切り替えなどの技術により、99.99% 以上の可用性を実現できます。高可用性設計はコストと信頼性のバランスが重要です。"
+    },
+    {
+      "type": "table",
+      "title": "可用性レベル",
+      "highlightFirst": true,
+      "headers": ["レベル", "可用性", "年間ダウンタイム", "典型シナリオ"],
+      "rows": [
+        ["ツーナイン", "99%", "3.65日", "社内システム"],
+        ["スリーナイン", "99.9%", "8.76時間", "一般業務"],
+        ["フォーナイン", "99.99%", "52.6分", "コア業務"],
+        ["ファイブナイン", "99.999%", "5.26分", "金融システム"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "高可用性戦略",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "冗長化設計",
+          "badge": "基礎",
+          "badgeColor": "blue",
+          "points": [
+            "マルチレプリカ",
+            "ロードバランサー",
+            "ステートレスサービス"
+          ]
+        },
+        {
+          "title": "障害検知",
+          "badge": "監視",
+          "badgeColor": "green",
+          "points": [
+            "ヘルスチェック",
+            "ハートビート",
+            "異常アラート"
+          ]
+        },
+        {
+          "title": "自動復旧",
+          "badge": "切替",
+          "badgeColor": "purple",
+          "points": [
+            "フェイルオーバー",
+            "自動再起動",
+            "トラフィック制御"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["ロードバランサー", "コンテナオーケストレーション", "SRE"],
+  "articles": [
+    {
+      "slug": "redundancy",
+      "title": "冗長化設計",
+      "description": "単一障害点排除の戦略と実践",
+      "priority": "essential"
+    },
+    {
+      "slug": "failover",
+      "title": "フェイルオーバー",
+      "description": "主従切替、クラスタ選出とトラフィック制御",
+      "priority": "recommended"
+    },
+    {
+      "slug": "disaster-recovery",
+      "title": "災害復旧",
+      "description": "マルチリージョン、データバックアップと復旧戦略",
+      "priority": "important"
+    }
+  ]
+}

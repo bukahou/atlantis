@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "title": "プロセスとスレッド",
+    "description": "Linux プロセス管理、スレッドモデルとプロセス間通信",
+    "order": 2,
+    "tags": ["Linux", "プロセス", "スレッド", "スケジューリング"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "プロセスはリソース割り当ての基本単位",
+        "スレッドは CPU スケジューリングの基本単位",
+        "Linux スレッドは軽量プロセス (LWP) として実装",
+        "CFS スケジューラは公平な CPU 分配を保証"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "プロセス vs スレッド",
+      "columns": [
+        {
+          "title": "プロセス (Process)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "定義", "description": "プログラムの実行インスタンス" },
+            { "label": "リソース", "description": "独立したアドレス空間" },
+            { "label": "作成", "description": "fork() オーバーヘッド大" },
+            { "label": "通信", "description": "IPC 機構が必要" },
+            { "label": "分離", "description": "相互分離、より安全" }
+          ]
+        },
+        {
+          "title": "スレッド (Thread)",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "定義", "description": "プロセス内の実行単位" },
+            { "label": "リソース", "description": "プロセスのアドレス空間を共有" },
+            { "label": "作成", "description": "clone() オーバーヘッド小" },
+            { "label": "通信", "description": "共有メモリで直接通信" },
+            { "label": "分離", "description": "データ共有、同期が必要" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "プロセス状態遷移",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "新規", "description": "fork()", "color": "bg-gray-500" },
+        { "label": "準備完了", "description": "TASK_RUNNING", "color": "bg-blue-500" },
+        { "label": "実行中", "description": "CPU 取得", "color": "bg-green-500" },
+        { "label": "ブロック", "description": "I/O 待ち", "color": "bg-amber-500" },
+        { "label": "終了", "description": "exit()", "color": "bg-red-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "プロセス状態",
+      "highlightFirst": true,
+      "headers": ["状態", "フラグ", "説明"],
+      "rows": [
+        ["実行/準備完了", "R (Running)", "実行中または CPU 待ち"],
+        ["割り込み可能スリープ", "S (Sleeping)", "イベント待ち、シグナルで起床可能"],
+        ["割り込み不可スリープ", "D (Disk sleep)", "I/O 待ち、割り込み不可"],
+        ["停止", "T (Stopped)", "SIGSTOP シグナル受信"],
+        ["ゾンビ", "Z (Zombie)", "終了済み、親プロセスの回収待ち"],
+        ["アイドル", "I (Idle)", "カーネルスレッドのアイドル状態"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "プロセス間通信 (IPC)",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "パイプ (Pipe)",
+          "badge": "基本",
+          "badgeColor": "blue",
+          "points": [
+            "単方向データフロー",
+            "匿名パイプ (親子プロセス)",
+            "名前付きパイプ (FIFO)",
+            "Shell パイプ |"
+          ]
+        },
+        {
+          "title": "シグナル (Signal)",
+          "badge": "非同期",
+          "badgeColor": "amber",
+          "points": [
+            "非同期通知機構",
+            "SIGTERM/SIGKILL",
+            "カスタムシグナルハンドラ",
+            "プロセス制御"
+          ]
+        },
+        {
+          "title": "共有メモリ",
+          "badge": "高効率",
+          "badgeColor": "green",
+          "points": [
+            "最速の IPC 方式",
+            "mmap/shm_open",
+            "同期機構が必要",
+            "大量データ転送"
+          ]
+        },
+        {
+          "title": "メッセージキュー",
+          "badge": "キュー",
+          "badgeColor": "purple",
+          "points": [
+            "メッセージパッシングモデル",
+            "POSIX/System V",
+            "型付きメッセージ",
+            "非同期通信"
+          ]
+        },
+        {
+          "title": "セマフォ",
+          "badge": "同期",
+          "badgeColor": "red",
+          "points": [
+            "プロセス同期機構",
+            "P/V 操作",
+            "競合状態の防止",
+            "リソースカウント"
+          ]
+        },
+        {
+          "title": "Socket",
+          "badge": "ネットワーク",
+          "badgeColor": "cyan",
+          "points": [
+            "Unix Domain Socket",
+            "ローカルプロセス通信",
+            "ネットワーク越し通信",
+            "全二重"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "プロセス管理コマンド",
+      "language": "bash",
+      "code": "# プロセス表示\nps aux                    # すべてのプロセス\nps -ef                    # 完全フォーマット\nps -eLf                   # スレッド表示\npstree -p                 # プロセスツリー\n\n# リアルタイム監視\ntop                       # 定番ツール\nhtop                      # 強化版\n\n# プロセス詳細\ncat /proc/<pid>/status    # プロセス状態\ncat /proc/<pid>/maps      # メモリマッピング\nls -l /proc/<pid>/fd      # ファイルディスクリプタ\n\n# プロセス制御\nkill -SIGTERM <pid>       # 優雅な終了\nkill -9 <pid>             # 強制終了\nkillall <name>            # 名前で終了\npkill -f <pattern>        # パターンで終了\n\n# バックグラウンド実行\nnohup command &           # ハングアップシグナル無視\ndisown                    # ターミナルから切り離し"
+    },
+    {
+      "type": "cards",
+      "title": "CPU スケジューラ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "CFS (完全公平スケジューラ)",
+          "badge": "デフォルト",
+          "badgeColor": "green",
+          "points": [
+            "Linux 2.6.23 で導入",
+            "仮想実行時間ベース",
+            "赤黒木でプロセス管理",
+            "nice 値が重みに影響"
+          ]
+        },
+        {
+          "title": "リアルタイムスケジューリング",
+          "badge": "RT",
+          "badgeColor": "red",
+          "points": [
+            "SCHED_FIFO (先入れ先出し)",
+            "SCHED_RR (タイムスライスラウンドロビン)",
+            "優先度 1-99",
+            "通常プロセスをプリエンプト"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "プロセス優先度とスケジューリング",
+      "language": "bash",
+      "code": "# 優先度確認\nps -eo pid,ni,pri,comm    # nice と優先度\n\n# nice 値調整 (-20 〜 19、小さいほど優先度高)\nnice -n 10 command        # 起動時に設定\nrenice -n 5 -p <pid>      # 実行時に調整\n\n# リアルタイムスケジューリング\nchrt -f 50 command        # FIFO 優先度 50\nchrt -r 30 command        # RR 優先度 30\nchrt -p <pid>             # スケジューリングポリシー確認\n\n# CPU アフィニティ\ntaskset -c 0,1 command    # CPU 0,1 にバインド\ntaskset -p <pid>          # アフィニティ確認"
+    },
+    {
+      "type": "table",
+      "title": "よく使うシグナル",
+      "highlightFirst": true,
+      "headers": ["シグナル", "番号", "デフォルト動作", "用途"],
+      "rows": [
+        ["SIGHUP", "1", "終了", "ターミナルハングアップ/設定リロード"],
+        ["SIGINT", "2", "終了", "Ctrl+C 中断"],
+        ["SIGQUIT", "3", "コアダンプ", "Ctrl+\\\\ 終了"],
+        ["SIGKILL", "9", "終了", "強制終了 (捕捉不可)"],
+        ["SIGTERM", "15", "終了", "優雅な終了"],
+        ["SIGSTOP", "19", "停止", "プロセス一時停止 (捕捉不可)"],
+        ["SIGCONT", "18", "継続", "停止中プロセスの再開"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "優雅な終了", "description": "まず SIGTERM、次に SIGKILL" },
+        { "label": "ゾンビプロセスの回避", "description": "親プロセスで適切に wait() する" },
+        { "label": "スレッドプール", "description": "スレッド再利用で作成オーバーヘッド削減" },
+        { "label": "CPU バインド", "description": "高性能シナリオでアフィニティを使用" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Linux カーネル", "メモリ管理", "パフォーマンスチューニング"]
+}

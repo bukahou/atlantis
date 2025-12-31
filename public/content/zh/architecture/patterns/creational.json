@@ -1,0 +1,145 @@
+{
+  "slug": "creational",
+  "meta": {
+    "title": "创建型模式",
+    "description": "单例、工厂、建造者等对象创建模式",
+    "order": 1,
+    "tags": [
+      "设计模式",
+      "GoF",
+      "对象创建"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "创建型模式关注对象的创建机制",
+        "将对象创建与使用分离，提高灵活性",
+        "5种经典模式：单例、工厂方法、抽象工厂、建造者、原型"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "模式概览",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "单例模式",
+          "badge": "Singleton",
+          "badgeColor": "blue",
+          "points": [
+            "全局唯一实例",
+            "延迟初始化",
+            "线程安全考虑"
+          ]
+        },
+        {
+          "title": "工厂方法",
+          "badge": "Factory",
+          "badgeColor": "green",
+          "points": [
+            "定义创建接口",
+            "子类决定实例化",
+            "解耦具体类"
+          ]
+        },
+        {
+          "title": "建造者",
+          "badge": "Builder",
+          "badgeColor": "purple",
+          "points": [
+            "分步构建复杂对象",
+            "相同过程不同表示",
+            "链式调用"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "单例模式 - Go 实现",
+      "language": "go",
+      "code": "package singleton\n\nimport \"sync\"\n\ntype Config struct {\n    Database string\n    Port     int\n}\n\nvar (\n    instance *Config\n    once     sync.Once\n)\n\n// GetInstance 双重检查锁定\nfunc GetInstance() *Config {\n    once.Do(func() {\n        instance = &Config{\n            Database: \"localhost\",\n            Port:     3306,\n        }\n    })\n    return instance\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "工厂方法 - TypeScript 实现",
+      "language": "typescript",
+      "code": "// 产品接口\ninterface Logger {\n  log(message: string): void;\n}\n\n// 具体产品\nclass ConsoleLogger implements Logger {\n  log(message: string) {\n    console.log(`[Console] ${message}`);\n  }\n}\n\nclass FileLogger implements Logger {\n  log(message: string) {\n    // 写入文件\n  }\n}\n\n// 工厂\nclass LoggerFactory {\n  static create(type: 'console' | 'file'): Logger {\n    switch (type) {\n      case 'console': return new ConsoleLogger();\n      case 'file': return new FileLogger();\n    }\n  }\n}\n\n// 使用\nconst logger = LoggerFactory.create('console');"
+    },
+    {
+      "type": "codeBlock",
+      "title": "建造者模式 - Java 实现",
+      "language": "java",
+      "code": "public class HttpRequest {\n    private final String url;\n    private final String method;\n    private final Map<String, String> headers;\n    private final String body;\n    \n    private HttpRequest(Builder builder) {\n        this.url = builder.url;\n        this.method = builder.method;\n        this.headers = builder.headers;\n        this.body = builder.body;\n    }\n    \n    public static class Builder {\n        private String url;\n        private String method = \"GET\";\n        private Map<String, String> headers = new HashMap<>();\n        private String body;\n        \n        public Builder url(String url) {\n            this.url = url;\n            return this;\n        }\n        \n        public Builder header(String key, String value) {\n            headers.put(key, value);\n            return this;\n        }\n        \n        public HttpRequest build() {\n            return new HttpRequest(this);\n        }\n    }\n}\n\n// 使用\nHttpRequest request = new HttpRequest.Builder()\n    .url(\"https://api.example.com\")\n    .header(\"Authorization\", \"Bearer token\")\n    .build();"
+    },
+    {
+      "type": "table",
+      "title": "模式对比",
+      "highlightFirst": true,
+      "headers": [
+        "模式",
+        "意图",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "单例",
+          "确保唯一实例",
+          "配置管理、连接池"
+        ],
+        [
+          "工厂方法",
+          "延迟到子类创建",
+          "框架扩展点"
+        ],
+        [
+          "抽象工厂",
+          "创建产品族",
+          "跨平台 UI 组件"
+        ],
+        [
+          "建造者",
+          "分步构建",
+          "复杂对象初始化"
+        ],
+        [
+          "原型",
+          "克隆对象",
+          "对象池、缓存"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "使用建议",
+      "style": "check",
+      "items": [
+        {
+          "label": "单例慎用",
+          "description": "可能导致紧耦合，优先考虑依赖注入"
+        },
+        {
+          "label": "工厂方法",
+          "description": "当系统需要独立于产品创建方式时使用"
+        },
+        {
+          "label": "建造者",
+          "description": "当构造函数参数超过4个时考虑使用"
+        },
+        {
+          "label": "原型",
+          "description": "当对象创建成本高于克隆成本时使用"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "SOLID",
+    "依赖注入",
+    "面向对象"
+  ]
+}

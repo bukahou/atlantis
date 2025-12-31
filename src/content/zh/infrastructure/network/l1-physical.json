@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "title": "L1 物理层",
+    "description": "物理层基础：传输介质、信号编码与网络拓扑",
+    "order": 2,
+    "tags": ["物理层", "L1", "传输介质", "网络拓扑"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "物理层负责比特流的传输",
+        "定义电气、机械、功能特性",
+        "不关心数据内容，只管传输",
+        "包括传输介质、信号、接口标准"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "物理层概述",
+      "content": "物理层是 OSI 模型的最底层，负责在物理介质上传输原始的比特流（0 和 1）。它定义了网络设备之间的物理连接方式、电气信号特性、传输速率等。物理层不理解数据的含义，只负责将比特从一个节点传输到另一个节点。"
+    },
+    {
+      "type": "cards",
+      "title": "传输介质",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "双绞线 (Twisted Pair)",
+          "badge": "铜缆",
+          "badgeColor": "amber",
+          "points": [
+            "Cat5e: 1Gbps, 100m",
+            "Cat6: 10Gbps, 55m",
+            "Cat6a: 10Gbps, 100m",
+            "成本低，易安装"
+          ]
+        },
+        {
+          "title": "光纤 (Fiber Optic)",
+          "badge": "光缆",
+          "badgeColor": "blue",
+          "points": [
+            "单模: 长距离 (数十公里)",
+            "多模: 短距离 (几百米)",
+            "抗干扰，带宽高",
+            "成本较高"
+          ]
+        },
+        {
+          "title": "同轴电缆 (Coaxial)",
+          "badge": "传统",
+          "badgeColor": "gray",
+          "points": [
+            "有线电视网络",
+            "老式以太网 (10BASE2)",
+            "抗干扰性好",
+            "已较少用于数据网络"
+          ]
+        },
+        {
+          "title": "无线 (Wireless)",
+          "badge": "无线",
+          "badgeColor": "green",
+          "points": [
+            "Wi-Fi: 2.4GHz/5GHz/6GHz",
+            "蓝牙: 短距离",
+            "蜂窝: 4G/5G",
+            "灵活但易受干扰"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "以太网标准",
+      "highlightFirst": true,
+      "headers": ["标准", "速率", "介质", "最大距离"],
+      "rows": [
+        ["10BASE-T", "10 Mbps", "Cat3 双绞线", "100m"],
+        ["100BASE-TX", "100 Mbps", "Cat5 双绞线", "100m"],
+        ["1000BASE-T", "1 Gbps", "Cat5e/Cat6", "100m"],
+        ["10GBASE-T", "10 Gbps", "Cat6a/Cat7", "100m"],
+        ["1000BASE-SX", "1 Gbps", "多模光纤", "550m"],
+        ["1000BASE-LX", "1 Gbps", "单模光纤", "10km"],
+        ["10GBASE-SR", "10 Gbps", "多模光纤", "300m"],
+        ["10GBASE-LR", "10 Gbps", "单模光纤", "10km"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "单模光纤 vs 多模光纤",
+      "columns": [
+        {
+          "title": "单模光纤 (SMF)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "纤芯", "description": "9μm，极细" },
+            { "label": "光源", "description": "激光 (Laser)" },
+            { "label": "距离", "description": "数十公里" },
+            { "label": "成本", "description": "较高" },
+            { "label": "场景", "description": "长距离骨干网" }
+          ]
+        },
+        {
+          "title": "多模光纤 (MMF)",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "纤芯", "description": "50/62.5μm" },
+            { "label": "光源", "description": "LED/VCSEL" },
+            { "label": "距离", "description": "数百米" },
+            { "label": "成本", "description": "较低" },
+            { "label": "场景", "description": "数据中心内部" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "网络拓扑",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "星型 (Star)",
+          "badge": "常用",
+          "badgeColor": "green",
+          "points": [
+            "中心交换机连接所有节点",
+            "易于管理和故障隔离",
+            "现代 LAN 主流拓扑"
+          ]
+        },
+        {
+          "title": "总线型 (Bus)",
+          "badge": "传统",
+          "badgeColor": "gray",
+          "points": [
+            "所有节点共享一条线缆",
+            "早期以太网使用",
+            "已基本淘汰"
+          ]
+        },
+        {
+          "title": "环型 (Ring)",
+          "badge": "专用",
+          "badgeColor": "amber",
+          "points": [
+            "令牌环、FDDI",
+            "数据单向传输",
+            "冗余环提供容错"
+          ]
+        },
+        {
+          "title": "网状 (Mesh)",
+          "badge": "高可用",
+          "badgeColor": "blue",
+          "points": [
+            "多条冗余路径",
+            "高可靠性",
+            "WAN/骨干网常用"
+          ]
+        },
+        {
+          "title": "树型 (Tree)",
+          "badge": "层次",
+          "badgeColor": "purple",
+          "points": [
+            "分层星型结构",
+            "企业网络常见",
+            "核心-汇聚-接入"
+          ]
+        },
+        {
+          "title": "混合型 (Hybrid)",
+          "badge": "实际",
+          "badgeColor": "red",
+          "points": [
+            "多种拓扑组合",
+            "实际网络常见",
+            "灵活扩展"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "物理层设备",
+      "highlightFirst": true,
+      "headers": ["设备", "功能", "特点"],
+      "rows": [
+        ["集线器 (Hub)", "信号放大，广播转发", "已淘汰，被交换机取代"],
+        ["中继器 (Repeater)", "信号再生，延长传输距离", "克服信号衰减"],
+        ["调制解调器 (Modem)", "数字/模拟信号转换", "DSL、电缆上网"],
+        ["光电转换器", "电信号/光信号转换", "铜缆与光纤互连"],
+        ["网卡 (NIC)", "计算机网络接口", "有线/无线"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Linux 查看物理层信息",
+      "language": "bash",
+      "code": "# 查看网卡信息\nip link show\nethtool eth0\n\n# 查看链路状态和速率\nethtool eth0 | grep -E 'Speed|Link'\n\n# 查看网卡统计（错误、丢包）\nethtool -S eth0\n\n# 查看光模块信息\nethtool -m eth0\n\n# 查看网卡驱动\nethtool -i eth0"
+    },
+    {
+      "type": "list",
+      "title": "物理层故障排查",
+      "style": "check",
+      "items": [
+        { "label": "检查链路指示灯", "description": "Link LED 是否亮起" },
+        { "label": "确认线缆连接", "description": "网线是否插紧，是否损坏" },
+        { "label": "测试线缆", "description": "使用线缆测试仪检测" },
+        { "label": "检查端口速率", "description": "自协商是否成功，速率是否匹配" }
+      ]
+    }
+  ],
+  "relatedTopics": ["OSI 模型", "以太网", "数据中心"]
+}

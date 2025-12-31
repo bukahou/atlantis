@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "title": "微服务设计模式",
+    "description": "微服务架构核心模式与实践",
+    "order": 1,
+    "tags": ["微服务", "架构", "设计模式"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "微服务将单体应用拆分为独立服务",
+        "每个服务独立部署、扩展、迭代",
+        "服务间通过 API 或消息通信",
+        "需要处理分布式系统复杂性"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心模式",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "API 网关",
+          "badge": "Gateway",
+          "badgeColor": "blue",
+          "points": [
+            "统一入口",
+            "路由、认证、限流",
+            "聚合多个服务"
+          ]
+        },
+        {
+          "title": "服务发现",
+          "badge": "Discovery",
+          "badgeColor": "green",
+          "points": [
+            "服务注册与发现",
+            "健康检查",
+            "负载均衡"
+          ]
+        },
+        {
+          "title": "配置中心",
+          "badge": "Config",
+          "badgeColor": "amber",
+          "points": [
+            "集中配置管理",
+            "动态更新",
+            "环境隔离"
+          ]
+        },
+        {
+          "title": "链路追踪",
+          "badge": "Tracing",
+          "badgeColor": "purple",
+          "points": [
+            "分布式追踪",
+            "性能分析",
+            "问题定位"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "单体 vs 微服务",
+      "columns": [
+        {
+          "title": "单体架构",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            { "label": "部署", "description": "整体部署" },
+            { "label": "扩展", "description": "整体扩展" },
+            { "label": "技术栈", "description": "统一" },
+            { "label": "复杂度", "description": "代码复杂" }
+          ]
+        },
+        {
+          "title": "微服务架构",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "部署", "description": "独立部署" },
+            { "label": "扩展", "description": "按需扩展" },
+            { "label": "技术栈", "description": "可异构" },
+            { "label": "复杂度", "description": "运维复杂" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "服务拆分策略",
+      "subtitle": "按业务领域拆分",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "用户服务", "description": "认证/授权", "color": "bg-blue-500" },
+        { "label": "订单服务", "description": "订单管理", "color": "bg-green-500" },
+        { "label": "支付服务", "description": "支付处理", "color": "bg-amber-500" },
+        { "label": "库存服务", "description": "库存管理", "color": "bg-purple-500" },
+        { "label": "通知服务", "description": "消息推送", "color": "bg-red-500" }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "业务边界清晰", "description": "基于领域驱动设计（DDD）划分服务" },
+        { "label": "数据库隔离", "description": "每个服务拥有独立数据库" },
+        { "label": "API 版本控制", "description": "向后兼容，平滑升级" },
+        { "label": "异步通信", "description": "使用消息队列解耦服务" },
+        { "label": "容错设计", "description": "熔断、重试、超时机制" }
+      ]
+    }
+  ],
+  "relatedTopics": ["服务发现", "熔断器", "消息队列"]
+}

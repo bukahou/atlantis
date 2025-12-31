@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "title": "合规检查",
+    "description": "等保、GDPR 与 SOC 2",
+    "order": 3,
+    "tags": ["合规", "等保", "GDPR"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "合规是法规和标准的强制要求",
+        "不同行业/地区有不同合规要求",
+        "合规 ≠ 安全，但合规是安全的基线",
+        "持续合规：自动化检查和修复"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要合规标准",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "等保 2.0",
+          "badge": "中国",
+          "badgeColor": "blue",
+          "points": [
+            "网络安全等级保护",
+            "二级/三级最常见",
+            "年度测评"
+          ]
+        },
+        {
+          "title": "GDPR",
+          "badge": "欧盟",
+          "badgeColor": "green",
+          "points": [
+            "个人数据保护",
+            "数据主体权利",
+            "违规重罚"
+          ]
+        },
+        {
+          "title": "SOC 2",
+          "badge": "国际",
+          "badgeColor": "purple",
+          "points": [
+            "SaaS 服务安全",
+            "Type I/Type II",
+            "信任服务准则"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "等保 2.0 控制域",
+      "highlightFirst": true,
+      "headers": ["控制域", "要求", "实现"],
+      "rows": [
+        ["安全物理环境", "机房安全", "访问控制、环境监控"],
+        ["安全通信网络", "网络架构、通信传输", "网络隔离、加密传输"],
+        ["安全区域边界", "边界防护、访问控制", "防火墙、入侵检测"],
+        ["安全计算环境", "身份鉴别、访问控制", "MFA、RBAC、审计日志"],
+        ["安全管理中心", "系统管理、安全管理", "堡垒机、SOC"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "GDPR 技术要求实现",
+      "language": "typescript",
+      "code": "// 数据主体权利实现\nclass GDPRCompliance {\n  // 访问权（Right of Access）\n  async getPersonalData(userId: string): Promise<PersonalData> {\n    const data = await this.collectAllUserData(userId);\n    return this.formatForExport(data);\n  }\n  \n  // 被遗忘权（Right to Erasure）\n  async deletePersonalData(userId: string): Promise<void> {\n    // 1. 删除所有个人数据\n    await this.deleteFromAllSystems(userId);\n    \n    // 2. 通知数据处理者\n    await this.notifyProcessors(userId, 'deletion');\n    \n    // 3. 记录删除操作\n    await this.auditLog.log({\n      eventType: 'gdpr.erasure',\n      userId,\n      timestamp: new Date(),\n    });\n  }\n  \n  // 数据可携带权（Right to Portability）\n  async exportPersonalData(userId: string): Promise<Buffer> {\n    const data = await this.getPersonalData(userId);\n    return this.formatAsPortableJSON(data);\n  }\n  \n  // 同意管理\n  async recordConsent(userId: string, purposes: string[]): Promise<void> {\n    await this.consentStore.save({\n      userId,\n      purposes,\n      timestamp: new Date(),\n      version: this.privacyPolicyVersion,\n    });\n  }\n}\n\n// 数据最小化\nclass DataMinimization {\n  // 只收集必要字段\n  sanitizeUserInput(input: any): SanitizedInput {\n    return {\n      email: input.email,\n      name: input.name,\n      // 不收集：生日、地址（如非必要）\n    };\n  }\n  \n  // 定期删除过期数据\n  async purgeExpiredData(): Promise<void> {\n    const retentionDays = 365 * 3; // 3年保留\n    await this.db.deleteWhere({\n      createdAt: { $lt: daysAgo(retentionDays) },\n    });\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "自动合规检查",
+      "language": "yaml",
+      "code": "# Checkov - 基础设施合规检查\ncheckov:\n  # SOC 2 相关检查\n  - check: CKV_AWS_19  # S3 加密\n  - check: CKV_AWS_21  # CloudTrail 启用\n  - check: CKV_AWS_23  # 安全组限制\n  \n# AWS Config 合规规则\nResources:\n  S3BucketEncryptionRule:\n    Type: AWS::Config::ConfigRule\n    Properties:\n      ConfigRuleName: s3-bucket-server-side-encryption-enabled\n      Source:\n        Owner: AWS\n        SourceIdentifier: S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED\n        \n  MFAEnabledRule:\n    Type: AWS::Config::ConfigRule\n    Properties:\n      ConfigRuleName: iam-user-mfa-enabled\n      Source:\n        Owner: AWS\n        SourceIdentifier: IAM_USER_MFA_ENABLED"
+    },
+    {
+      "type": "list",
+      "title": "合规实施",
+      "style": "check",
+      "items": [
+        { "label": "差距分析", "description": "评估现状与要求的差距" },
+        { "label": "控制实施", "description": "技术和管理控制措施" },
+        { "label": "持续监控", "description": "自动化合规检查" },
+        { "label": "定期审计", "description": "内部审计 + 第三方审计" }
+      ]
+    }
+  ],
+  "relatedTopics": ["等保", "隐私保护", "审计"]
+}

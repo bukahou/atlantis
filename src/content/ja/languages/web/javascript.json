@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "title": "JavaScript 言語基礎",
+    "description": "JavaScript コア構文、ES6+ 機能と非同期プログラミング",
+    "order": 2,
+    "tags": ["JavaScript", "ES6+", "非同期プログラミング"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "JavaScript は Web 開発のコア言語",
+        "動的型付け、プロトタイプ継承",
+        "イベント駆動、非同期ノンブロッキング",
+        "ブラウザ + Node.js クロスプラットフォーム実行"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構文",
+      "language": "javascript",
+      "code": "// 変数宣言\nlet mutable = \"可変\";\nconst immutable = \"不変参照\";\n\n// テンプレート文字列\nconst name = \"World\";\nconst greeting = `Hello, ${name}!`;\n\n// 配列\nconst arr = [1, 2, 3];\narr.map(x => x * 2);\narr.filter(x => x > 1);\narr.reduce((acc, x) => acc + x, 0);\n\n// オブジェクト\nconst obj = { name, age: 30 };\nconst { name: userName } = obj;  // 分割代入"
+    },
+    {
+      "type": "cards",
+      "title": "データ型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "プリミティブ型",
+          "badge": "Primitive",
+          "badgeColor": "blue",
+          "points": [
+            "string, number",
+            "boolean, null",
+            "undefined, symbol"
+          ]
+        },
+        {
+          "title": "参照型",
+          "badge": "Reference",
+          "badgeColor": "green",
+          "points": [
+            "Object, Array",
+            "Function, Date",
+            "RegExp, Map, Set"
+          ]
+        },
+        {
+          "title": "ES6+ 機能",
+          "badge": "Modern",
+          "badgeColor": "purple",
+          "points": [
+            "let/const",
+            "アロー関数",
+            "分割代入"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "非同期プログラミング",
+      "language": "javascript",
+      "code": "// Promise\nfetch('/api/data')\n    .then(res => res.json())\n    .then(data => console.log(data))\n    .catch(err => console.error(err));\n\n// async/await\nasync function fetchData() {\n    try {\n        const res = await fetch('/api/data');\n        const data = await res.json();\n        return data;\n    } catch (error) {\n        console.error(error);\n    }\n}\n\n// 並列実行\nconst [r1, r2] = await Promise.all([fetch1(), fetch2()]);"
+    },
+    {
+      "type": "comparison",
+      "title": "Promise 静的メソッド",
+      "columns": [
+        {
+          "title": "Promise.all",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "動作", "description": "全て成功で成功" },
+            { "label": "失敗", "description": "一つでも失敗で失敗" }
+          ]
+        },
+        {
+          "title": "Promise.allSettled",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "動作", "description": "全て完了を待つ" },
+            { "label": "戻り値", "description": "各結果のステータス" }
+          ]
+        },
+        {
+          "title": "Promise.race",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "動作", "description": "最初の完了" },
+            { "label": "用途", "description": "タイムアウト制御" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ES6+ クラス",
+      "language": "javascript",
+      "code": "class Person {\n    #secret = \"hidden\";  // プライベートフィールド\n    static count = 0;    // 静的プロパティ\n    \n    constructor(name, age) {\n        this.name = name;\n        this.age = age;\n    }\n    \n    greet() {\n        return `Hello, I'm ${this.name}`;\n    }\n    \n    get info() {\n        return `${this.name}, ${this.age}`;\n    }\n}\n\nclass Employee extends Person {\n    constructor(name, age, dept) {\n        super(name, age);\n        this.dept = dept;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "ES6+ 新機能",
+      "highlightFirst": true,
+      "headers": ["機能", "構文", "用途"],
+      "rows": [
+        ["オプショナルチェーン", "obj?.prop", "安全なアクセス"],
+        ["Null 合体演算子", "a ?? b", "デフォルト値"],
+        ["スプレッド演算子", "...arr", "展開/収集"],
+        ["分割代入", "{ a, b } = obj", "プロパティ抽出"],
+        ["at()", "arr.at(-1)", "負のインデックス"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "const を使用", "description": "const を優先、変更が必要な場合は let" },
+        { "label": "アロー関数", "description": "簡潔な構文、this のバインド" },
+        { "label": "async/await", "description": "Promise チェーンより明確" },
+        { "label": "オプショナルチェーン", "description": "ネストしたプロパティへの安全なアクセス" }
+      ]
+    }
+  ],
+  "relatedTopics": ["TypeScript", "Node.js", "React"]
+}

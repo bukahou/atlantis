@@ -1,15 +1,203 @@
 {
   "slug": "helm",
   "meta": {
-    "title": "Helm パッケージ管理詳解",
-    "description": "Helm Chart 開発、リポジトリ管理とベストプラクティス",
+    "title": "Helm パッケージ管理",
+    "description": "Helm Chart 開発とアプリケーションデプロイ",
     "order": 4,
     "tags": [
-      "kubernetes",
-      "helm",
-      "chart",
-      "package-manager"
+      "Kubernetes",
+      "Helm",
+      "パッケージ管理"
     ]
   },
-  "content": "<h1>Helm パッケージ管理詳解</h1>\n<h2>Helm の概念</h2>\n<p>Helm は Kubernetes のパッケージマネージャーで、apt/yum に似ており、複雑な Kubernetes アプリケーションの定義、インストール、アップグレードに使用します。</p>\n<pre><code>Helm アーキテクチャ\n┌─────────────────────────────────────────┐\n│ Helm CLI                                │\n│   helm install / upgrade / rollback     │\n└──────────────────┬──────────────────────┘\n                   │\n                   ▼\n┌─────────────────────────────────────────┐\n│ Chart                                   │\n│   ├── Chart.yaml     (メタデータ)       │\n│   ├── values.yaml    (デフォルト値)     │\n│   ├── templates/     (K8s テンプレート) │\n│   └── charts/        (依存関係)         │\n└──────────────────┬──────────────────────┘\n                   │\n                   ▼\n┌─────────────────────────────────────────┐\n│ Kubernetes Cluster                      │\n│   Release: 実行中の Chart インスタンス  │\n└─────────────────────────────────────────┘\n</code></pre>\n<h2>基本コマンド</h2>\n<h3>リポジトリ管理</h3>\n<pre><code class=\"language-bash\"># リポジトリの追加\nhelm repo add bitnami https://charts.bitnami.com/bitnami\nhelm repo add stable https://charts.helm.sh/stable\n\n# リポジトリの更新\nhelm repo update\n\n# Chart の検索\nhelm search repo nginx\nhelm search hub wordpress  # Artifact Hub を検索\n\n# リポジトリの確認\nhelm repo list\n\n# リポジトリの削除\nhelm repo remove stable\n</code></pre>\n<h3>アプリケーションのインストール</h3>\n<pre><code class=\"language-bash\"># Chart のインストール\nhelm install my-nginx bitnami/nginx\n\n# 名前空間を指定\nhelm install my-nginx bitnami/nginx -n production --create-namespace\n\n# カスタム値を使用\nhelm install my-nginx bitnami/nginx -f values.yaml\n\n# コマンドラインで値を上書き\nhelm install my-nginx bitnami/nginx \\\n  --set service.type=LoadBalancer \\\n  --set replicaCount=3\n\n# インストール前のシミュレーション\nhelm install my-nginx bitnami/nginx --dry-run --debug\n\n# 準備完了まで待機\nhelm install my-nginx bitnami/nginx --wait --timeout 5m\n</code></pre>\n<h3>Release の管理</h3>\n<pre><code class=\"language-bash\"># Release の確認\nhelm list\nhelm list -A  # すべての名前空間\nhelm list -a  # 失敗したものも含む\n\n# ステータスの確認\nhelm status my-nginx\n\n# 値の取得\nhelm get values my-nginx\nhelm get values my-nginx --all  # デフォルト値も含む\n\n# マニフェストの取得\nhelm get manifest my-nginx\n\n# アップグレード\nhelm upgrade my-nginx bitnami/nginx --set replicaCount=5\n\n# ロールバック\nhelm rollback my-nginx 1  # バージョン1にロールバック\nhelm history my-nginx     # 履歴の確認\n\n# アンインストール\nhelm uninstall my-nginx\nhelm uninstall my-nginx --keep-history  # 履歴を保持\n</code></pre>\n<h2>Chart の作成</h2>\n<h3>初期化</h3>\n<pre><code class=\"language-bash\"># Chart スケルトンの作成\nhelm create myapp\n\n# ディレクトリ構造\nmyapp/\n├── Chart.yaml          # Chart メタデータ\n├── values.yaml         # デフォルト設定値\n├── charts/             # 依存 Chart\n├── templates/          # テンプレートファイル\n│   ├── deployment.yaml\n│   ├── service.yaml\n│   ├── ingress.yaml\n│   ├── _helpers.tpl    # テンプレートヘルパー\n│   ├── NOTES.txt       # インストール説明\n│   └── tests/\n└── .helmignore         # 無視ファイル\n</code></pre>\n<h3>Chart.yaml</h3>\n<pre><code class=\"language-yaml\">apiVersion: v2\nname: myapp\ndescription: A Helm chart for MyApp\ntype: application\nversion: 1.0.0      # Chart バージョン\nappVersion: \"2.0.0\" # アプリバージョン\n\nkeywords:\n  - webapp\n  - nodejs\n\nmaintainers:\n  - name: DevOps Team\n    email: devops@example.com\n\ndependencies:\n  - name: postgresql\n    version: \"12.x.x\"\n    repository: https://charts.bitnami.com/bitnami\n    condition: postgresql.enabled\n</code></pre>\n<h3>values.yaml</h3>\n<pre><code class=\"language-yaml\"># レプリカ数\nreplicaCount: 3\n\n# イメージ設定\nimage:\n  repository: myapp\n  tag: \"2.0.0\"\n  pullPolicy: IfNotPresent\n\n# Service 設定\nservice:\n  type: ClusterIP\n  port: 80\n\n# Ingress 設定\ningress:\n  enabled: true\n  className: nginx\n  hosts:\n    - host: myapp.example.com\n      paths:\n        - path: /\n          pathType: Prefix\n\n# リソース制限\nresources:\n  requests:\n    cpu: 100m\n    memory: 128Mi\n  limits:\n    cpu: 500m\n    memory: 256Mi\n\n# オートスケーリング\nautoscaling:\n  enabled: true\n  minReplicas: 2\n  maxReplicas: 10\n  targetCPUUtilizationPercentage: 70\n</code></pre>\n<h2>テンプレート構文</h2>\n<h3>基本構文</h3>\n<pre><code class=\"language-yaml\"># templates/deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{ include \"myapp.fullname\" . }}\n  labels:\n    {{- include \"myapp.labels\" . | nindent 4 }}\nspec:\n  {{- if not .Values.autoscaling.enabled }}\n  replicas: {{ .Values.replicaCount }}\n  {{- end }}\n  template:\n    spec:\n      containers:\n        - name: {{ .Chart.Name }}\n          image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n          {{- with .Values.resources }}\n          resources:\n            {{- toYaml . | nindent 12 }}\n          {{- end }}\n</code></pre>\n<h3>_helpers.tpl</h3>\n<pre><code class=\"language-yaml\">{{/*\n完全な名前\n*/}}\n{{- define \"myapp.fullname\" -}}\n{{- printf \"%s-%s\" .Release.Name .Chart.Name | trunc 63 | trimSuffix \"-\" }}\n{{- end }}\n\n{{/*\n共通ラベル\n*/}}\n{{- define \"myapp.labels\" -}}\napp.kubernetes.io/name: {{ include \"myapp.name\" . }}\napp.kubernetes.io/instance: {{ .Release.Name }}\napp.kubernetes.io/version: {{ .Chart.AppVersion | quote }}\n{{- end }}\n</code></pre>\n<h3>条件とループ</h3>\n<pre><code class=\"language-yaml\"># 条件判断\n{{- if .Values.ingress.enabled }}\napiVersion: networking.k8s.io/v1\nkind: Ingress\n...\n{{- end }}\n\n# デフォルト値\n{{ .Values.env | default \"production\" }}\n\n# ループ\n{{- range .Values.ingress.hosts }}\n  - host: {{ .host | quote }}\n{{- end }}\n\n# with 文\n{{- with .Values.nodeSelector }}\nnodeSelector:\n  {{- toYaml . | nindent 2 }}\n{{- end }}\n</code></pre>\n<h3>よく使う関数</h3>\n<pre><code class=\"language-yaml\"># 文字列関数\n{{ .Values.name | upper }}\n{{ .Values.name | quote }}\n{{ .Values.name | trunc 63 }}\n\n# デフォルト値\n{{ .Values.tag | default .Chart.AppVersion }}\n\n# 必須チェック\n{{ required \"image.repository is required\" .Values.image.repository }}\n\n# YAML/JSON 変換\n{{ toYaml .Values.resources | nindent 4 }}\n</code></pre>\n<h2>依存関係管理</h2>\n<pre><code class=\"language-bash\"># 依存関係の更新\nhelm dependency update ./myapp\n\n# 依存関係のビルド\nhelm dependency build ./myapp\n\n# 依存関係の確認\nhelm dependency list ./myapp\n</code></pre>\n<h2>パッケージと公開</h2>\n<pre><code class=\"language-bash\"># Chart の検証\nhelm lint ./myapp\n\n# パッケージング\nhelm package ./myapp\n# 出力: myapp-1.0.0.tgz\n\n# インデックスの作成\nhelm repo index . --url https://charts.example.com\n\n# OCI リポジトリにプッシュ\nhelm push myapp-1.0.0.tgz oci://registry.example.com/charts\n\n# OCI からインストール\nhelm install my-release oci://registry.example.com/charts/myapp --version 1.0.0\n</code></pre>\n<h2>Helmfile</h2>\n<p>複数 Chart 管理ツール。</p>\n<pre><code class=\"language-yaml\"># helmfile.yaml\nrepositories:\n  - name: bitnami\n    url: https://charts.bitnami.com/bitnami\n\nreleases:\n  - name: nginx\n    namespace: web\n    chart: bitnami/nginx\n    version: 15.0.0\n    values:\n      - values/nginx.yaml\n\n  - name: redis\n    namespace: cache\n    chart: bitnami/redis\n    version: 17.0.0\n\nenvironments:\n  production:\n    values:\n      - env/production.yaml\n  staging:\n    values:\n      - env/staging.yaml\n</code></pre>\n<pre><code class=\"language-bash\"># すべての Release を適用\nhelmfile apply\n\n# 環境を指定\nhelmfile -e production apply\n\n# 差分比較\nhelmfile diff\n</code></pre>\n<h2>よく使うコマンド</h2>\n<pre><code class=\"language-bash\"># Chart 開発\nhelm create myapp          # 作成\nhelm lint ./myapp          # 検証\nhelm template ./myapp      # テンプレートレンダリング\nhelm package ./myapp       # パッケージング\n\n# インストール管理\nhelm install NAME CHART    # インストール\nhelm upgrade NAME CHART    # アップグレード\nhelm rollback NAME REV     # ロールバック\nhelm uninstall NAME        # アンインストール\n\n# クエリ\nhelm list                  # Release 一覧\nhelm status NAME           # ステータス\nhelm history NAME          # 履歴\nhelm get values NAME       # 値の取得\n</code></pre>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>バージョン管理</strong> - Chart と values ファイルを Git に</li>\n<li><strong>環境分離</strong> - 環境ごとに異なる values ファイルを使用</li>\n<li><strong>Secrets 管理</strong> - helm-secrets または Sealed Secrets を使用</li>\n<li><strong>テンプレート再利用</strong> - _helpers.tpl と named templates を活用</li>\n<li><strong>依存関係ロック</strong> - Chart.lock でバージョンを固定</li>\n<li><strong>検証テスト</strong> - helm lint + helm test</li>\n<li><strong>セマンティックバージョニング</strong> - Chart とアプリを分けてバージョン管理</li>\n<li><strong>ドキュメントコメント</strong> - values.yaml に詳細なコメントを追加</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Helm は Kubernetes のパッケージマネージャー",
+        "Chart は Helm のパッケージ形式",
+        "テンプレート化とパラメータ設定をサポート",
+        "Release は Chart の実行インスタンス"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Helm とは",
+      "content": "Helm は Kubernetes のパッケージマネージャーと呼ばれ、apt や yum に似ています。複雑な Kubernetes アプリケーションを Chart としてパッケージ化し、バージョン管理、パラメータ化設定、ワンクリックデプロイをサポートすることで、アプリケーションの配布とデプロイを大幅に簡素化します。"
+    },
+    {
+      "type": "flow",
+      "title": "Helm ワークフロー",
+      "subtitle": "Chart から Release まで",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Chart",
+          "description": "アプリケーションテンプレート",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "values.yaml",
+          "description": "設定パラメータ",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "helm install",
+          "description": "テンプレートをレンダリング",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Release",
+          "description": "デプロイインスタンス",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Chart ディレクトリ構造",
+      "language": "text",
+      "code": "mychart/\n├── Chart.yaml          # Chart メタデータ\n├── values.yaml         # デフォルト設定値\n├── charts/             # 依存 Chart\n├── templates/          # テンプレートファイル\n│   ├── deployment.yaml\n│   ├── service.yaml\n│   ├── ingress.yaml\n│   ├── _helpers.tpl    # テンプレートヘルパー関数\n│   └── NOTES.txt       # インストール説明\n└── .helmignore         # 無視ファイル"
+    },
+    {
+      "type": "codeBlock",
+      "title": "テンプレート例",
+      "language": "yaml",
+      "code": "# templates/deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{ include \"mychart.fullname\" . }}\n  labels:\n    {{- include \"mychart.labels\" . | nindent 4 }}\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels:\n      {{- include \"mychart.selectorLabels\" . | nindent 6 }}\n  template:\n    metadata:\n      labels:\n        {{- include \"mychart.selectorLabels\" . | nindent 8 }}\n    spec:\n      containers:\n      - name: {{ .Chart.Name }}\n        image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n        ports:\n        - containerPort: {{ .Values.service.port }}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "values.yaml 例",
+      "language": "yaml",
+      "code": "# デフォルト設定\nreplicaCount: 1\n\nimage:\n  repository: nginx\n  tag: \"1.24\"\n  pullPolicy: IfNotPresent\n\nservice:\n  type: ClusterIP\n  port: 80\n\ningress:\n  enabled: false\n  className: nginx\n  hosts:\n    - host: example.local\n      paths:\n        - path: /\n          pathType: Prefix\n\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi"
+    },
+    {
+      "type": "table",
+      "title": "Helm よく使うコマンド",
+      "highlightFirst": true,
+      "headers": [
+        "コマンド",
+        "説明"
+      ],
+      "rows": [
+        [
+          "helm repo add bitnami https://charts.bitnami.com/bitnami",
+          "リポジトリを追加"
+        ],
+        [
+          "helm search repo nginx",
+          "Chart を検索"
+        ],
+        [
+          "helm install my-nginx bitnami/nginx",
+          "Chart をインストール"
+        ],
+        [
+          "helm upgrade my-nginx bitnami/nginx",
+          "Release をアップグレード"
+        ],
+        [
+          "helm list",
+          "Release を一覧表示"
+        ],
+        [
+          "helm uninstall my-nginx",
+          "Release をアンインストール"
+        ],
+        [
+          "helm template ./mychart",
+          "テンプレートをレンダリング（インストールしない）"
+        ],
+        [
+          "helm package ./mychart",
+          "Chart をパッケージ化"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "テンプレート関数",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "組み込みオブジェクト",
+          "badge": "Objects",
+          "badgeColor": "blue",
+          "points": [
+            ".Values - 設定値",
+            ".Chart - Chart メタデータ",
+            ".Release - Release 情報",
+            ".Files - ファイルアクセス"
+          ]
+        },
+        {
+          "title": "よく使う関数",
+          "badge": "Functions",
+          "badgeColor": "green",
+          "points": [
+            "include - テンプレート参照",
+            "default - デフォルト値",
+            "quote - 引用符を追加",
+            "toYaml - YAML に変換"
+          ]
+        },
+        {
+          "title": "フロー制御",
+          "badge": "Control",
+          "badgeColor": "amber",
+          "points": [
+            "if/else - 条件分岐",
+            "range - ループ処理",
+            "with - スコープ",
+            "define - テンプレート定義"
+          ]
+        },
+        {
+          "title": "パイプライン操作",
+          "badge": "Pipeline",
+          "badgeColor": "purple",
+          "points": [
+            "| nindent N - インデント",
+            "| trim - 空白を削除",
+            "| b64enc - Base64",
+            "| required - 必須"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "_helpers.tpl を使用",
+          "description": "再利用可能なテンプレートフラグメントを定義"
+        },
+        {
+          "label": "適切なデフォルト値を提供",
+          "description": "values.yaml に本番対応のデフォルト値を設定"
+        },
+        {
+          "label": "Chart 依存関係を使用",
+          "description": "Chart.yaml で依存関係を管理"
+        },
+        {
+          "label": "セマンティックバージョニング",
+          "description": "SemVer バージョン規則に従う"
+        },
+        {
+          "label": "NOTES.txt を記述",
+          "description": "インストール後の使用方法を提供"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Kubernetes",
+    "GitOps",
+    "ArgoCD"
+  ]
 }

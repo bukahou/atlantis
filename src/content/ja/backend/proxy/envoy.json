@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "title": "Envoy Proxy",
+    "description": "サービスメッシュデータプレーンと高性能エッジプロキシ",
+    "order": 3,
+    "tags": ["Envoy", "サービスメッシュ", "Istio", "CNCF"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "CNCF 卒業プロジェクト、サービスメッシュ標準データプレーン",
+        "L3/L4/L7 フルスタックプロキシ",
+        "優れた可観測性：メトリクス、ログ、トレーシング",
+        "動的設定：xDS API でリアルタイム更新"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Envoy 概要",
+      "content": "Envoy は Lyft が開発した高性能 C++ エッジ/サービスプロキシで、CNCF 卒業プロジェクトです。Istio サービスメッシュのコアデータプレーンコンポーネントであり、独立したエッジプロキシや API ゲートウェイとしても利用されます。大規模マイクロサービスアーキテクチャに可観測性、柔軟性、高性能を提供することを目標に設計されています。"
+    },
+    {
+      "type": "cards",
+      "title": "コアコンポーネント",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Listener",
+          "badge": "入口",
+          "badgeColor": "blue",
+          "points": [
+            "ポート監視",
+            "接続受付",
+            "TLS 終端",
+            "フィルターチェーン"
+          ]
+        },
+        {
+          "title": "Cluster",
+          "badge": "上流",
+          "badgeColor": "green",
+          "points": [
+            "バックエンドグループ",
+            "ロードバランシング",
+            "ヘルスチェック",
+            "サーキットブレーカー"
+          ]
+        },
+        {
+          "title": "Route",
+          "badge": "ルーティング",
+          "badgeColor": "purple",
+          "points": [
+            "リクエストマッチ",
+            "トラフィック分割",
+            "リダイレクト/書き換え",
+            "タイムアウト/リトライ"
+          ]
+        },
+        {
+          "title": "Filter",
+          "badge": "フィルター",
+          "badgeColor": "amber",
+          "points": [
+            "HTTP フィルター",
+            "ネットワークフィルター",
+            "Lua スクリプト",
+            "WASM 拡張"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本設定例",
+      "language": "yaml",
+      "code": "static_resources:\n  listeners:\n    - name: listener_0\n      address:\n        socket_address:\n          address: 0.0.0.0\n          port_value: 8080\n      filter_chains:\n        - filters:\n            - name: envoy.filters.network.http_connection_manager\n              typed_config:\n                \"@type\": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager\n                stat_prefix: ingress_http\n                route_config:\n                  name: local_route\n                  virtual_hosts:\n                    - name: backend\n                      domains: [\"*\"]\n                      routes:\n                        - match:\n                            prefix: \"/api\"\n                          route:\n                            cluster: api_cluster\n                        - match:\n                            prefix: \"/\"\n                          route:\n                            cluster: web_cluster\n                http_filters:\n                  - name: envoy.filters.http.router\n                    typed_config:\n                      \"@type\": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router\n\n  clusters:\n    - name: api_cluster\n      connect_timeout: 5s\n      type: STRICT_DNS\n      lb_policy: ROUND_ROBIN\n      load_assignment:\n        cluster_name: api_cluster\n        endpoints:\n          - lb_endpoints:\n              - endpoint:\n                  address:\n                    socket_address:\n                      address: api-service\n                      port_value: 8080"
+    },
+    {
+      "type": "flow",
+      "title": "xDS 動的設定",
+      "subtitle": "Envoy は xDS API を通じて動的設定を受信",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "LDS", "description": "リスナー検出", "color": "bg-blue-500" },
+        { "label": "RDS", "description": "ルート検出", "color": "bg-purple-500" },
+        { "label": "CDS", "description": "クラスター検出", "color": "bg-green-500" },
+        { "label": "EDS", "description": "エンドポイント検出", "color": "bg-amber-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "可観測性設定",
+      "highlightFirst": true,
+      "headers": ["機能", "説明", "統合"],
+      "rows": [
+        ["メトリクス", "Prometheus 形式メトリクス", "/stats/prometheus"],
+        ["トレーシング", "分散トレーシング", "Jaeger/Zipkin/OpenTelemetry"],
+        ["ログ", "アクセスログ", "ファイル/stdout"],
+        ["Admin", "管理インターフェース", "/clusters /config_dump"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ユースケース",
+      "style": "check",
+      "items": [
+        { "label": "サービスメッシュ Sidecar", "description": "Istio/Linkerd データプレーンプロキシ" },
+        { "label": "API ゲートウェイ", "description": "エッジプロキシ、認証、レート制限" },
+        { "label": "フロントプロキシ", "description": "ロードバランシング、TLS 終端" },
+        { "label": "可観測性", "description": "メトリクス、ログ、トレースの統合収集" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Istio", "サービスメッシュ", "Kubernetes"]
+}

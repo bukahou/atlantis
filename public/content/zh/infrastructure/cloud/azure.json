@@ -1,15 +1,256 @@
 {
   "slug": "azure",
   "meta": {
-    "title": "Azure 云服务基础",
-    "description": "Microsoft Azure 核心服务介绍与实践指南",
+    "title": "Microsoft Azure",
+    "description": "Azure 云服务与企业级解决方案",
     "order": 3,
     "tags": [
-      "azure",
-      "cloud",
-      "vm",
-      "blob-storage"
+      "Azure",
+      "云计算",
+      "企业"
     ]
   },
-  "content": "<h1>Azure 云服务基础</h1>\n<h2>Azure 简介</h2>\n<p>Microsoft Azure 是微软的云计算平台，与 Microsoft 生态系统深度集成，提供超过 200 种云服务。</p>\n<pre><code>Azure 全球基础设施\n├── Regions (区域) - 60+\n│   └── Availability Zones (可用区) - 每区域3个\n├── Edge Zones\n└── Azure CDN PoPs - 全球分布\n</code></pre>\n<h2>核心计算服务</h2>\n<h3>Virtual Machines (虚拟机)</h3>\n<p>Azure VM 提供多种规格的虚拟机实例。</p>\n<h4>VM 系列</h4>\n<table>\n<thead>\n<tr>\n<th>系列</th>\n<th>用途</th>\n<th>特点</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>B</strong></td>\n<td>突发型</td>\n<td>成本效益，可变 CPU</td>\n</tr>\n<tr>\n<td><strong>D</strong></td>\n<td>通用型</td>\n<td>平衡 CPU/内存</td>\n</tr>\n<tr>\n<td><strong>E</strong></td>\n<td>内存优化</td>\n<td>高内存比</td>\n</tr>\n<tr>\n<td><strong>F</strong></td>\n<td>计算优化</td>\n<td>高 CPU 性能</td>\n</tr>\n<tr>\n<td><strong>N</strong></td>\n<td>GPU</td>\n<td>AI/ML 工作负载</td>\n</tr>\n<tr>\n<td><strong>L</strong></td>\n<td>存储优化</td>\n<td>高吞吐量</td>\n</tr>\n</tbody>\n</table>\n<h4>创建 VM</h4>\n<pre><code class=\"language-bash\"># Azure CLI 创建 VM\naz vm create \\\n  --resource-group myResourceGroup \\\n  --name myVM \\\n  --image Ubuntu2204 \\\n  --size Standard_B2s \\\n  --admin-username azureuser \\\n  --generate-ssh-keys \\\n  --public-ip-sku Standard\n\n# 创建带托管磁盘的 VM\naz vm create \\\n  --resource-group myResourceGroup \\\n  --name myVM \\\n  --image Win2022Datacenter \\\n  --size Standard_D4s_v3 \\\n  --admin-username azureuser \\\n  --admin-password MyPassword123! \\\n  --os-disk-size-gb 128 \\\n  --data-disk-sizes-gb 256\n</code></pre>\n<h4>虚拟机规模集</h4>\n<pre><code class=\"language-bash\"># 创建规模集\naz vmss create \\\n  --resource-group myResourceGroup \\\n  --name myScaleSet \\\n  --image Ubuntu2204 \\\n  --instance-count 3 \\\n  --vm-sku Standard_B2s \\\n  --admin-username azureuser \\\n  --generate-ssh-keys \\\n  --upgrade-policy-mode automatic\n\n# 配置自动缩放\naz monitor autoscale create \\\n  --resource-group myResourceGroup \\\n  --resource myScaleSet \\\n  --resource-type Microsoft.Compute/virtualMachineScaleSets \\\n  --min-count 2 \\\n  --max-count 10 \\\n  --count 3\n\naz monitor autoscale rule create \\\n  --resource-group myResourceGroup \\\n  --autoscale-name myScaleSet-autoscale \\\n  --scale out 1 \\\n  --condition \"Percentage CPU > 75 avg 5m\"\n</code></pre>\n<h3>Azure Functions (无服务器)</h3>\n<pre><code class=\"language-python\"># function_app.py - Azure Functions 示例\nimport azure.functions as func\nimport json\n\napp = func.FunctionApp()\n\n@app.route(route=\"hello\", methods=[\"GET\"])\ndef hello(req: func.HttpRequest) -> func.HttpResponse:\n    name = req.params.get('name', 'World')\n    return func.HttpResponse(f\"Hello, {name}!\")\n\n@app.blob_trigger(arg_name=\"blob\", path=\"container/{name}\",\n                  connection=\"AzureWebJobsStorage\")\ndef blob_trigger(blob: func.InputStream):\n    print(f\"Blob trigger: {blob.name}, Size: {blob.length}\")\n</code></pre>\n<pre><code class=\"language-bash\"># 创建 Function App\naz functionapp create \\\n  --resource-group myResourceGroup \\\n  --name myFunctionApp \\\n  --storage-account mystorageaccount \\\n  --consumption-plan-location eastasia \\\n  --runtime python \\\n  --runtime-version 3.11 \\\n  --functions-version 4\n\n# 部署函数\nfunc azure functionapp publish myFunctionApp\n</code></pre>\n<h3>Azure Container Instances (ACI)</h3>\n<pre><code class=\"language-bash\"># 运行容器\naz container create \\\n  --resource-group myResourceGroup \\\n  --name mycontainer \\\n  --image nginx:latest \\\n  --ports 80 \\\n  --dns-name-label myapp \\\n  --cpu 1 \\\n  --memory 1.5\n\n# 查看日志\naz container logs --resource-group myResourceGroup --name mycontainer\n</code></pre>\n<h2>存储服务</h2>\n<h3>Blob Storage</h3>\n<p>Azure Blob 是用于存储非结构化数据的对象存储。</p>\n<pre><code>访问层级\n├── Hot - 频繁访问数据\n├── Cool - 不频繁访问（至少30天）\n├── Cold - 很少访问（至少90天）\n└── Archive - 归档数据（至少180天）\n</code></pre>\n<h4>操作示例</h4>\n<pre><code class=\"language-bash\"># 创建存储账户\naz storage account create \\\n  --name mystorageaccount \\\n  --resource-group myResourceGroup \\\n  --location eastasia \\\n  --sku Standard_LRS\n\n# 创建容器\naz storage container create \\\n  --name mycontainer \\\n  --account-name mystorageaccount\n\n# 上传文件\naz storage blob upload \\\n  --account-name mystorageaccount \\\n  --container-name mycontainer \\\n  --name myblob \\\n  --file ./localfile.txt\n\n# 批量上传\naz storage blob upload-batch \\\n  --account-name mystorageaccount \\\n  --destination mycontainer \\\n  --source ./local-dir\n</code></pre>\n<pre><code class=\"language-python\"># Python SDK\nfrom azure.storage.blob import BlobServiceClient\n\nconnection_string = \"DefaultEndpointsProtocol=https;...\"\nblob_service = BlobServiceClient.from_connection_string(connection_string)\n\n# 上传\ncontainer_client = blob_service.get_container_client(\"mycontainer\")\nwith open(\"file.txt\", \"rb\") as data:\n    container_client.upload_blob(name=\"file.txt\", data=data)\n\n# 下载\nblob_client = container_client.get_blob_client(\"file.txt\")\nwith open(\"downloaded.txt\", \"wb\") as f:\n    f.write(blob_client.download_blob().readall())\n</code></pre>\n<h3>Azure Files</h3>\n<pre><code class=\"language-bash\"># 创建文件共享\naz storage share create \\\n  --name myshare \\\n  --account-name mystorageaccount \\\n  --quota 100\n\n# 挂载到 Linux VM\nsudo mount -t cifs //mystorageaccount.file.core.windows.net/myshare /mnt/azure \\\n  -o vers=3.0,username=mystorageaccount,password=&#x3C;storage-key>,dir_mode=0777,file_mode=0777\n</code></pre>\n<h3>Managed Disks</h3>\n<pre><code class=\"language-bash\"># 创建托管磁盘\naz disk create \\\n  --resource-group myResourceGroup \\\n  --name myDisk \\\n  --size-gb 128 \\\n  --sku Premium_LRS\n\n# 创建快照\naz snapshot create \\\n  --resource-group myResourceGroup \\\n  --name mySnapshot \\\n  --source myDisk\n</code></pre>\n<h2>网络服务</h2>\n<h3>Virtual Network (VNet)</h3>\n<pre><code>Azure VNet 架构\n┌────────────────────────────────────────────┐\n│ VNet: 10.0.0.0/16                          │\n│                                            │\n│  ┌─────────────────┐  ┌─────────────────┐  │\n│  │ Subnet-Web      │  │ Subnet-App      │  │\n│  │ 10.0.1.0/24     │  │ 10.0.2.0/24     │  │\n│  │ ┌───┐ ┌───┐     │  │ ┌───┐ ┌───┐     │  │\n│  │ │VM │ │VM │     │  │ │VM │ │VM │     │  │\n│  │ └───┘ └───┘     │  │ └───┘ └───┘     │  │\n│  │   NSG: Web      │  │   NSG: App      │  │\n│  └─────────────────┘  └─────────────────┘  │\n│                                            │\n│  ┌─────────────────────────────────────┐   │\n│  │ Subnet-DB: 10.0.3.0/24              │   │\n│  │ ┌─────┐   Private Endpoint          │   │\n│  │ │ SQL │ ←─────────────────          │   │\n│  │ └─────┘                             │   │\n│  └─────────────────────────────────────┘   │\n└────────────────────────────────────────────┘\n</code></pre>\n<pre><code class=\"language-bash\"># 创建 VNet\naz network vnet create \\\n  --resource-group myResourceGroup \\\n  --name myVNet \\\n  --address-prefix 10.0.0.0/16 \\\n  --subnet-name mySubnet \\\n  --subnet-prefix 10.0.1.0/24\n\n# 创建 NSG\naz network nsg create \\\n  --resource-group myResourceGroup \\\n  --name myNSG\n\n# 添加规则\naz network nsg rule create \\\n  --resource-group myResourceGroup \\\n  --nsg-name myNSG \\\n  --name AllowHTTP \\\n  --priority 100 \\\n  --destination-port-ranges 80 443 \\\n  --access Allow \\\n  --protocol Tcp\n</code></pre>\n<h3>Application Gateway</h3>\n<pre><code class=\"language-bash\"># 创建应用网关\naz network application-gateway create \\\n  --resource-group myResourceGroup \\\n  --name myAppGateway \\\n  --sku Standard_v2 \\\n  --capacity 2 \\\n  --vnet-name myVNet \\\n  --subnet myAGSubnet \\\n  --public-ip-address myAGPublicIP \\\n  --servers 10.0.1.4 10.0.1.5\n</code></pre>\n<h3>Azure DNS</h3>\n<pre><code class=\"language-bash\"># 创建 DNS 区域\naz network dns zone create \\\n  --resource-group myResourceGroup \\\n  --name example.com\n\n# 添加记录\naz network dns record-set a add-record \\\n  --resource-group myResourceGroup \\\n  --zone-name example.com \\\n  --record-set-name www \\\n  --ipv4-address 1.2.3.4\n</code></pre>\n<h2>数据库服务</h2>\n<h3>Azure SQL Database</h3>\n<pre><code class=\"language-bash\"># 创建 SQL 服务器\naz sql server create \\\n  --resource-group myResourceGroup \\\n  --name myserver \\\n  --admin-user sqladmin \\\n  --admin-password MyPassword123!\n\n# 创建数据库\naz sql db create \\\n  --resource-group myResourceGroup \\\n  --server myserver \\\n  --name mydb \\\n  --service-objective S0\n\n# 配置防火墙\naz sql server firewall-rule create \\\n  --resource-group myResourceGroup \\\n  --server myserver \\\n  --name AllowMyIP \\\n  --start-ip-address 1.2.3.4 \\\n  --end-ip-address 1.2.3.4\n</code></pre>\n<h3>Cosmos DB</h3>\n<pre><code class=\"language-python\">from azure.cosmos import CosmosClient\n\n# 连接\nclient = CosmosClient(endpoint, credential)\ndatabase = client.get_database_client(\"mydb\")\ncontainer = database.get_container_client(\"mycontainer\")\n\n# 创建文档\ncontainer.create_item(body={\n    \"id\": \"user123\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n})\n\n# 查询\nitems = container.query_items(\n    query=\"SELECT * FROM c WHERE c.name = @name\",\n    parameters=[{\"name\": \"@name\", \"value\": \"John Doe\"}]\n)\nfor item in items:\n    print(item)\n</code></pre>\n<h3>Azure Cache for Redis</h3>\n<pre><code class=\"language-bash\"># 创建 Redis 缓存\naz redis create \\\n  --resource-group myResourceGroup \\\n  --name myredis \\\n  --location eastasia \\\n  --sku Basic \\\n  --vm-size C0\n</code></pre>\n<h2>身份与访问管理</h2>\n<h3>Azure AD (Entra ID)</h3>\n<pre><code class=\"language-bash\"># 创建服务主体\naz ad sp create-for-rbac \\\n  --name myServicePrincipal \\\n  --role Contributor \\\n  --scopes /subscriptions/{subscription-id}\n\n# 分配角色\naz role assignment create \\\n  --assignee user@example.com \\\n  --role \"Virtual Machine Contributor\" \\\n  --scope /subscriptions/{subscription-id}/resourceGroups/myResourceGroup\n</code></pre>\n<h3>托管标识</h3>\n<pre><code class=\"language-bash\"># 为 VM 启用系统分配的托管标识\naz vm identity assign \\\n  --resource-group myResourceGroup \\\n  --name myVM\n\n# 授权访问 Key Vault\naz keyvault set-policy \\\n  --name myKeyVault \\\n  --object-id &#x3C;principal-id> \\\n  --secret-permissions get list\n</code></pre>\n<h2>AKS (Kubernetes Service)</h2>\n<pre><code class=\"language-bash\"># 创建 AKS 集群\naz aks create \\\n  --resource-group myResourceGroup \\\n  --name myAKSCluster \\\n  --node-count 3 \\\n  --node-vm-size Standard_B2s \\\n  --enable-managed-identity \\\n  --generate-ssh-keys\n\n# 获取凭证\naz aks get-credentials \\\n  --resource-group myResourceGroup \\\n  --name myAKSCluster\n\n# 部署应用\nkubectl apply -f deployment.yaml\n</code></pre>\n<h2>监控与日志</h2>\n<h3>Azure Monitor</h3>\n<pre><code class=\"language-bash\"># 创建 Log Analytics 工作区\naz monitor log-analytics workspace create \\\n  --resource-group myResourceGroup \\\n  --workspace-name myWorkspace\n\n# 创建警报规则\naz monitor metrics alert create \\\n  --resource-group myResourceGroup \\\n  --name highCPU \\\n  --scopes /subscriptions/.../virtualMachines/myVM \\\n  --condition \"avg Percentage CPU > 80\" \\\n  --window-size 5m \\\n  --evaluation-frequency 1m\n</code></pre>\n<h2>成本管理</h2>\n<pre><code class=\"language-bash\"># 查看成本\naz consumption usage list \\\n  --start-date 2024-01-01 \\\n  --end-date 2024-01-31\n\n# 创建预算\naz consumption budget create \\\n  --budget-name MonthlyBudget \\\n  --amount 1000 \\\n  --category Cost \\\n  --time-grain Monthly\n</code></pre>\n<h2>总结</h2>\n<p>Azure 核心服务要点：</p>\n<ol>\n<li><strong>计算</strong>: VM, Functions, Container Instances, AKS</li>\n<li><strong>存储</strong>: Blob Storage, Files, Managed Disks</li>\n<li><strong>数据库</strong>: SQL Database, Cosmos DB, Cache for Redis</li>\n<li><strong>网络</strong>: VNet, Application Gateway, Azure DNS, Front Door</li>\n<li><strong>身份</strong>: Azure AD/Entra ID, Managed Identity</li>\n<li><strong>监控</strong>: Azure Monitor, Log Analytics, Application Insights</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Azure 是微软的公有云平台",
+        "与 Microsoft 生态深度集成",
+        "混合云解决方案领先",
+        "企业级安全合规"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Azure 概述",
+      "content": "Microsoft Azure 凭借与 Windows、Office 365、Active Directory 的深度集成，成为企业数字化转型的首选。Azure 提供全面的混合云方案，支持本地数据中心与云端的无缝衔接。"
+    },
+    {
+      "type": "cards",
+      "title": "核心服务",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "计算服务",
+          "badge": "Compute",
+          "badgeColor": "blue",
+          "points": [
+            "Virtual Machines",
+            "AKS - Kubernetes",
+            "Azure Functions",
+            "App Service"
+          ]
+        },
+        {
+          "title": "存储服务",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "Blob Storage - 对象存储",
+            "Managed Disks - 块存储",
+            "Azure Files - 文件共享",
+            "Archive Storage"
+          ]
+        },
+        {
+          "title": "数据库服务",
+          "badge": "Database",
+          "badgeColor": "amber",
+          "points": [
+            "Azure SQL Database",
+            "Cosmos DB - 多模型",
+            "Azure Cache for Redis",
+            "Azure Database for PostgreSQL"
+          ]
+        },
+        {
+          "title": "身份与安全",
+          "badge": "Identity",
+          "badgeColor": "purple",
+          "points": [
+            "Azure AD - 身份管理",
+            "Key Vault - 密钥管理",
+            "Security Center",
+            "Sentinel - SIEM"
+          ]
+        },
+        {
+          "title": "DevOps",
+          "badge": "DevOps",
+          "badgeColor": "cyan",
+          "points": [
+            "Azure DevOps",
+            "Azure Pipelines",
+            "ARM Templates",
+            "Azure Monitor"
+          ]
+        },
+        {
+          "title": "混合云",
+          "badge": "Hybrid",
+          "badgeColor": "red",
+          "points": [
+            "Azure Arc",
+            "Azure Stack",
+            "ExpressRoute",
+            "VPN Gateway"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "计算服务对比",
+      "columns": [
+        {
+          "title": "Virtual Machines",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "IaaS"
+            },
+            {
+              "label": "控制",
+              "description": "完全控制 OS"
+            },
+            {
+              "label": "适用",
+              "description": "传统应用迁移"
+            }
+          ]
+        },
+        {
+          "title": "App Service",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "PaaS"
+            },
+            {
+              "label": "控制",
+              "description": "托管平台"
+            },
+            {
+              "label": "适用",
+              "description": "Web 应用、API"
+            }
+          ]
+        },
+        {
+          "title": "Azure Functions",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "FaaS"
+            },
+            {
+              "label": "控制",
+              "description": "函数级别"
+            },
+            {
+              "label": "适用",
+              "description": "事件驱动、微服务"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "Azure DevOps 流水线",
+      "subtitle": "CI/CD 自动化流程",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "代码",
+          "description": "Azure Repos",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "构建",
+          "description": "Pipelines",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "测试",
+          "description": "Test Plans",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "制品",
+          "description": "Artifacts",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "部署",
+          "description": "Release",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Azure AD 版本对比",
+      "highlightFirst": true,
+      "headers": [
+        "版本",
+        "特性",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "Free",
+          "基础 SSO、MFA",
+          "小型组织"
+        ],
+        [
+          "P1",
+          "条件访问、自助密码",
+          "中型企业"
+        ],
+        [
+          "P2",
+          "身份保护、PIM",
+          "大型企业、合规需求"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "Azure 最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 Azure AD",
+          "description": "统一身份管理，实现 SSO"
+        },
+        {
+          "label": "资源组织",
+          "description": "使用管理组、订阅、资源组层级管理"
+        },
+        {
+          "label": "成本管理",
+          "description": "使用 Azure Cost Management 监控支出"
+        },
+        {
+          "label": "基础设施即代码",
+          "description": "使用 ARM Templates 或 Bicep"
+        },
+        {
+          "label": "混合连接",
+          "description": "使用 ExpressRoute 建立专线连接"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Azure DevOps",
+    "Active Directory",
+    "Terraform"
+  ]
 }

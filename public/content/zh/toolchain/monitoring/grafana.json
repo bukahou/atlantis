@@ -2,14 +2,211 @@
   "slug": "grafana",
   "meta": {
     "title": "Grafana",
-    "description": "Grafana 可视化平台、仪表盘设计与告警配置",
+    "description": "Grafana 可视化仪表盘、数据源配置与告警",
     "order": 2,
     "tags": [
-      "toolchain",
-      "monitoring",
-      "grafana",
-      "visualization"
+      "Grafana",
+      "可视化",
+      "仪表盘",
+      "监控"
     ]
   },
-  "content": "<h1>Grafana</h1>\n<h2>Grafana 概述</h2>\n<p>Grafana 是开源的数据可视化和监控平台，支持多种数据源，提供丰富的图表和告警功能。</p>\n<pre><code>Grafana 特性\n├── 多数据源 - Prometheus, InfluxDB, Elasticsearch\n├── 丰富图表 - 时序图、表格、热力图\n├── 仪表盘 - 可拖拽、模板化\n├── 告警 - 多通道通知\n├── 权限 - 团队、角色管理\n└── 插件 - 扩展生态\n</code></pre>\n<h2>数据源配置</h2>\n<h3>Prometheus 数据源</h3>\n<pre><code class=\"language-yaml\"># provisioning/datasources/prometheus.yaml\napiVersion: 1\n\ndatasources:\n  - name: Prometheus\n    type: prometheus\n    access: proxy\n    url: http://prometheus:9090\n    isDefault: true\n    jsonData:\n      timeInterval: \"15s\"\n      httpMethod: POST\n\n  - name: Prometheus-Prod\n    type: prometheus\n    access: proxy\n    url: http://prometheus-prod:9090\n    jsonData:\n      timeInterval: \"15s\"\n</code></pre>\n<h3>其他数据源</h3>\n<pre><code class=\"language-yaml\">datasources:\n  # Elasticsearch\n  - name: Elasticsearch\n    type: elasticsearch\n    url: http://elasticsearch:9200\n    database: \"logs-*\"\n    jsonData:\n      esVersion: \"8.0.0\"\n      timeField: \"@timestamp\"\n\n  # InfluxDB\n  - name: InfluxDB\n    type: influxdb\n    url: http://influxdb:8086\n    jsonData:\n      version: Flux\n      organization: myorg\n      defaultBucket: metrics\n\n  # MySQL\n  - name: MySQL\n    type: mysql\n    url: mysql:3306\n    database: metrics\n    user: grafana\n    secureJsonData:\n      password: $MYSQL_PASSWORD\n</code></pre>\n<h2>仪表盘设计</h2>\n<h3>JSON 模型</h3>\n<pre><code class=\"language-json\">{\n  \"dashboard\": {\n    \"title\": \"Application Dashboard\",\n    \"tags\": [\"application\", \"monitoring\"],\n    \"timezone\": \"browser\",\n    \"refresh\": \"30s\",\n    \"time\": {\n      \"from\": \"now-1h\",\n      \"to\": \"now\"\n    },\n    \"panels\": [\n      {\n        \"title\": \"Request Rate\",\n        \"type\": \"timeseries\",\n        \"gridPos\": {\"x\": 0, \"y\": 0, \"w\": 12, \"h\": 8},\n        \"targets\": [\n          {\n            \"expr\": \"sum(rate(http_requests_total[5m])) by (service)\",\n            \"legendFormat\": \"{{service}}\"\n          }\n        ],\n        \"fieldConfig\": {\n          \"defaults\": {\n            \"unit\": \"reqps\",\n            \"custom\": {\n              \"lineWidth\": 2,\n              \"fillOpacity\": 10\n            }\n          }\n        }\n      },\n      {\n        \"title\": \"Error Rate\",\n        \"type\": \"stat\",\n        \"gridPos\": {\"x\": 12, \"y\": 0, \"w\": 6, \"h\": 4},\n        \"targets\": [\n          {\n            \"expr\": \"sum(rate(http_requests_total{status=~\\\"5..\\\"}[5m])) / sum(rate(http_requests_total[5m])) * 100\"\n          }\n        ],\n        \"fieldConfig\": {\n          \"defaults\": {\n            \"unit\": \"percent\",\n            \"thresholds\": {\n              \"steps\": [\n                {\"value\": null, \"color\": \"green\"},\n                {\"value\": 1, \"color\": \"yellow\"},\n                {\"value\": 5, \"color\": \"red\"}\n              ]\n            }\n          }\n        }\n      }\n    ]\n  }\n}\n</code></pre>\n<h3>变量模板</h3>\n<pre><code class=\"language-json\">{\n  \"templating\": {\n    \"list\": [\n      {\n        \"name\": \"datasource\",\n        \"type\": \"datasource\",\n        \"query\": \"prometheus\"\n      },\n      {\n        \"name\": \"service\",\n        \"type\": \"query\",\n        \"datasource\": \"$datasource\",\n        \"query\": \"label_values(http_requests_total, service)\",\n        \"multi\": true,\n        \"includeAll\": true\n      },\n      {\n        \"name\": \"instance\",\n        \"type\": \"query\",\n        \"datasource\": \"$datasource\",\n        \"query\": \"label_values(http_requests_total{service=~\\\"$service\\\"}, instance)\",\n        \"multi\": true\n      },\n      {\n        \"name\": \"interval\",\n        \"type\": \"interval\",\n        \"options\": [\n          {\"text\": \"1m\", \"value\": \"1m\"},\n          {\"text\": \"5m\", \"value\": \"5m\"},\n          {\"text\": \"10m\", \"value\": \"10m\"}\n        ],\n        \"auto\": true,\n        \"auto_min\": \"10s\"\n      }\n    ]\n  }\n}\n</code></pre>\n<h2>常用面板</h2>\n<h3>时序图</h3>\n<pre><code class=\"language-json\">{\n  \"title\": \"Response Time\",\n  \"type\": \"timeseries\",\n  \"targets\": [\n    {\n      \"expr\": \"histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{service=\\\"$service\\\"}[$interval])) by (le))\",\n      \"legendFormat\": \"P50\"\n    },\n    {\n      \"expr\": \"histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\\\"$service\\\"}[$interval])) by (le))\",\n      \"legendFormat\": \"P95\"\n    },\n    {\n      \"expr\": \"histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{service=\\\"$service\\\"}[$interval])) by (le))\",\n      \"legendFormat\": \"P99\"\n    }\n  ],\n  \"fieldConfig\": {\n    \"defaults\": {\n      \"unit\": \"s\",\n      \"custom\": {\n        \"drawStyle\": \"line\",\n        \"lineInterpolation\": \"smooth\"\n      }\n    }\n  }\n}\n</code></pre>\n<h3>表格</h3>\n<pre><code class=\"language-json\">{\n  \"title\": \"Top Endpoints\",\n  \"type\": \"table\",\n  \"targets\": [\n    {\n      \"expr\": \"topk(10, sum(rate(http_requests_total[$interval])) by (path))\",\n      \"format\": \"table\",\n      \"instant\": true\n    }\n  ],\n  \"transformations\": [\n    {\n      \"id\": \"organize\",\n      \"options\": {\n        \"renameByName\": {\n          \"path\": \"Endpoint\",\n          \"Value\": \"Requests/s\"\n        }\n      }\n    }\n  ]\n}\n</code></pre>\n<h3>热力图</h3>\n<pre><code class=\"language-json\">{\n  \"title\": \"Request Latency Heatmap\",\n  \"type\": \"heatmap\",\n  \"targets\": [\n    {\n      \"expr\": \"sum(increase(http_request_duration_seconds_bucket[$interval])) by (le)\",\n      \"format\": \"heatmap\"\n    }\n  ],\n  \"options\": {\n    \"calculate\": false,\n    \"yAxis\": {\n      \"unit\": \"s\"\n    },\n    \"color\": {\n      \"scheme\": \"Oranges\"\n    }\n  }\n}\n</code></pre>\n<h2>告警配置</h2>\n<h3>Grafana 告警</h3>\n<pre><code class=\"language-yaml\"># provisioning/alerting/rules.yaml\napiVersion: 1\n\ngroups:\n  - orgId: 1\n    name: Application Alerts\n    folder: Alerts\n    interval: 1m\n    rules:\n      - uid: high-error-rate\n        title: High Error Rate\n        condition: C\n        data:\n          - refId: A\n            relativeTimeRange:\n              from: 300\n              to: 0\n            datasourceUid: prometheus\n            model:\n              expr: sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))\n          - refId: B\n            relativeTimeRange:\n              from: 300\n              to: 0\n            datasourceUid: __expr__\n            model:\n              type: reduce\n              expression: A\n              reducer: last\n          - refId: C\n            datasourceUid: __expr__\n            model:\n              type: threshold\n              expression: B\n              conditions:\n                - evaluator:\n                    type: gt\n                    params: [0.05]\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate detected\"\n</code></pre>\n<h3>通知渠道</h3>\n<pre><code class=\"language-yaml\"># provisioning/alerting/contactpoints.yaml\napiVersion: 1\n\ncontactPoints:\n  - orgId: 1\n    name: slack-alerts\n    receivers:\n      - uid: slack\n        type: slack\n        settings:\n          url: https://hooks.slack.com/services/xxx\n          recipient: \"#alerts\"\n\n  - orgId: 1\n    name: pagerduty\n    receivers:\n      - uid: pagerduty\n        type: pagerduty\n        settings:\n          integrationKey: xxx\n          severity: critical\n</code></pre>\n<h2>仪表盘即代码</h2>\n<pre><code class=\"language-yaml\"># provisioning/dashboards/dashboards.yaml\napiVersion: 1\n\nproviders:\n  - name: 'default'\n    orgId: 1\n    folder: ''\n    type: file\n    disableDeletion: false\n    updateIntervalSeconds: 10\n    options:\n      path: /var/lib/grafana/dashboards\n</code></pre>\n<h2>总结</h2>\n<p>Grafana 要点：</p>\n<ol>\n<li><strong>数据源</strong> - 多种数据源支持，统一可视化</li>\n<li><strong>面板</strong> - 时序图、表格、热力图等</li>\n<li><strong>变量</strong> - 动态筛选，模板化仪表盘</li>\n<li><strong>告警</strong> - 多通道通知，规则管理</li>\n<li><strong>Provisioning</strong> - 配置即代码</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Grafana 是开源的可视化和分析平台",
+        "支持多种数据源：Prometheus/InfluxDB/ES",
+        "丰富的图表类型和面板",
+        "Dashboard as Code 支持"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心功能",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Dashboard",
+          "badge": "仪表盘",
+          "badgeColor": "blue",
+          "points": [
+            "面板布局",
+            "变量模板",
+            "JSON 导出"
+          ]
+        },
+        {
+          "title": "Panel",
+          "badge": "面板",
+          "badgeColor": "green",
+          "points": [
+            "Graph/Stat/Table",
+            "Heatmap/Gauge",
+            "可视化配置"
+          ]
+        },
+        {
+          "title": "Alerting",
+          "badge": "告警",
+          "badgeColor": "red",
+          "points": [
+            "多通道通知",
+            "告警规则",
+            "静默管理"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "数据源对比",
+      "columns": [
+        {
+          "title": "Prometheus",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "时序数据库"
+            },
+            {
+              "label": "查询",
+              "description": "PromQL"
+            },
+            {
+              "label": "适用",
+              "description": "指标监控"
+            }
+          ]
+        },
+        {
+          "title": "Elasticsearch",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "搜索引擎"
+            },
+            {
+              "label": "查询",
+              "description": "Lucene/KQL"
+            },
+            {
+              "label": "适用",
+              "description": "日志分析"
+            }
+          ]
+        },
+        {
+          "title": "InfluxDB",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "类型",
+              "description": "时序数据库"
+            },
+            {
+              "label": "查询",
+              "description": "Flux/InfluxQL"
+            },
+            {
+              "label": "适用",
+              "description": "IoT/指标"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Dashboard JSON 配置",
+      "language": "json",
+      "code": "{\n  \"dashboard\": {\n    \"title\": \"Application Metrics\",\n    \"tags\": [\"application\"],\n    \"templating\": {\n      \"list\": [\n        {\n          \"name\": \"namespace\",\n          \"type\": \"query\",\n          \"datasource\": \"Prometheus\",\n          \"query\": \"label_values(namespace)\"\n        }\n      ]\n    },\n    \"panels\": [\n      {\n        \"title\": \"Request Rate\",\n        \"type\": \"graph\",\n        \"targets\": [\n          {\n            \"expr\": \"sum(rate(http_requests_total{namespace=\\\"$namespace\\\"}[5m]))\",\n            \"legendFormat\": \"{{method}}\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Provisioning 配置",
+      "language": "yaml",
+      "code": "# datasources/prometheus.yaml\napiVersion: 1\ndatasources:\n  - name: Prometheus\n    type: prometheus\n    access: proxy\n    url: http://prometheus:9090\n    isDefault: true\n    editable: false\n\n# dashboards/default.yaml\napiVersion: 1\nproviders:\n  - name: 'default'\n    orgId: 1\n    folder: ''\n    type: file\n    disableDeletion: false\n    updateIntervalSeconds: 10\n    options:\n      path: /var/lib/grafana/dashboards"
+    },
+    {
+      "type": "table",
+      "title": "常用面板类型",
+      "highlightFirst": true,
+      "headers": [
+        "面板",
+        "用途",
+        "典型场景"
+      ],
+      "rows": [
+        [
+          "Time series",
+          "时间序列图",
+          "趋势分析"
+        ],
+        [
+          "Stat",
+          "单值统计",
+          "关键指标"
+        ],
+        [
+          "Gauge",
+          "仪表盘",
+          "使用率"
+        ],
+        [
+          "Table",
+          "表格",
+          "详细数据"
+        ],
+        [
+          "Heatmap",
+          "热力图",
+          "分布分析"
+        ],
+        [
+          "Logs",
+          "日志面板",
+          "日志查看"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "变量模板",
+      "language": "promql",
+      "code": "# 标签值变量\nlabel_values(up, job)\n\n# 使用变量的查询\nsum(rate(http_requests_total{job=\"$job\"}[5m])) by (status)\n\n# 多值变量 (正则匹配)\nhttp_requests_total{instance=~\"$instance\"}\n\n# 全选支持\nhttp_requests_total{namespace=~\"${namespace:regex}\"}"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "Dashboard as Code",
+          "description": "使用 JSON/Jsonnet 管理仪表盘"
+        },
+        {
+          "label": "变量复用",
+          "description": "使用模板变量实现动态过滤"
+        },
+        {
+          "label": "合理布局",
+          "description": "按功能分组，重要指标优先"
+        },
+        {
+          "label": "统一风格",
+          "description": "团队使用一致的颜色和命名"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Prometheus",
+    "Elasticsearch",
+    "监控告警"
+  ]
 }

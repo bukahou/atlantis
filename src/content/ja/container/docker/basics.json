@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "title": "Docker 基礎",
+    "description": "Docker コア概念、インストール設定と基本操作",
+    "order": 1,
+    "tags": ["Docker", "コンテナ", "DevOps"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "Docker はアプリケーションと環境をポータブルなコンテナにパッケージ化",
+        "イメージは読み取り専用テンプレート、コンテナは実行インスタンス",
+        "Dockerfile でイメージ構築手順を定義",
+        "Docker Compose でマルチコンテナアプリケーションをオーケストレーション"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Docker とは",
+      "content": "Docker はオープンソースのコンテナ化プラットフォームで、アプリケーションとその依存関係を軽量でポータブルなコンテナにパッケージ化できます。コンテナは Docker をサポートするどの環境でも一貫して実行でき、「自分のマシンでは動く」という問題を解決します。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Dockerfile の例",
+      "language": "dockerfile",
+      "code": "# ベースイメージ\nFROM node:18-alpine\n\n# 作業ディレクトリを設定\nWORKDIR /app\n\n# 依存ファイルをコピー\nCOPY package*.json ./\n\n# 依存関係をインストール\nRUN npm ci --only=production\n\n# ソースコードをコピー\nCOPY . .\n\n# ポートを公開\nEXPOSE 3000\n\n# 起動コマンド\nCMD [\"node\", \"server.js\"]"
+    },
+    {
+      "type": "table",
+      "title": "Dockerfile よく使う命令",
+      "highlightFirst": true,
+      "headers": ["命令", "説明", "例"],
+      "rows": [
+        ["FROM", "ベースイメージ", "FROM node:18-alpine"],
+        ["WORKDIR", "作業ディレクトリ", "WORKDIR /app"],
+        ["COPY", "ファイルをコピー", "COPY . ."],
+        ["RUN", "コマンドを実行（ビルド時）", "RUN npm install"],
+        ["CMD", "起動コマンド", "CMD [\"npm\", \"start\"]"],
+        ["ENV", "環境変数", "ENV NODE_ENV=production"],
+        ["EXPOSE", "ポートを宣言", "EXPOSE 3000"],
+        ["VOLUME", "マウントポイント", "VOLUME /data"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "よく使う操作",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "イメージ操作",
+          "badge": "Image",
+          "badgeColor": "blue",
+          "points": [
+            "docker build -t app:v1 . - ビルド",
+            "docker images - イメージ一覧",
+            "docker pull nginx - イメージを取得",
+            "docker push user/app - イメージをプッシュ"
+          ]
+        },
+        {
+          "title": "コンテナ操作",
+          "badge": "Container",
+          "badgeColor": "green",
+          "points": [
+            "docker run -d -p 80:80 nginx - 実行",
+            "docker ps - 実行中コンテナを表示",
+            "docker stop/start ID - 停止/起動",
+            "docker rm ID - コンテナを削除"
+          ]
+        },
+        {
+          "title": "デバッグ操作",
+          "badge": "Debug",
+          "badgeColor": "amber",
+          "points": [
+            "docker logs -f ID - ログを確認",
+            "docker exec -it ID bash - コンテナに入る",
+            "docker inspect ID - 詳細を確認",
+            "docker stats - リソース使用量"
+          ]
+        },
+        {
+          "title": "ネットワーク/ストレージ",
+          "badge": "Storage",
+          "badgeColor": "purple",
+          "points": [
+            "docker network ls - ネットワーク一覧",
+            "docker volume create - ボリュームを作成",
+            "-v host:container - ディレクトリをマウント",
+            "--network=host - ホストネットワーク"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Compose の例",
+      "language": "yaml",
+      "code": "version: '3.8'\n\nservices:\n  web:\n    build: .\n    ports:\n      - \"3000:3000\"\n    environment:\n      - NODE_ENV=production\n      - DB_HOST=db\n    depends_on:\n      - db\n      - redis\n\n  db:\n    image: postgres:14\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n    environment:\n      - POSTGRES_PASSWORD=secret\n\n  redis:\n    image: redis:alpine\n\nvolumes:\n  postgres_data:"
+    },
+    {
+      "type": "flow",
+      "title": "イメージレイヤー構造",
+      "subtitle": "各命令が読み取り専用レイヤーを作成",
+      "direction": "vertical",
+      "steps": [
+        { "label": "FROM", "description": "ベースイメージレイヤー", "color": "bg-gray-500" },
+        { "label": "RUN apt-get", "description": "システム依存レイヤー", "color": "bg-blue-500" },
+        { "label": "COPY package.json", "description": "依存定義レイヤー", "color": "bg-purple-500" },
+        { "label": "RUN npm install", "description": "依存インストールレイヤー", "color": "bg-cyan-500" },
+        { "label": "COPY .", "description": "ソースコードレイヤー", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "マルチステージビルドを使用", "description": "最終イメージサイズを削減し、ビルドと実行環境を分離" },
+        { "label": "レイヤーキャッシュを最適化", "description": "変更が少ない命令を前に配置" },
+        { "label": ".dockerignore を使用", "description": "不要なファイルを除外" },
+        { "label": "非 root ユーザーで実行", "description": "USER 命令でユーザーを切り替えてセキュリティを向上" },
+        { "label": "軽量ベースイメージを使用", "description": "alpine は完全なディストリビューションより遥かに小さい" },
+        { "label": "ヘルスチェック", "description": "HEALTHCHECK 命令でコンテナの健全性を監視" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Kubernetes", "CI/CD", "マイクロサービス"]
+}

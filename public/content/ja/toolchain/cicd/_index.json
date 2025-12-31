@@ -3,14 +3,14 @@
     {
       "slug": "github-actions",
       "title": "GitHub Actions",
-      "description": "GitHub Actions CI/CD ワークフロー、自動ビルドとデプロイ",
+      "description": "GitHub Actions CI/CD ワークフロー、自動化ビルドとデプロイ",
       "href": "/toolchain/cicd/github-actions",
       "order": 1
     },
     {
       "slug": "jenkins",
       "title": "Jenkins",
-      "description": "Jenkins 継続的インテグレーション、Pipeline と自動デプロイ",
+      "description": "Jenkins 継続的インテグレーション、Pipeline と自動化デプロイ",
       "href": "/toolchain/cicd/jenkins",
       "order": 2
     }

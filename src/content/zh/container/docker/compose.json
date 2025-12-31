@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "title": "Docker Compose",
+    "description": "Docker Compose 多容器编排：服务定义、网络与部署",
+    "order": 5,
+    "tags": ["Docker", "Compose", "编排", "多容器"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "使用 YAML 文件定义多容器应用",
+        "一键启动/停止整个应用栈",
+        "自动创建网络实现容器间通信",
+        "适合开发环境和简单生产部署"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础示例",
+      "language": "yaml",
+      "code": "# docker-compose.yml\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - \"80:80\"\n    volumes:\n      - ./html:/usr/share/nginx/html:ro\n    depends_on:\n      - api\n\n  api:\n    build: ./api\n    environment:\n      - DATABASE_URL=postgres://db:5432/app\n    depends_on:\n      - db\n\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_DB: app\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: secret\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n\nvolumes:\n  pgdata:"
+    },
+    {
+      "type": "codeBlock",
+      "title": "常用命令",
+      "language": "bash",
+      "code": "# 启动服务 (后台运行)\ndocker compose up -d\n\n# 查看服务状态\ndocker compose ps\n\n# 查看日志\ndocker compose logs -f\ndocker compose logs api  # 指定服务\n\n# 停止服务\ndocker compose stop\n\n# 停止并删除容器、网络\ndocker compose down\n\n# 删除并清理 Volume\ndocker compose down -v\n\n# 重新构建镜像\ndocker compose build\ndocker compose up -d --build\n\n# 扩容服务\ndocker compose up -d --scale api=3\n\n# 进入容器\ndocker compose exec api sh"
+    },
+    {
+      "type": "cards",
+      "title": "服务配置选项",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "构建配置",
+          "badge": "build",
+          "badgeColor": "blue",
+          "points": [
+            "build: ./path",
+            "context + dockerfile",
+            "args 构建参数",
+            "target 多阶段目标"
+          ]
+        },
+        {
+          "title": "运行配置",
+          "badge": "runtime",
+          "badgeColor": "green",
+          "points": [
+            "command 覆盖命令",
+            "entrypoint 入口点",
+            "working_dir 工作目录",
+            "user 运行用户"
+          ]
+        },
+        {
+          "title": "资源限制",
+          "badge": "deploy",
+          "badgeColor": "amber",
+          "points": [
+            "cpus: CPU 限制",
+            "memory: 内存限制",
+            "replicas: 副本数",
+            "restart_policy"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "网络配置",
+      "language": "yaml",
+      "code": "services:\n  frontend:\n    networks:\n      - frontend-net\n\n  api:\n    networks:\n      - frontend-net\n      - backend-net\n\n  db:\n    networks:\n      - backend-net\n\nnetworks:\n  frontend-net:\n    driver: bridge\n  backend-net:\n    driver: bridge\n    internal: true  # 禁止外部访问\n\n# 容器间通过服务名通信\n# frontend -> http://api:3000\n# api -> postgres://db:5432"
+    },
+    {
+      "type": "codeBlock",
+      "title": "环境变量配置",
+      "language": "yaml",
+      "code": "services:\n  api:\n    # 方式1: 直接定义\n    environment:\n      - NODE_ENV=production\n      - DB_HOST=db\n\n    # 方式2: 从 .env 文件\n    env_file:\n      - .env\n      - .env.local\n\n    # 方式3: 变量替换\n    environment:\n      - DB_PASSWORD=${DB_PASSWORD:-default}\n\n# .env 文件\n# DB_PASSWORD=secret\n# API_KEY=xxx"
+    },
+    {
+      "type": "codeBlock",
+      "title": "健康检查与依赖",
+      "language": "yaml",
+      "code": "services:\n  api:\n    depends_on:\n      db:\n        condition: service_healthy\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n      start_period: 40s\n\n  db:\n    image: postgres:15\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U user -d app\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5"
+    },
+    {
+      "type": "codeBlock",
+      "title": "资源限制 (deploy)",
+      "language": "yaml",
+      "code": "services:\n  api:\n    deploy:\n      replicas: 2\n      resources:\n        limits:\n          cpus: '0.5'\n          memory: 512M\n        reservations:\n          cpus: '0.25'\n          memory: 256M\n      restart_policy:\n        condition: on-failure\n        delay: 5s\n        max_attempts: 3\n        window: 120s"
+    },
+    {
+      "type": "codeBlock",
+      "title": "多环境配置",
+      "language": "yaml",
+      "code": "# docker-compose.yml (基础配置)\nservices:\n  api:\n    build: .\n    environment:\n      - NODE_ENV=development\n\n# docker-compose.prod.yml (生产覆盖)\nservices:\n  api:\n    environment:\n      - NODE_ENV=production\n    deploy:\n      replicas: 3\n\n# 使用方式\n# 开发: docker compose up\n# 生产: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
+    },
+    {
+      "type": "table",
+      "title": "Compose vs Kubernetes",
+      "highlightFirst": true,
+      "headers": ["特性", "Docker Compose", "Kubernetes"],
+      "rows": [
+        ["适用场景", "单机/开发环境", "集群/生产环境"],
+        ["编排规模", "数十容器", "数千 Pod"],
+        ["高可用", "无", "内置"],
+        ["服务发现", "DNS (容器名)", "Service/DNS"],
+        ["滚动更新", "基础支持", "完善支持"],
+        ["学习曲线", "低", "高"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 .env 文件", "description": "敏感信息不要硬编码在 compose 文件中" },
+        { "label": "配置健康检查", "description": "确保依赖服务就绪后再启动" },
+        { "label": "命名 Volume", "description": "避免数据丢失，便于管理" },
+        { "label": "限制资源", "description": "防止单个服务占用过多资源" },
+        { "label": "分离网络", "description": "前后端分离，数据库使用 internal 网络" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker 基础", "Docker 网络", "Kubernetes"]
+}

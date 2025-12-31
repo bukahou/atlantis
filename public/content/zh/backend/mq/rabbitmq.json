@@ -2,14 +2,154 @@
   "slug": "rabbitmq",
   "meta": {
     "title": "RabbitMQ",
-    "description": "RabbitMQ 消息队列、AMQP 协议与消息模式",
+    "description": "可靠的消息代理",
     "order": 2,
     "tags": [
-      "mq",
-      "rabbitmq",
-      "amqp",
-      "messaging"
+      "消息队列",
+      "RabbitMQ",
+      "AMQP"
     ]
   },
-  "content": "<h1>RabbitMQ</h1>\n<h2>RabbitMQ 概述</h2>\n<p>RabbitMQ 是基于 AMQP 协议的消息代理，支持多种消息模式，提供可靠的消息传递机制。</p>\n<pre><code>RabbitMQ 架构\n├── Producer - 消息生产者\n├── Exchange - 交换机 (消息路由)\n├── Queue - 消息队列\n├── Binding - 绑定关系\n├── Consumer - 消息消费者\n└── Virtual Host - 虚拟主机 (隔离)\n</code></pre>\n<h2>交换机类型</h2>\n<h3>Direct Exchange</h3>\n<pre><code>直接交换机 - 精确匹配路由键\n\nProducer -> [Exchange] -> routing_key=\"order\" -> [Queue: orders]\n                       -> routing_key=\"user\"  -> [Queue: users]\n</code></pre>\n<h3>Fanout Exchange</h3>\n<pre><code>扇出交换机 - 广播到所有绑定队列\n\nProducer -> [Exchange] -> [Queue: logs1]\n                       -> [Queue: logs2]\n                       -> [Queue: logs3]\n</code></pre>\n<h3>Topic Exchange</h3>\n<pre><code>主题交换机 - 模式匹配路由键\n\nrouting_key: \"order.created.us\"\n├── \"order.*.*\"     - 匹配\n├── \"order.#\"       - 匹配\n├── \"*.created.*\"   - 匹配\n└── \"order.updated\" - 不匹配\n\n* 匹配一个词\n# 匹配零或多个词\n</code></pre>\n<h3>Headers Exchange</h3>\n<pre><code>头部交换机 - 基于消息头匹配\n\nheaders: {type: \"order\", region: \"us\"}\nbinding: {x-match: \"all\", type: \"order\", region: \"us\"} - 匹配\nbinding: {x-match: \"any\", type: \"order\"} - 匹配\n</code></pre>\n<h2>Go 客户端</h2>\n<h3>连接和通道</h3>\n<pre><code class=\"language-go\">import \"github.com/rabbitmq/amqp091-go\"\n\n// 建立连接\nconn, _ := amqp.Dial(\"amqp://guest:guest@localhost:5672/\")\ndefer conn.Close()\n\n// 创建通道\nch, _ := conn.Channel()\ndefer ch.Close()\n\n// 声明交换机\nch.ExchangeDeclare(\n    \"orders\",   // 名称\n    \"direct\",   // 类型\n    true,       // 持久化\n    false,      // 自动删除\n    false,      // 内部\n    false,      // 不等待\n    nil,        // 参数\n)\n\n// 声明队列\nq, _ := ch.QueueDeclare(\n    \"order_queue\", // 名称\n    true,          // 持久化\n    false,         // 自动删除\n    false,         // 排他\n    false,         // 不等待\n    nil,           // 参数\n)\n\n// 绑定队列\nch.QueueBind(\n    q.Name,         // 队列名\n    \"order.create\", // 路由键\n    \"orders\",       // 交换机\n    false,\n    nil,\n)\n</code></pre>\n<h3>发送消息</h3>\n<pre><code class=\"language-go\">// 发送消息\nctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\ndefer cancel()\n\nbody := []byte(`{\"order_id\": \"123\", \"status\": \"created\"}`)\n\nerr := ch.PublishWithContext(ctx,\n    \"orders\",       // 交换机\n    \"order.create\", // 路由键\n    false,          // 强制\n    false,          // 立即\n    amqp.Publishing{\n        DeliveryMode: amqp.Persistent, // 持久化\n        ContentType:  \"application/json\",\n        Body:         body,\n        Headers: amqp.Table{\n            \"type\": \"order_created\",\n        },\n    },\n)\n</code></pre>\n<h3>消费消息</h3>\n<pre><code class=\"language-go\">// 消费消息\nmsgs, _ := ch.Consume(\n    q.Name, // 队列\n    \"\",     // 消费者标签\n    false,  // 自动确认\n    false,  // 排他\n    false,  // 不等待\n    false,  // 参数\n    nil,\n)\n\nfor msg := range msgs {\n    fmt.Printf(\"Received: %s\\n\", msg.Body)\n\n    // 处理消息\n    err := processMessage(msg.Body)\n    if err != nil {\n        // 拒绝并重新入队\n        msg.Nack(false, true)\n    } else {\n        // 确认\n        msg.Ack(false)\n    }\n}\n</code></pre>\n<h2>消息确认</h2>\n<h3>生产者确认</h3>\n<pre><code class=\"language-go\">// 开启确认模式\nch.Confirm(false)\n\n// 监听确认\nconfirms := ch.NotifyPublish(make(chan amqp.Confirmation, 1))\n\n// 发送消息\nch.PublishWithContext(ctx, exchange, routingKey, false, false, msg)\n\n// 等待确认\nconfirmed := &#x3C;-confirms\nif confirmed.Ack {\n    fmt.Println(\"Message confirmed\")\n} else {\n    fmt.Println(\"Message nacked\")\n}\n</code></pre>\n<h3>消费者确认</h3>\n<pre><code class=\"language-go\">// 手动确认\nmsg.Ack(false)  // 单条确认\nmsg.Ack(true)   // 批量确认 (当前及之前所有)\n\n// 拒绝\nmsg.Nack(false, false) // 拒绝，不重入队\nmsg.Nack(false, true)  // 拒绝，重新入队\n\n// 拒绝单条\nmsg.Reject(false) // 不重入队\nmsg.Reject(true)  // 重新入队\n</code></pre>\n<h2>高级特性</h2>\n<h3>死信队列</h3>\n<pre><code class=\"language-go\">// 声明死信交换机\nch.ExchangeDeclare(\"dlx\", \"direct\", true, false, false, false, nil)\n\n// 声明死信队列\nch.QueueDeclare(\"dlq\", true, false, false, false, nil)\nch.QueueBind(\"dlq\", \"dead\", \"dlx\", false, nil)\n\n// 主队列配置死信\nargs := amqp.Table{\n    \"x-dead-letter-exchange\":    \"dlx\",\n    \"x-dead-letter-routing-key\": \"dead\",\n    \"x-message-ttl\":             60000, // 60秒过期\n}\nch.QueueDeclare(\"main_queue\", true, false, false, false, args)\n</code></pre>\n<h3>延迟消息</h3>\n<pre><code class=\"language-go\">// 方式1: TTL + 死信队列\nargs := amqp.Table{\n    \"x-dead-letter-exchange\":    \"target_exchange\",\n    \"x-dead-letter-routing-key\": \"target_key\",\n    \"x-message-ttl\":             300000, // 5分钟延迟\n}\n\n// 方式2: 延迟插件 (rabbitmq_delayed_message_exchange)\nch.ExchangeDeclare(\n    \"delayed\",\n    \"x-delayed-message\",\n    true, false, false, false,\n    amqp.Table{\"x-delayed-type\": \"direct\"},\n)\n\n// 发送延迟消息\nch.PublishWithContext(ctx, \"delayed\", \"key\", false, false,\n    amqp.Publishing{\n        Headers: amqp.Table{\n            \"x-delay\": 60000, // 延迟60秒\n        },\n        Body: body,\n    },\n)\n</code></pre>\n<h3>优先级队列</h3>\n<pre><code class=\"language-go\">// 声明优先级队列\nargs := amqp.Table{\n    \"x-max-priority\": 10, // 最大优先级\n}\nch.QueueDeclare(\"priority_queue\", true, false, false, false, args)\n\n// 发送带优先级的消息\nch.PublishWithContext(ctx, \"\", \"priority_queue\", false, false,\n    amqp.Publishing{\n        Priority: 5, // 优先级 0-10\n        Body:     body,\n    },\n)\n</code></pre>\n<h2>集群与高可用</h2>\n<pre><code class=\"language-yaml\"># 集群配置\n节点类型:\n  - disk: 持久化元数据\n  - ram: 内存存储元数据\n\n队列镜像:\n  - ha-mode: all        # 所有节点\n  - ha-mode: exactly    # 指定数量\n  - ha-mode: nodes      # 指定节点\n\n策略示例:\n  rabbitmqctl set_policy ha-all \".*\" '{\"ha-mode\":\"all\"}'\n</code></pre>\n<h2>总结</h2>\n<p>RabbitMQ 要点：</p>\n<ol>\n<li><strong>交换机</strong> - Direct、Fanout、Topic、Headers</li>\n<li><strong>消息确认</strong> - 生产者确认、消费者确认</li>\n<li><strong>可靠性</strong> - 持久化、死信队列</li>\n<li><strong>高级特性</strong> - 延迟消息、优先级队列</li>\n<li><strong>高可用</strong> - 集群、镜像队列</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "RabbitMQ 实现 AMQP 协议",
+        "Exchange 路由消息到 Queue",
+        "灵活的路由规则",
+        "支持消息确认和持久化"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Exchange 类型",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Direct",
+          "badge": "直连",
+          "badgeColor": "blue",
+          "points": [
+            "精确匹配 routing key",
+            "一对一路由",
+            "最简单的模式"
+          ]
+        },
+        {
+          "title": "Fanout",
+          "badge": "广播",
+          "badgeColor": "green",
+          "points": [
+            "忽略 routing key",
+            "广播到所有绑定队列",
+            "发布订阅模式"
+          ]
+        },
+        {
+          "title": "Topic",
+          "badge": "主题",
+          "badgeColor": "amber",
+          "points": [
+            "通配符匹配",
+            "* 匹配一个词",
+            "# 匹配多个词"
+          ]
+        },
+        {
+          "title": "Headers",
+          "badge": "头部",
+          "badgeColor": "purple",
+          "points": [
+            "基于消息头属性",
+            "不使用 routing key",
+            "复杂匹配规则"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "消息流程",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Producer",
+          "description": "发送消息",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Exchange",
+          "description": "路由消息",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Queue",
+          "description": "存储消息",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "Consumer",
+          "description": "消费消息",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "可靠性保障",
+      "highlightFirst": true,
+      "headers": [
+        "机制",
+        "说明"
+      ],
+      "rows": [
+        [
+          "持久化",
+          "Exchange/Queue/Message 都可持久化"
+        ],
+        [
+          "发布确认",
+          "Publisher Confirms 确认送达 Broker"
+        ],
+        [
+          "消费确认",
+          "Consumer Ack 确认处理完成"
+        ],
+        [
+          "死信队列",
+          "处理失败消息的兜底队列"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "启用持久化",
+          "description": "Queue 和 Message 都设置持久化"
+        },
+        {
+          "label": "手动确认",
+          "description": "处理完成后再 Ack，避免消息丢失"
+        },
+        {
+          "label": "死信队列",
+          "description": "配置 DLX 处理失败消息"
+        },
+        {
+          "label": "连接池",
+          "description": "复用连接和通道，减少开销"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "消息队列",
+    "AMQP",
+    "微服务"
+  ]
 }

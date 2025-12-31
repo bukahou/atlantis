@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "title": "高可用",
+    "description": "冗余设计、故障转移与灾难恢复",
+    "icon": "shield-check"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "可用性指标：99.9%（三个9）到 99.999%（五个9）",
+        "冗余设计：消除单点故障 SPOF",
+        "故障转移：主备、主主、集群模式",
+        "灾难恢复：RPO 与 RTO 指标"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "高可用性（HA）是指系统在出现故障时仍能持续提供服务的能力。通过冗余、故障检测、自动切换等技术手段，可以将系统可用性提升到 99.99% 以上。高可用设计需要在成本和可靠性之间取得平衡。"
+    },
+    {
+      "type": "table",
+      "title": "可用性等级",
+      "highlightFirst": true,
+      "headers": ["等级", "可用性", "年故障时间", "典型场景"],
+      "rows": [
+        ["两个9", "99%", "3.65天", "内部系统"],
+        ["三个9", "99.9%", "8.76小时", "一般业务"],
+        ["四个9", "99.99%", "52.6分钟", "核心业务"],
+        ["五个9", "99.999%", "5.26分钟", "金融系统"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "高可用策略",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "冗余设计",
+          "badge": "基础",
+          "badgeColor": "blue",
+          "points": [
+            "多副本存储",
+            "负载均衡",
+            "无状态服务"
+          ]
+        },
+        {
+          "title": "故障检测",
+          "badge": "监控",
+          "badgeColor": "green",
+          "points": [
+            "健康检查",
+            "心跳检测",
+            "异常告警"
+          ]
+        },
+        {
+          "title": "自动恢复",
+          "badge": "切换",
+          "badgeColor": "purple",
+          "points": [
+            "故障转移",
+            "自动重启",
+            "流量调度"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["负载均衡", "容器编排", "SRE"],
+  "articles": [
+    {
+      "slug": "redundancy",
+      "title": "冗余设计",
+      "description": "消除单点故障的策略与实践",
+      "priority": "essential"
+    },
+    {
+      "slug": "failover",
+      "title": "故障转移",
+      "description": "主备切换、集群选主与流量调度",
+      "priority": "recommended"
+    },
+    {
+      "slug": "disaster-recovery",
+      "title": "容灾备份",
+      "description": "异地多活、数据备份与恢复策略",
+      "priority": "important"
+    }
+  ]
+}

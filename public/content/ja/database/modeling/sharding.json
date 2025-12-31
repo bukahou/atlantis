@@ -5,11 +5,231 @@
     "description": "データベースシャーディング戦略、分散データベースアーキテクチャとデータ移行",
     "order": 3,
     "tags": [
-      "database",
-      "modeling",
-      "sharding",
-      "distributed"
+      "シャーディング",
+      "パーティショニング",
+      "分散"
     ]
   },
-  "content": "<h1>シャーディング</h1>\n<h2>シャーディング概要</h2>\n<p>単一データベースや単一テーブルが性能やストレージ要件を満たせない場合、シャーディングによる水平スケーリングが必要になります。</p>\n<pre><code>スケーリング方式\n├── 垂直分割\n│   ├── 垂直データベース分割 - ビジネスで分割\n│   └── 垂直テーブル分割 - 列で分割\n└── 水平分割\n    ├── 水平データベース分割 - データを複数 DB に分散\n    └── 水平テーブル分割 - データを複数テーブルに分散\n</code></pre>\n<h2>垂直分割</h2>\n<h3>垂直データベース分割</h3>\n<pre><code>ビジネスドメインでデータベースを分割\n\n元: 単一データベース\n├── users\n├── orders\n├── products\n└── inventory\n\n分割後:\n├── user_db\n│   └── users\n├── order_db\n│   └── orders\n└── product_db\n    ├── products\n    └── inventory\n</code></pre>\n<h3>垂直テーブル分割</h3>\n<pre><code class=\"language-sql\">-- 元のテーブル (ワイドテーブル)\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    price DECIMAL(10,2),\n    description TEXT,        -- 大きなフィールド\n    images JSON,             -- 大きなフィールド\n    specifications TEXT,     -- 大きなフィールド\n    stock INT,\n    created_at DATETIME\n);\n\n-- 分割後\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    price DECIMAL(10,2),\n    stock INT,\n    created_at DATETIME\n);\n\nCREATE TABLE product_details (\n    product_id INT PRIMARY KEY,\n    description TEXT,\n    images JSON,\n    specifications TEXT,\n    FOREIGN KEY (product_id) REFERENCES products(id)\n);\n</code></pre>\n<h2>水平分割</h2>\n<h3>シャードキー選択</h3>\n<pre><code class=\"language-yaml\">シャードキー要件:\n  - 高い分散性 - データ均等分布\n  - 頻繁なクエリ - クロスシャードクエリ回避\n  - 変更されにくい - データ移行回避\n\n一般的なシャードキー:\n  - ユーザー ID - ユーザー関連ビジネス\n  - 注文 ID - 注文関連ビジネス\n  - 時間 - ログ、履歴データ\n  - 地域 - 地理位置関連\n</code></pre>\n<h3>シャーディング戦略</h3>\n<pre><code class=\"language-go\">// 1. 範囲シャーディング\n// 利点: 範囲クエリ効率的\n// 欠点: データ偏り可能性\nfunc RangeShard(userID int) int {\n    if userID &#x3C; 1000000 {\n        return 0\n    } else if userID &#x3C; 2000000 {\n        return 1\n    }\n    return 2\n}\n\n// 2. ハッシュシャーディング\n// 利点: データ均等\n// 欠点: 範囲クエリはクロスシャード\nfunc HashShard(userID int, shardCount int) int {\n    return userID % shardCount\n}\n\n// 3. コンシステントハッシュ\n// 利点: 拡張時のデータ移行少\ntype ConsistentHash struct {\n    ring     map[uint32]int\n    replicas int\n}\n\nfunc (ch *ConsistentHash) GetShard(key string) int {\n    hash := crc32.ChecksumIEEE([]byte(key))\n    // リング上で時計回りに最も近いノードを探す\n    for _, v := range ch.ring {\n        if hash &#x3C;= v {\n            return ch.ring[v]\n        }\n    }\n    return ch.ring[0]\n}\n\n// 4. 複合シャーディング\n// 時間で DB 分割、ユーザーハッシュでテーブル分割\nfunc CompositeShard(userID int, createTime time.Time) (db, table int) {\n    db = createTime.Year() - 2020  // 年で DB 分割\n    table = userID % 64            // 64 テーブル\n    return db, table\n}\n</code></pre>\n<h2>シャーディングミドルウェア</h2>\n<h3>ShardingSphere</h3>\n<pre><code class=\"language-yaml\"># ShardingSphere 設定\ndataSources:\n  ds_0:\n    url: jdbc:mysql://localhost:3306/db0\n  ds_1:\n    url: jdbc:mysql://localhost:3306/db1\n\nrules:\n  - !SHARDING\n    tables:\n      orders:\n        actualDataNodes: ds_${0..1}.orders_${0..15}\n        tableStrategy:\n          standard:\n            shardingColumn: user_id\n            shardingAlgorithmName: order_table_hash\n        keyGenerateStrategy:\n          column: id\n          keyGeneratorName: snowflake\n\n    shardingAlgorithms:\n      order_table_hash:\n        type: HASH_MOD\n        props:\n          sharding-count: 16\n\n    keyGenerators:\n      snowflake:\n        type: SNOWFLAKE\n</code></pre>\n<h3>Vitess</h3>\n<pre><code class=\"language-yaml\"># Vitess VSchema\n{\n  \"sharded\": true,\n  \"vindexes\": {\n    \"hash\": {\n      \"type\": \"hash\"\n    }\n  },\n  \"tables\": {\n    \"orders\": {\n      \"column_vindexes\": [\n        {\n          \"column\": \"user_id\",\n          \"name\": \"hash\"\n        }\n      ]\n    }\n  }\n}\n</code></pre>\n<h2>分散 ID</h2>\n<h3>Snowflake アルゴリズム</h3>\n<pre><code class=\"language-go\">// Snowflake ID 構造\n// 1 bit 符号 | 41 bit タイムスタンプ | 10 bit マシン ID | 12 bit シーケンス\n\ntype Snowflake struct {\n    machineID     int64\n    sequence      int64\n    lastTimestamp int64\n}\n\nfunc (s *Snowflake) NextID() int64 {\n    timestamp := time.Now().UnixMilli()\n\n    if timestamp == s.lastTimestamp {\n        s.sequence = (s.sequence + 1) &#x26; 0xFFF\n        if s.sequence == 0 {\n            // 次のミリ秒を待つ\n            for timestamp &#x3C;= s.lastTimestamp {\n                timestamp = time.Now().UnixMilli()\n            }\n        }\n    } else {\n        s.sequence = 0\n    }\n\n    s.lastTimestamp = timestamp\n\n    return ((timestamp - epoch) &#x3C;&#x3C; 22) |\n           (s.machineID &#x3C;&#x3C; 12) |\n           s.sequence\n}\n</code></pre>\n<h3>その他の方式</h3>\n<pre><code class=\"language-yaml\">ID 生成方式:\n  - UUID: 無順序、インデックスに不適\n  - データベース自動増分: ボトルネックあり\n  - Redis INCR: 高性能、高可用性必要\n  - Snowflake: 推奨、順序あり分散\n  - Leaf: Meituan 方式、ダブルバッファ\n</code></pre>\n<h2>クロスシャードクエリ</h2>\n<h3>集約クエリ</h3>\n<pre><code class=\"language-go\">// 全シャード並列クエリ\nfunc QueryAllShards(query string) ([]Result, error) {\n    var wg sync.WaitGroup\n    results := make([]Result, len(shards))\n\n    for i, shard := range shards {\n        wg.Add(1)\n        go func(i int, shard *DB) {\n            defer wg.Done()\n            results[i] = shard.Query(query)\n        }(i, shard)\n    }\n\n    wg.Wait()\n\n    // 結果マージ\n    return mergeResults(results), nil\n}\n\n// ページネーションクエリ (全シャードからより多くのデータ取得必要)\nfunc PaginationQuery(offset, limit int) []Result {\n    // 各シャードから offset + limit 件取得\n    allResults := QueryAllShards(offset + limit)\n\n    // ソート\n    sort.Slice(allResults, func(i, j int) bool {\n        return allResults[i].CreatedAt.After(allResults[j].CreatedAt)\n    })\n\n    // offset から offset+limit を取得\n    return allResults[offset : offset+limit]\n}\n</code></pre>\n<h3>分散トランザクション</h3>\n<pre><code class=\"language-yaml\">方式選択:\n  - 2PC: 強一貫性、性能低\n  - TCC: ビジネス侵入\n  - Saga: 結果整合性\n  - ローカルメッセージテーブル: 信頼性メッセージ\n\n推奨:\n  - クロスシャードトランザクションは極力回避\n  - 結果整合性を使用\n  - ビジネス層補償\n</code></pre>\n<h2>データ移行</h2>\n<pre><code class=\"language-yaml\">移行ステップ:\n  1. デュアルライト: 新旧 DB に同時書き込み\n  2. 履歴データ移行: バッチで履歴データ移行\n  3. データ検証: データ整合性検証\n  4. 読み取り切り替え: 読み取りトラフィック段階的切り替え\n  5. 書き込み停止: 旧 DB への書き込み停止\n  6. クリーンアップ: 旧 DB 削除\n\n注意事項:\n  - 増分同期\n  - データ検証\n  - ロールバック計画\n  - グレースケール切り替え\n</code></pre>\n<h2>まとめ</h2>\n<p>シャーディングのポイント：</p>\n<ol>\n<li><strong>分割戦略</strong> - 垂直はビジネスで、水平はデータで</li>\n<li><strong>シャードキー</strong> - 高分散性、頻繁なクエリ</li>\n<li><strong>シャーディングアルゴリズム</strong> - ハッシュ、範囲、コンシステントハッシュ</li>\n<li><strong>分散 ID</strong> - Snowflake 推奨</li>\n<li><strong>移行</strong> - デュアルライト、増分同期、グレースケール</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "単一データベース・テーブルでは要件を満たせない時に水平スケーリング",
+        "垂直分割はビジネス別、水平分割はデータ別",
+        "シャードキーがデータ分散を決定",
+        "分散 ID でグローバルユニークを保証"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "分割方式",
+      "columns": [
+        {
+          "title": "垂直分割",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "データベース分割",
+              "description": "ビジネスドメイン別に分割"
+            },
+            {
+              "label": "テーブル分割",
+              "description": "大きなカラムをカラム別に分割"
+            },
+            {
+              "label": "適用",
+              "description": "ビジネスデカップリング"
+            }
+          ]
+        },
+        {
+          "title": "水平分割",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "データベース分割",
+              "description": "データを複数 DB に分散"
+            },
+            {
+              "label": "テーブル分割",
+              "description": "データを複数テーブルに分散"
+            },
+            {
+              "label": "適用",
+              "description": "大規模データ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "シャーディング戦略",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "ハッシュシャーディング",
+          "badge": "均等",
+          "badgeColor": "blue",
+          "points": [
+            "user_id % N",
+            "データ均等分布",
+            "範囲クエリはクロスシャード"
+          ]
+        },
+        {
+          "title": "範囲シャーディング",
+          "badge": "連続",
+          "badgeColor": "green",
+          "points": [
+            "ID または時間範囲で分割",
+            "範囲クエリが効率的",
+            "データ偏りの可能性"
+          ]
+        },
+        {
+          "title": "コンシステントハッシュ",
+          "badge": "拡張容易",
+          "badgeColor": "purple",
+          "points": [
+            "仮想ノードリング",
+            "拡張時のデータ移行が少ない",
+            "負荷分散"
+          ]
+        },
+        {
+          "title": "複合シャーディング",
+          "badge": "組み合わせ",
+          "badgeColor": "amber",
+          "points": [
+            "まず時間で DB 分割",
+            "次にハッシュでテーブル分割",
+            "柔軟な組み合わせ"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "シャードキー選択",
+      "highlightFirst": true,
+      "headers": [
+        "要件",
+        "説明",
+        "例"
+      ],
+      "rows": [
+        [
+          "高離散性",
+          "データ均等分布",
+          "user_id"
+        ],
+        [
+          "頻繁なクエリ",
+          "クロスシャードクエリ回避",
+          "注文クエリにユーザーID"
+        ],
+        [
+          "変更が少ない",
+          "データ移行回避",
+          "ステータスフィールドは不使用"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Snowflake ID",
+      "language": "text",
+      "code": "Snowflake ID 構造 (64 bit):\n┌─────────┬────────────┬──────────┬──────────┐\n│ 1 bit   │ 41 bit     │ 10 bit   │ 12 bit   │\n│ 符号ビット│ タイムスタンプ │ マシンID  │ シーケンス │\n└─────────┴────────────┴──────────┴──────────┘\n\n特徴:\n- 増加傾向、インデックスに適す\n- 分散生成、単一障害点なし\n- ミリ秒あたり 4096 ID"
+    },
+    {
+      "type": "table",
+      "title": "シャーディングミドルウェア",
+      "highlightFirst": true,
+      "headers": [
+        "ミドルウェア",
+        "特徴",
+        "適用シナリオ"
+      ],
+      "rows": [
+        [
+          "ShardingSphere",
+          "Java エコシステム、フル機能",
+          "Java アプリ"
+        ],
+        [
+          "Vitess",
+          "MySQL 互換、クラウドネイティブ",
+          "大規模クラスタ"
+        ],
+        [
+          "MyCat",
+          "国産、透過プロキシ",
+          "中小規模"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "データ移行ステップ",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "デュアルライト",
+          "description": "新旧同期",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "履歴移行",
+          "description": "バッチインポート",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "データ検証",
+          "description": "整合性チェック",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "読み取り切替",
+          "description": "グレースケール切替",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "旧 DB 停止",
+          "description": "移行完了",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "注意事項",
+      "style": "check",
+      "items": [
+        {
+          "label": "クロスシャードトランザクション回避",
+          "description": "結果整合性または Saga を使用"
+        },
+        {
+          "label": "クロスシャードクエリ",
+          "description": "並列クエリ + 結果マージ"
+        },
+        {
+          "label": "ページング問題",
+          "description": "各シャードで多めに取得後ソート"
+        },
+        {
+          "label": "グローバルテーブル",
+          "description": "小テーブルを各シャードにフルコピー"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "分散トランザクション",
+    "データベース正規化",
+    "マイクロサービス"
+  ]
 }

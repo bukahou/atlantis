@@ -2,14 +2,183 @@
   "slug": "prometheus",
   "meta": {
     "title": "Prometheus",
-    "description": "Prometheus 监控系统、指标收集与告警配置",
+    "description": "Prometheus 监控系统、指标采集与告警配置",
     "order": 1,
     "tags": [
-      "toolchain",
-      "monitoring",
-      "prometheus",
-      "metrics"
+      "Prometheus",
+      "监控",
+      "指标",
+      "告警"
     ]
   },
-  "content": "<h1>Prometheus</h1>\n<h2>Prometheus 概述</h2>\n<p>Prometheus 是开源的监控和告警系统，采用拉取模式收集时序数据，是云原生监控的标准方案。</p>\n<pre><code>Prometheus 架构\n├── Prometheus Server - 数据采集和存储\n├── Exporter - 指标暴露\n├── Pushgateway - 短期任务指标\n├── Alertmanager - 告警管理\n└── PromQL - 查询语言\n</code></pre>\n<h2>指标类型</h2>\n<h3>四种指标类型</h3>\n<pre><code class=\"language-go\">import \"github.com/prometheus/client_golang/prometheus\"\n\n// Counter - 只增不减\nvar requestsTotal = prometheus.NewCounterVec(\n    prometheus.CounterOpts{\n        Name: \"http_requests_total\",\n        Help: \"Total number of HTTP requests\",\n    },\n    []string{\"method\", \"path\", \"status\"},\n)\n\n// Gauge - 可增可减\nvar activeConnections = prometheus.NewGauge(\n    prometheus.GaugeOpts{\n        Name: \"active_connections\",\n        Help: \"Number of active connections\",\n    },\n)\n\n// Histogram - 分布统计\nvar requestDuration = prometheus.NewHistogramVec(\n    prometheus.HistogramOpts{\n        Name:    \"http_request_duration_seconds\",\n        Help:    \"HTTP request duration in seconds\",\n        Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10},\n    },\n    []string{\"method\", \"path\"},\n)\n\n// Summary - 分位数\nvar requestLatency = prometheus.NewSummaryVec(\n    prometheus.SummaryOpts{\n        Name:       \"http_request_latency_seconds\",\n        Help:       \"HTTP request latency in seconds\",\n        Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},\n    },\n    []string{\"method\"},\n)\n</code></pre>\n<h3>Go 应用集成</h3>\n<pre><code class=\"language-go\">import (\n    \"github.com/prometheus/client_golang/prometheus\"\n    \"github.com/prometheus/client_golang/prometheus/promhttp\"\n)\n\nfunc init() {\n    prometheus.MustRegister(requestsTotal)\n    prometheus.MustRegister(activeConnections)\n    prometheus.MustRegister(requestDuration)\n}\n\nfunc main() {\n    // 暴露指标端点\n    http.Handle(\"/metrics\", promhttp.Handler())\n\n    // 业务处理\n    http.HandleFunc(\"/api/users\", func(w http.ResponseWriter, r *http.Request) {\n        timer := prometheus.NewTimer(requestDuration.WithLabelValues(r.Method, r.URL.Path))\n        defer timer.ObserveDuration()\n\n        // 处理请求\n        requestsTotal.WithLabelValues(r.Method, r.URL.Path, \"200\").Inc()\n    })\n\n    http.ListenAndServe(\":8080\", nil)\n}\n</code></pre>\n<h2>配置文件</h2>\n<h3>prometheus.yml</h3>\n<pre><code class=\"language-yaml\">global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n  external_labels:\n    cluster: 'production'\n\nalerting:\n  alertmanagers:\n    - static_configs:\n        - targets:\n            - alertmanager:9093\n\nrule_files:\n  - \"rules/*.yml\"\n\nscrape_configs:\n  # Prometheus 自身\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  # 应用服务\n  - job_name: 'app'\n    static_configs:\n      - targets: ['app1:8080', 'app2:8080']\n    relabel_configs:\n      - source_labels: [__address__]\n        target_label: instance\n        regex: '([^:]+):\\d+'\n        replacement: '${1}'\n\n  # Kubernetes 服务发现\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]\n        action: replace\n        target_label: __metrics_path__\n        regex: (.+)\n      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]\n        action: replace\n        regex: ([^:]+)(?::\\d+)?;(\\d+)\n        replacement: $1:$2\n        target_label: __address__\n</code></pre>\n<h2>PromQL 查询</h2>\n<h3>基础查询</h3>\n<pre><code class=\"language-promql\"># 即时向量\nhttp_requests_total{method=\"GET\", status=\"200\"}\n\n# 范围向量 (最近 5 分钟)\nhttp_requests_total[5m]\n\n# 偏移\nhttp_requests_total offset 1h\n\n# 标签匹配\nhttp_requests_total{path=~\"/api/.*\"}\nhttp_requests_total{status!=\"200\"}\n</code></pre>\n<h3>聚合操作</h3>\n<pre><code class=\"language-promql\"># 求和\nsum(http_requests_total) by (method)\n\n# 平均值\navg(http_request_duration_seconds) by (path)\n\n# 计数\ncount(up == 1)\n\n# 最大/最小\nmax(memory_usage_bytes) by (instance)\nmin(cpu_usage) by (instance)\n\n# 分位数\nhistogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))\n</code></pre>\n<h3>常用函数</h3>\n<pre><code class=\"language-promql\"># 增长率\nrate(http_requests_total[5m])\nirate(http_requests_total[5m])  # 瞬时\n\n# 增量\nincrease(http_requests_total[1h])\n\n# 预测\npredict_linear(disk_usage_bytes[1h], 4*3600)\n\n# 差值\ndelta(temperature[1h])\n\n# 排序\ntopk(5, sum(rate(http_requests_total[5m])) by (path))\nbottomk(5, avg(response_time) by (service))\n</code></pre>\n<h2>告警规则</h2>\n<h3>rules/alerts.yml</h3>\n<pre><code class=\"language-yaml\">groups:\n  - name: app-alerts\n    rules:\n      # 高错误率\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (service)\n          /\n          sum(rate(http_requests_total[5m])) by (service)\n          > 0.05\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate on {{ $labels.service }}\"\n          description: \"Error rate is {{ $value | humanizePercentage }}\"\n\n      # 响应时间过高\n      - alert: HighLatency\n        expr: |\n          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))\n          > 1\n        for: 5m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"High latency on {{ $labels.service }}\"\n          description: \"P95 latency is {{ $value | humanizeDuration }}\"\n\n      # 实例宕机\n      - alert: InstanceDown\n        expr: up == 0\n        for: 1m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"Instance {{ $labels.instance }} down\"\n          description: \"{{ $labels.instance }} has been down for more than 1 minute\"\n\n      # 磁盘空间不足\n      - alert: DiskSpaceLow\n        expr: |\n          (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 &#x3C; 10\n        for: 5m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"Low disk space on {{ $labels.instance }}\"\n          description: \"Disk space is {{ $value | humanizePercentage }}\"\n</code></pre>\n<h2>Alertmanager</h2>\n<h3>alertmanager.yml</h3>\n<pre><code class=\"language-yaml\">global:\n  resolve_timeout: 5m\n  smtp_smarthost: 'smtp.example.com:587'\n  smtp_from: 'alertmanager@example.com'\n\nroute:\n  group_by: ['alertname', 'service']\n  group_wait: 10s\n  group_interval: 10s\n  repeat_interval: 1h\n  receiver: 'default'\n  routes:\n    - match:\n        severity: critical\n      receiver: 'pagerduty'\n    - match:\n        severity: warning\n      receiver: 'slack'\n\nreceivers:\n  - name: 'default'\n    email_configs:\n      - to: 'team@example.com'\n\n  - name: 'slack'\n    slack_configs:\n      - api_url: 'https://hooks.slack.com/services/xxx'\n        channel: '#alerts'\n        send_resolved: true\n\n  - name: 'pagerduty'\n    pagerduty_configs:\n      - service_key: 'xxx'\n\ninhibit_rules:\n  - source_match:\n      severity: 'critical'\n    target_match:\n      severity: 'warning'\n    equal: ['alertname', 'instance']\n</code></pre>\n<h2>总结</h2>\n<p>Prometheus 要点：</p>\n<ol>\n<li><strong>指标类型</strong> - Counter, Gauge, Histogram, Summary</li>\n<li><strong>PromQL</strong> - 强大的查询语言</li>\n<li><strong>服务发现</strong> - 静态配置、Kubernetes SD</li>\n<li><strong>告警</strong> - 规则定义、Alertmanager 路由</li>\n<li><strong>生态</strong> - 丰富的 Exporter、Grafana 集成</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Prometheus 是开源的监控和告警系统",
+        "Pull 模式主动采集指标数据",
+        "时序数据库存储，高效查询",
+        "PromQL 强大的查询语言"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "架构组件",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Targets",
+          "description": "应用/Exporter",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Prometheus",
+          "description": "采集存储",
+          "color": "bg-orange-500"
+        },
+        {
+          "label": "Alertmanager",
+          "description": "告警管理",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "Grafana",
+          "description": "可视化",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "指标类型",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Counter",
+          "badge": "计数器",
+          "badgeColor": "blue",
+          "points": [
+            "只增不减",
+            "请求数、错误数",
+            "rate() 计算增长率"
+          ]
+        },
+        {
+          "title": "Gauge",
+          "badge": "仪表盘",
+          "badgeColor": "green",
+          "points": [
+            "可增可减",
+            "CPU、内存使用",
+            "当前值查询"
+          ]
+        },
+        {
+          "title": "Histogram",
+          "badge": "直方图",
+          "badgeColor": "purple",
+          "points": [
+            "分布统计",
+            "请求延迟分布",
+            "histogram_quantile()"
+          ]
+        },
+        {
+          "title": "Summary",
+          "badge": "摘要",
+          "badgeColor": "amber",
+          "points": [
+            "客户端计算分位数",
+            "预定义百分位",
+            "无法聚合"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "prometheus.yml 配置",
+      "language": "yaml",
+      "code": "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\nalerting:\n  alertmanagers:\n    - static_configs:\n        - targets: ['alertmanager:9093']\n\nrule_files:\n  - \"alerts/*.yml\"\n\nscrape_configs:\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  - job_name: 'node'\n    static_configs:\n      - targets: ['node-exporter:9100']\n\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true"
+    },
+    {
+      "type": "codeBlock",
+      "title": "PromQL 查询",
+      "language": "promql",
+      "code": "# 请求速率 (每秒)\nrate(http_requests_total[5m])\n\n# 错误率\nsum(rate(http_requests_total{status=~\"5..\"}[5m])) \n/ sum(rate(http_requests_total[5m]))\n\n# P99 延迟\nhistogram_quantile(0.99, \n  sum(rate(http_request_duration_seconds_bucket[5m])) by (le)\n)\n\n# CPU 使用率\n100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)\n\n# 内存使用率\n(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"
+    },
+    {
+      "type": "codeBlock",
+      "title": "告警规则",
+      "language": "yaml",
+      "code": "groups:\n  - name: application\n    rules:\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m])) \n          / sum(rate(http_requests_total[5m])) > 0.05\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate detected\"\n          description: \"Error rate is {{ $value | humanizePercentage }}\"\n\n      - alert: HighLatency\n        expr: |\n          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1\n        for: 10m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"High latency detected\""
+    },
+    {
+      "type": "table",
+      "title": "常用 Exporter",
+      "highlightFirst": true,
+      "headers": [
+        "Exporter",
+        "用途",
+        "端口"
+      ],
+      "rows": [
+        [
+          "node_exporter",
+          "主机指标",
+          "9100"
+        ],
+        [
+          "blackbox_exporter",
+          "探针检测",
+          "9115"
+        ],
+        [
+          "mysql_exporter",
+          "MySQL 指标",
+          "9104"
+        ],
+        [
+          "redis_exporter",
+          "Redis 指标",
+          "9121"
+        ],
+        [
+          "nginx_exporter",
+          "Nginx 指标",
+          "9113"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "合理标签",
+          "description": "避免高基数标签导致性能问题"
+        },
+        {
+          "label": "Recording Rules",
+          "description": "预计算常用查询，提升性能"
+        },
+        {
+          "label": "联邦集群",
+          "description": "大规模部署使用分层架构"
+        },
+        {
+          "label": "持久化存储",
+          "description": "远程存储长期指标数据"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Grafana",
+    "Kubernetes",
+    "告警"
+  ]
 }

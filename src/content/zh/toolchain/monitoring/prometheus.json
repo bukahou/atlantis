@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "title": "Prometheus",
+    "description": "Prometheus 监控系统、指标采集与告警配置",
+    "order": 1,
+    "tags": ["Prometheus", "监控", "指标", "告警"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Prometheus 是开源的监控和告警系统",
+        "Pull 模式主动采集指标数据",
+        "时序数据库存储，高效查询",
+        "PromQL 强大的查询语言"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "架构组件",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Targets", "description": "应用/Exporter", "color": "bg-blue-500" },
+        { "label": "Prometheus", "description": "采集存储", "color": "bg-orange-500" },
+        { "label": "Alertmanager", "description": "告警管理", "color": "bg-red-500" },
+        { "label": "Grafana", "description": "可视化", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "指标类型",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Counter",
+          "badge": "计数器",
+          "badgeColor": "blue",
+          "points": [
+            "只增不减",
+            "请求数、错误数",
+            "rate() 计算增长率"
+          ]
+        },
+        {
+          "title": "Gauge",
+          "badge": "仪表盘",
+          "badgeColor": "green",
+          "points": [
+            "可增可减",
+            "CPU、内存使用",
+            "当前值查询"
+          ]
+        },
+        {
+          "title": "Histogram",
+          "badge": "直方图",
+          "badgeColor": "purple",
+          "points": [
+            "分布统计",
+            "请求延迟分布",
+            "histogram_quantile()"
+          ]
+        },
+        {
+          "title": "Summary",
+          "badge": "摘要",
+          "badgeColor": "amber",
+          "points": [
+            "客户端计算分位数",
+            "预定义百分位",
+            "无法聚合"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "prometheus.yml 配置",
+      "language": "yaml",
+      "code": "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\nalerting:\n  alertmanagers:\n    - static_configs:\n        - targets: ['alertmanager:9093']\n\nrule_files:\n  - \"alerts/*.yml\"\n\nscrape_configs:\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  - job_name: 'node'\n    static_configs:\n      - targets: ['node-exporter:9100']\n\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true"
+    },
+    {
+      "type": "codeBlock",
+      "title": "PromQL 查询",
+      "language": "promql",
+      "code": "# 请求速率 (每秒)\nrate(http_requests_total[5m])\n\n# 错误率\nsum(rate(http_requests_total{status=~\"5..\"}[5m])) \n/ sum(rate(http_requests_total[5m]))\n\n# P99 延迟\nhistogram_quantile(0.99, \n  sum(rate(http_request_duration_seconds_bucket[5m])) by (le)\n)\n\n# CPU 使用率\n100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)\n\n# 内存使用率\n(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"
+    },
+    {
+      "type": "codeBlock",
+      "title": "告警规则",
+      "language": "yaml",
+      "code": "groups:\n  - name: application\n    rules:\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m])) \n          / sum(rate(http_requests_total[5m])) > 0.05\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate detected\"\n          description: \"Error rate is {{ $value | humanizePercentage }}\"\n\n      - alert: HighLatency\n        expr: |\n          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1\n        for: 10m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"High latency detected\""
+    },
+    {
+      "type": "table",
+      "title": "常用 Exporter",
+      "highlightFirst": true,
+      "headers": ["Exporter", "用途", "端口"],
+      "rows": [
+        ["node_exporter", "主机指标", "9100"],
+        ["blackbox_exporter", "探针检测", "9115"],
+        ["mysql_exporter", "MySQL 指标", "9104"],
+        ["redis_exporter", "Redis 指标", "9121"],
+        ["nginx_exporter", "Nginx 指标", "9113"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "合理标签", "description": "避免高基数标签导致性能问题" },
+        { "label": "Recording Rules", "description": "预计算常用查询，提升性能" },
+        { "label": "联邦集群", "description": "大规模部署使用分层架构" },
+        { "label": "持久化存储", "description": "远程存储长期指标数据" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Grafana", "Kubernetes", "告警"]
+}

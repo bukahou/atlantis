@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "title": "Redis 消息队列",
+    "description": "Redis 实现的轻量级消息队列",
+    "order": 3,
+    "tags": ["Redis", "消息队列", "Streams"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Redis 提供多种队列实现方式",
+        "List 实现简单队列",
+        "Pub/Sub 实现发布订阅",
+        "Stream 实现持久化消息队列"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Redis 队列方案",
+      "columns": [
+        {
+          "title": "List",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "特点", "description": "简单 FIFO 队列" },
+            { "label": "命令", "description": "LPUSH/BRPOP" },
+            { "label": "适用", "description": "简单任务队列" }
+          ]
+        },
+        {
+          "title": "Pub/Sub",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "特点", "description": "实时广播" },
+            { "label": "命令", "description": "PUBLISH/SUBSCRIBE" },
+            { "label": "适用", "description": "实时通知" }
+          ]
+        },
+        {
+          "title": "Stream",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "特点", "description": "持久化、消费组" },
+            { "label": "命令", "description": "XADD/XREAD" },
+            { "label": "适用", "description": "可靠消息队列" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Redis Stream 示例",
+      "language": "bash",
+      "code": "# 生产消息\nXADD mystream * field1 value1 field2 value2\n\n# 消费消息（阻塞读取）\nXREAD BLOCK 5000 STREAMS mystream $\n\n# 创建消费组\nXGROUP CREATE mystream mygroup $ MKSTREAM\n\n# 消费组读取\nXREADGROUP GROUP mygroup consumer1 STREAMS mystream >\n\n# 确认消息\nXACK mystream mygroup 1526569495631-0\n\n# 查看待处理消息\nXPENDING mystream mygroup"
+    },
+    {
+      "type": "cards",
+      "title": "Stream 特性",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "消费组",
+          "badge": "Group",
+          "badgeColor": "blue",
+          "points": [
+            "类似 Kafka Consumer Group",
+            "组内负载均衡",
+            "消息确认机制"
+          ]
+        },
+        {
+          "title": "持久化",
+          "badge": "Persistence",
+          "badgeColor": "green",
+          "points": [
+            "消息持久化存储",
+            "支持 AOF/RDB",
+            "断电不丢失"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "方案对比",
+      "highlightFirst": true,
+      "headers": ["方案", "持久化", "消费确认", "消费组"],
+      "rows": [
+        ["List", "可选", "无", "无"],
+        ["Pub/Sub", "无", "无", "无"],
+        ["Stream", "是", "有", "有"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "使用场景",
+      "style": "check",
+      "items": [
+        { "label": "轻量级任务队列", "description": "List 实现简单的任务分发" },
+        { "label": "实时通知", "description": "Pub/Sub 实现广播通知" },
+        { "label": "消息队列", "description": "Stream 实现可靠消息队列" },
+        { "label": "延迟队列", "description": "Sorted Set 实现延迟任务" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Redis", "消息队列", "缓存"]
+}

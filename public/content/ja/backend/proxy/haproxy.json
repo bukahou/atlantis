@@ -1,0 +1,140 @@
+{
+  "slug": "haproxy",
+  "meta": {
+    "title": "HAProxy",
+    "description": "高性能 TCP/HTTP ロードバランサー",
+    "order": 1,
+    "tags": [
+      "HAProxy",
+      "ロードバランサー",
+      "プロキシ",
+      "高可用性"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "業界トップクラスの TCP/HTTP ロードバランシング性能",
+        "L4 および L7 ロードバランシングをサポート",
+        "豊富なヘルスチェックとフェイルオーバーメカニズム",
+        "詳細な統計情報と監視インターフェース"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "HAProxy 概要",
+      "content": "HAProxy（High Availability Proxy）は高性能なオープンソースロードバランサーおよびプロキシサーバーです。極めて高いパフォーマンスと安定性で知られ、GitHub、Twitter、Stack Overflow などの大規模サイトで広く利用されています。HAProxy は TCP（L4）と HTTP（L7）両方のロードバランシングをサポートし、豊富なヘルスチェック、セッション維持、トラフィック制御機能を提供します。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本設定",
+      "language": "haproxy",
+      "code": "global\n    log /dev/log local0\n    maxconn 4096\n    user haproxy\n    group haproxy\n    daemon\n    \ndefaults\n    mode http\n    log global\n    option httplog\n    option dontlognull\n    timeout connect 5000ms\n    timeout client  50000ms\n    timeout server  50000ms\n    \nfrontend http_front\n    bind *:80\n    default_backend http_back\n    \nbackend http_back\n    balance roundrobin\n    option httpchk GET /health\n    server server1 192.168.1.10:8080 check\n    server server2 192.168.1.11:8080 check\n    server server3 192.168.1.12:8080 check backup"
+    },
+    {
+      "type": "cards",
+      "title": "ロードバランシングアルゴリズム",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "roundrobin",
+          "badge": "デフォルト",
+          "badgeColor": "green",
+          "points": [
+            "ラウンドロビンで分散",
+            "重み付け設定対応",
+            "ステートレスサービス向け"
+          ]
+        },
+        {
+          "title": "leastconn",
+          "badge": "推奨",
+          "badgeColor": "blue",
+          "points": [
+            "最小接続数優先",
+            "長時間接続に適合",
+            "動的ロードバランシング"
+          ]
+        },
+        {
+          "title": "source",
+          "badge": "セッション",
+          "badgeColor": "purple",
+          "points": [
+            "ソース IP ハッシュ",
+            "セッション維持",
+            "ステートフルサービス"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ヘルスチェックオプション",
+      "highlightFirst": true,
+      "headers": [
+        "オプション",
+        "説明",
+        "例"
+      ],
+      "rows": [
+        [
+          "check",
+          "ヘルスチェック有効化",
+          "server s1 10.0.0.1:80 check"
+        ],
+        [
+          "inter",
+          "チェック間隔",
+          "inter 3000 (3秒)"
+        ],
+        [
+          "fall",
+          "失敗しきい値",
+          "fall 3 (3回失敗で down)"
+        ],
+        [
+          "rise",
+          "回復しきい値",
+          "rise 2 (2回成功で up)"
+        ],
+        [
+          "httpchk",
+          "HTTP チェック",
+          "option httpchk GET /health"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "統計ページを有効化",
+          "description": "stats enable でリアルタイム監視"
+        },
+        {
+          "label": "タイムアウトを適切に設定",
+          "description": "業務特性に応じて timeout 値を調整"
+        },
+        {
+          "label": "ヘルスチェックを使用",
+          "description": "障害ノードを迅速に検出"
+        },
+        {
+          "label": "ログを設定",
+          "description": "問題調査と分析を容易に"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Nginx",
+    "ロードバランサー",
+    "高可用性"
+  ]
+}

@@ -1,15 +1,189 @@
 {
   "slug": "logging",
   "meta": {
-    "title": "ロギングシステム",
-    "description": "ログ収集、ELK Stack と分散トレーシング",
+    "title": "ログシステム",
+    "description": "ログ収集、処理と分析：ELK/Loki ログスタック",
     "order": 3,
     "tags": [
-      "toolchain",
-      "monitoring",
-      "logging",
-      "elk"
+      "ログ",
+      "ELK",
+      "Loki",
+      "オブザーバビリティ"
     ]
   },
-  "content": "<h1>ロギングシステム</h1>\n<h2>ロギングシステム概要</h2>\n<p>ロギングシステムはオブザーバビリティの重要な構成要素で、アプリケーションログの記録、収集、保存、分析に使用されます。</p>\n<pre><code>ロギングアーキテクチャ\n├── ログ生成 - アプリケーションがログ生成\n├── ログ収集 - Filebeat, Fluentd\n├── ログ転送 - Kafka, Redis\n├── ログ保存 - Elasticsearch, Loki\n├── ログ分析 - Kibana, Grafana\n└── ログアラート - ElastAlert, Grafana\n</code></pre>\n<h2>構造化ログ</h2>\n<h3>Go ログライブラリ</h3>\n<pre><code class=\"language-go\">import \"go.uber.org/zap\"\n\n// Logger 初期化\nfunc NewLogger() *zap.Logger {\n    config := zap.NewProductionConfig()\n    config.OutputPaths = []string{\"stdout\"}\n    config.EncoderConfig.TimeKey = \"timestamp\"\n    config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder\n\n    logger, _ := config.Build()\n    return logger\n}\n\n// 使用\nfunc main() {\n    logger := NewLogger()\n    defer logger.Sync()\n\n    logger.Info(\"Server started\",\n        zap.String(\"host\", \"localhost\"),\n        zap.Int(\"port\", 8080),\n    )\n\n    logger.Error(\"Request failed\",\n        zap.String(\"method\", \"GET\"),\n        zap.String(\"path\", \"/api/users\"),\n        zap.Int(\"status\", 500),\n        zap.Error(err),\n        zap.String(\"trace_id\", traceID),\n    )\n}\n</code></pre>\n<h3>ログフォーマット</h3>\n<pre><code class=\"language-json\">{\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\",\n  \"level\": \"INFO\",\n  \"message\": \"HTTP request completed\",\n  \"service\": \"user-service\",\n  \"host\": \"pod-abc123\",\n  \"trace_id\": \"abc123def456\",\n  \"span_id\": \"span789\",\n  \"method\": \"GET\",\n  \"path\": \"/api/users/123\",\n  \"status\": 200,\n  \"duration_ms\": 45,\n  \"user_id\": \"user456\"\n}\n</code></pre>\n<h2>ELK Stack</h2>\n<h3>Filebeat 設定</h3>\n<pre><code class=\"language-yaml\"># filebeat.yml\nfilebeat.inputs:\n  - type: container\n    paths:\n      - '/var/lib/docker/containers/*/*.log'\n    processors:\n      - add_kubernetes_metadata:\n          host: ${NODE_NAME}\n          matchers:\n            - logs_path:\n                logs_path: \"/var/lib/docker/containers/\"\n\n  - type: log\n    paths:\n      - /var/log/app/*.log\n    json:\n      keys_under_root: true\n      add_error_key: true\n\noutput.elasticsearch:\n  hosts: [\"elasticsearch:9200\"]\n  index: \"logs-%{+yyyy.MM.dd}\"\n\noutput.kafka:\n  hosts: [\"kafka:9092\"]\n  topic: \"logs\"\n  codec.json:\n    pretty: false\n\nprocessors:\n  - add_host_metadata: ~\n  - add_cloud_metadata: ~\n</code></pre>\n<h3>Logstash 設定</h3>\n<pre><code class=\"language-ruby\"># logstash.conf\ninput {\n  kafka {\n    bootstrap_servers => \"kafka:9092\"\n    topics => [\"logs\"]\n    codec => json\n    consumer_group_id => \"logstash\"\n  }\n}\n\nfilter {\n  # JSON パース\n  json {\n    source => \"message\"\n  }\n\n  # 日付パース\n  date {\n    match => [\"timestamp\", \"ISO8601\"]\n    target => \"@timestamp\"\n  }\n\n  # GeoIP\n  if [client_ip] {\n    geoip {\n      source => \"client_ip\"\n    }\n  }\n\n  # 機密情報マスキング\n  mutate {\n    gsub => [\n      \"message\", \"\\d{16}\", \"****\",\n      \"email\", \"[^@]+@\", \"***@\"\n    ]\n  }\n}\n\noutput {\n  elasticsearch {\n    hosts => [\"elasticsearch:9200\"]\n    index => \"logs-%{service}-%{+YYYY.MM.dd}\"\n  }\n}\n</code></pre>\n<h3>Elasticsearch インデックステンプレート</h3>\n<pre><code class=\"language-json\">PUT _index_template/logs\n{\n  \"index_patterns\": [\"logs-*\"],\n  \"template\": {\n    \"settings\": {\n      \"number_of_shards\": 3,\n      \"number_of_replicas\": 1,\n      \"index.lifecycle.name\": \"logs-policy\",\n      \"index.lifecycle.rollover_alias\": \"logs\"\n    },\n    \"mappings\": {\n      \"properties\": {\n        \"@timestamp\": { \"type\": \"date\" },\n        \"level\": { \"type\": \"keyword\" },\n        \"message\": { \"type\": \"text\" },\n        \"service\": { \"type\": \"keyword\" },\n        \"trace_id\": { \"type\": \"keyword\" },\n        \"duration_ms\": { \"type\": \"integer\" },\n        \"status\": { \"type\": \"integer\" }\n      }\n    }\n  }\n}\n</code></pre>\n<h2>Loki</h2>\n<h3>Loki 設定</h3>\n<pre><code class=\"language-yaml\"># loki-config.yaml\nauth_enabled: false\n\nserver:\n  http_listen_port: 3100\n\ningester:\n  lifecycler:\n    ring:\n      kvstore:\n        store: inmemory\n      replication_factor: 1\n\nschema_config:\n  configs:\n    - from: 2020-10-24\n      store: boltdb-shipper\n      object_store: filesystem\n      schema: v11\n      index:\n        prefix: index_\n        period: 24h\n\nstorage_config:\n  boltdb_shipper:\n    active_index_directory: /loki/index\n    cache_location: /loki/cache\n  filesystem:\n    directory: /loki/chunks\n\nlimits_config:\n  enforce_metric_name: false\n  reject_old_samples: true\n  reject_old_samples_max_age: 168h\n</code></pre>\n<h3>Promtail 設定</h3>\n<pre><code class=\"language-yaml\"># promtail-config.yaml\nserver:\n  http_listen_port: 9080\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: http://loki:3100/loki/api/v1/push\n\nscrape_configs:\n  - job_name: kubernetes-pods\n    kubernetes_sd_configs:\n      - role: pod\n    pipeline_stages:\n      - docker: {}\n      - json:\n          expressions:\n            level: level\n            msg: message\n            trace_id: trace_id\n      - labels:\n          level:\n          trace_id:\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_label_app]\n        target_label: app\n      - source_labels: [__meta_kubernetes_namespace]\n        target_label: namespace\n</code></pre>\n<h3>LogQL クエリ</h3>\n<pre><code class=\"language-logql\"># 基本クエリ\n{app=\"user-service\"} |= \"error\"\n\n# JSON パース\n{app=\"user-service\"} | json | level=\"ERROR\"\n\n# 正規表現抽出\n{app=\"nginx\"} | regexp `(?P&#x3C;method>\\w+) (?P&#x3C;path>\\S+) HTTP`\n\n# 集約\nsum(rate({app=\"user-service\"} | json | level=\"ERROR\" [5m])) by (path)\n\n# パーセンタイル\nquantile_over_time(0.95, {app=\"user-service\"} | json | unwrap duration_ms [5m])\n</code></pre>\n<h2>分散トレーシング</h2>\n<h3>OpenTelemetry</h3>\n<pre><code class=\"language-go\">import (\n    \"go.opentelemetry.io/otel\"\n    \"go.opentelemetry.io/otel/exporters/jaeger\"\n    \"go.opentelemetry.io/otel/sdk/trace\"\n)\n\nfunc initTracer() func() {\n    exporter, _ := jaeger.New(jaeger.WithCollectorEndpoint(\n        jaeger.WithEndpoint(\"http://jaeger:14268/api/traces\"),\n    ))\n\n    tp := trace.NewTracerProvider(\n        trace.WithBatcher(exporter),\n        trace.WithResource(resource.NewWithAttributes(\n            semconv.SchemaURL,\n            semconv.ServiceNameKey.String(\"user-service\"),\n        )),\n    )\n\n    otel.SetTracerProvider(tp)\n\n    return func() {\n        tp.Shutdown(context.Background())\n    }\n}\n\n// 使用\nfunc HandleRequest(w http.ResponseWriter, r *http.Request) {\n    ctx, span := otel.Tracer(\"user-service\").Start(r.Context(), \"HandleRequest\")\n    defer span.End()\n\n    span.SetAttributes(\n        attribute.String(\"http.method\", r.Method),\n        attribute.String(\"http.url\", r.URL.String()),\n    )\n\n    // context 伝播\n    user, err := userService.GetUser(ctx, userID)\n}\n</code></pre>\n<h2>まとめ</h2>\n<p>ロギングシステムのポイント：</p>\n<ol>\n<li><strong>構造化ログ</strong> - JSON フォーマット、統一フィールド</li>\n<li><strong>ログ収集</strong> - Filebeat, Promtail</li>\n<li><strong>ログ保存</strong> - Elasticsearch, Loki</li>\n<li><strong>ログ分析</strong> - Kibana, Grafana</li>\n<li><strong>分散トレーシング</strong> - OpenTelemetry, Jaeger</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ログはオブザーバビリティの三本柱の一つ",
+        "構造化ログはクエリと分析を容易にする",
+        "集中ログ管理がトラブルシューティング効率を向上",
+        "ログレベル：DEBUG/INFO/WARN/ERROR"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ログスタック比較",
+      "columns": [
+        {
+          "title": "ELK Stack",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "コンポーネント",
+              "description": "ES + Logstash + Kibana"
+            },
+            {
+              "label": "特徴",
+              "description": "全文検索が強力"
+            },
+            {
+              "label": "リソース",
+              "description": "高め"
+            }
+          ]
+        },
+        {
+          "title": "Loki + Grafana",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            {
+              "label": "コンポーネント",
+              "description": "Loki + Promtail + Grafana"
+            },
+            {
+              "label": "特徴",
+              "description": "ラベルインデックス、軽量"
+            },
+            {
+              "label": "リソース",
+              "description": "低め"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "ELK アーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "アプリ",
+          "description": "ログ生成",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Filebeat",
+          "description": "収集・転送",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Logstash",
+          "description": "解析・処理",
+          "color": "bg-orange-500"
+        },
+        {
+          "label": "Elasticsearch",
+          "description": "保存・インデックス",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "Kibana",
+          "description": "可視化",
+          "color": "bg-cyan-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "構造化ログ (JSON)",
+      "language": "json",
+      "code": "{\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\",\n  \"level\": \"INFO\",\n  \"service\": \"api-gateway\",\n  \"trace_id\": \"abc123\",\n  \"span_id\": \"def456\",\n  \"message\": \"Request processed\",\n  \"http\": {\n    \"method\": \"POST\",\n    \"path\": \"/api/users\",\n    \"status_code\": 200,\n    \"duration_ms\": 45\n  },\n  \"user_id\": \"user_789\"\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Logstash 設定",
+      "language": "ruby",
+      "code": "input {\n  beats {\n    port => 5044\n  }\n}\n\nfilter {\n  json {\n    source => \"message\"\n  }\n  \n  date {\n    match => [\"timestamp\", \"ISO8601\"]\n    target => \"@timestamp\"\n  }\n  \n  geoip {\n    source => \"client_ip\"\n  }\n  \n  mutate {\n    remove_field => [\"agent\", \"host\", \"ecs\"]\n  }\n}\n\noutput {\n  elasticsearch {\n    hosts => [\"elasticsearch:9200\"]\n    index => \"logs-%{[service]}-%{+YYYY.MM.dd}\"\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Loki + Promtail 設定",
+      "language": "yaml",
+      "code": "# promtail-config.yaml\nserver:\n  http_listen_port: 9080\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: http://loki:3100/loki/api/v1/push\n\nscrape_configs:\n  - job_name: kubernetes-pods\n    kubernetes_sd_configs:\n      - role: pod\n    pipeline_stages:\n      - json:\n          expressions:\n            level: level\n            message: message\n      - labels:\n          level:\n      - timestamp:\n          source: timestamp\n          format: RFC3339"
+    },
+    {
+      "type": "codeBlock",
+      "title": "LogQL クエリ (Loki)",
+      "language": "logql",
+      "code": "# 基本クエリ\n{namespace=\"production\", app=\"api\"}\n\n# ログ内容フィルタ\n{app=\"api\"} |= \"error\"\n{app=\"api\"} |~ \"status_code=(4|5)\\\\d{2}\"\n\n# JSON 解析\n{app=\"api\"} | json | level=\"ERROR\"\n\n# 集約統計\nsum(rate({app=\"api\"} |= \"error\" [5m])) by (service)\n\n# ログカウント\ncount_over_time({app=\"api\", level=\"ERROR\"}[1h])"
+    },
+    {
+      "type": "table",
+      "title": "ログレベル",
+      "highlightFirst": true,
+      "headers": [
+        "レベル",
+        "用途",
+        "本番環境"
+      ],
+      "rows": [
+        [
+          "DEBUG",
+          "デバッグ情報",
+          "オフ"
+        ],
+        [
+          "INFO",
+          "正常操作",
+          "オン"
+        ],
+        [
+          "WARN",
+          "潜在的問題",
+          "オン"
+        ],
+        [
+          "ERROR",
+          "エラー情報",
+          "オン + アラート"
+        ],
+        [
+          "FATAL",
+          "致命的エラー",
+          "オン + アラート"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "構造化ログ",
+          "description": "JSON 形式を使用し、解析とクエリを容易に"
+        },
+        {
+          "label": "統一フォーマット",
+          "description": "チームでログフィールドと命名規約を統一"
+        },
+        {
+          "label": "トレース連携",
+          "description": "trace_id を含め、分散トレーシングを実現"
+        },
+        {
+          "label": "ログローテーション",
+          "description": "保持ポリシーを設定し、ストレージオーバーフローを回避"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Prometheus",
+    "Grafana",
+    "オブザーバビリティ"
+  ]
 }

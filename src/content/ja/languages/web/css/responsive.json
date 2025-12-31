@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "title": "响应式设计",
+    "description": "移动优先与自适应布局策略",
+    "order": 2,
+    "tags": ["CSS", "响应式", "布局"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "响应式设计适配不同屏幕尺寸",
+        "移动优先是现代最佳实践",
+        "媒体查询控制断点样式",
+        "Flexbox 和 Grid 实现弹性布局"
+      ]
+    },
+    {
+      "type": "table",
+      "title": "常用断点",
+      "highlightFirst": true,
+      "headers": ["断点", "尺寸", "设备"],
+      "rows": [
+        ["xs", "< 640px", "手机"],
+        ["sm", "≥ 640px", "大屏手机"],
+        ["md", "≥ 768px", "平板"],
+        ["lg", "≥ 1024px", "笔记本"],
+        ["xl", "≥ 1280px", "桌面"],
+        ["2xl", "≥ 1536px", "大屏桌面"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "媒体查询",
+      "language": "css",
+      "code": "/* 移动优先：基础样式适配手机 */\n.container {\n  padding: 1rem;\n  width: 100%;\n}\n\n/* 平板及以上 */\n@media (min-width: 768px) {\n  .container {\n    padding: 2rem;\n    max-width: 720px;\n    margin: 0 auto;\n  }\n}\n\n/* 桌面 */\n@media (min-width: 1024px) {\n  .container {\n    max-width: 960px;\n  }\n}\n\n/* 暗色模式 */\n@media (prefers-color-scheme: dark) {\n  body {\n    background: #1a1a1a;\n    color: #ffffff;\n  }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "布局技术",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Flexbox",
+          "badge": "一维",
+          "badgeColor": "blue",
+          "points": [
+            "单行/列布局",
+            "项目对齐和分布",
+            "flex-grow/shrink/basis"
+          ]
+        },
+        {
+          "title": "Grid",
+          "badge": "二维",
+          "badgeColor": "green",
+          "points": [
+            "行列网格布局",
+            "区域命名和放置",
+            "自动填充和适配"
+          ]
+        },
+        {
+          "title": "容器查询",
+          "badge": "新特性",
+          "badgeColor": "purple",
+          "points": [
+            "基于容器尺寸响应",
+            "组件级响应式",
+            "@container 查询"
+          ]
+        },
+        {
+          "title": "相对单位",
+          "badge": "单位",
+          "badgeColor": "amber",
+          "points": [
+            "rem/em 字体相对",
+            "vw/vh 视口相对",
+            "% 父元素相对"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "响应式 Grid 布局",
+      "language": "css",
+      "code": "/* 自适应网格 */\n.grid-auto {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n  gap: 1.5rem;\n}\n\n/* 响应式 Grid */\n.grid-responsive {\n  display: grid;\n  grid-template-columns: 1fr; /* 手机单列 */\n  gap: 1rem;\n}\n\n@media (min-width: 768px) {\n  .grid-responsive {\n    grid-template-columns: repeat(2, 1fr); /* 平板双列 */\n  }\n}\n\n@media (min-width: 1024px) {\n  .grid-responsive {\n    grid-template-columns: repeat(3, 1fr); /* 桌面三列 */\n  }\n}"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "移动优先", "description": "先写移动端样式，再用 min-width 扩展" },
+        { "label": "弹性单位", "description": "使用 rem、%、vw 等相对单位" },
+        { "label": "测试多设备", "description": "使用开发者工具模拟不同设备" },
+        { "label": "图片响应式", "description": "srcset 和 sizes 优化图片加载" },
+        { "label": "触摸友好", "description": "按钮最小 44px，适合触摸" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CSS Grid", "Flexbox", "移动端优化"]
+}

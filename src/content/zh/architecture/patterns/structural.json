@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "结构型模式",
+    "description": "适配器、装饰器、代理等结构组合模式",
+    "order": 2,
+    "tags": ["设计模式", "GoF", "对象结构"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "结构型模式关注类和对象的组合",
+        "通过组合形成更大的结构，同时保持灵活性",
+        "7种经典模式：适配器、桥接、组合、装饰器、外观、享元、代理"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "常用模式",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "适配器",
+          "badge": "Adapter",
+          "badgeColor": "blue",
+          "points": [
+            "接口转换",
+            "兼容旧代码",
+            "对象/类适配器"
+          ]
+        },
+        {
+          "title": "装饰器",
+          "badge": "Decorator",
+          "badgeColor": "green",
+          "points": [
+            "动态添加职责",
+            "替代继承",
+            "可组合叠加"
+          ]
+        },
+        {
+          "title": "代理",
+          "badge": "Proxy",
+          "badgeColor": "purple",
+          "points": [
+            "控制访问",
+            "延迟加载",
+            "远程/虚拟/保护代理"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "适配器模式 - TypeScript 实现",
+      "language": "typescript",
+      "code": "// 目标接口\ninterface PaymentProcessor {\n  pay(amount: number): Promise<boolean>;\n}\n\n// 旧的第三方 SDK（不兼容的接口）\nclass LegacyPaymentSDK {\n  processPayment(data: { value: number; currency: string }) {\n    // 处理支付...\n    return { success: true };\n  }\n}\n\n// 适配器\nclass PaymentAdapter implements PaymentProcessor {\n  constructor(private legacy: LegacyPaymentSDK) {}\n  \n  async pay(amount: number): Promise<boolean> {\n    const result = this.legacy.processPayment({\n      value: amount,\n      currency: 'CNY'\n    });\n    return result.success;\n  }\n}\n\n// 使用\nconst processor: PaymentProcessor = new PaymentAdapter(new LegacyPaymentSDK());\nawait processor.pay(100);"
+    },
+    {
+      "type": "codeBlock",
+      "title": "装饰器模式 - Python 实现",
+      "language": "python",
+      "code": "from abc import ABC, abstractmethod\n\n# 组件接口\nclass DataSource(ABC):\n    @abstractmethod\n    def write(self, data: str) -> None: pass\n    \n    @abstractmethod\n    def read(self) -> str: pass\n\n# 具体组件\nclass FileDataSource(DataSource):\n    def __init__(self, filename: str):\n        self.filename = filename\n    \n    def write(self, data: str) -> None:\n        with open(self.filename, 'w') as f:\n            f.write(data)\n    \n    def read(self) -> str:\n        with open(self.filename, 'r') as f:\n            return f.read()\n\n# 装饰器基类\nclass DataSourceDecorator(DataSource):\n    def __init__(self, source: DataSource):\n        self._source = source\n\n# 加密装饰器\nclass EncryptionDecorator(DataSourceDecorator):\n    def write(self, data: str) -> None:\n        encrypted = self._encrypt(data)\n        self._source.write(encrypted)\n    \n    def read(self) -> str:\n        return self._decrypt(self._source.read())\n\n# 使用：可组合叠加\nsource = EncryptionDecorator(\n    CompressionDecorator(\n        FileDataSource('data.txt')\n    )\n)"
+    },
+    {
+      "type": "codeBlock",
+      "title": "代理模式 - Go 实现",
+      "language": "go",
+      "code": "// 接口\ntype Image interface {\n    Display()\n}\n\n// 真实对象（加载成本高）\ntype RealImage struct {\n    filename string\n    data     []byte\n}\n\nfunc NewRealImage(filename string) *RealImage {\n    img := &RealImage{filename: filename}\n    img.loadFromDisk() // 耗时操作\n    return img\n}\n\nfunc (r *RealImage) Display() {\n    fmt.Println(\"Displaying\", r.filename)\n}\n\n// 虚拟代理（延迟加载）\ntype ProxyImage struct {\n    filename  string\n    realImage *RealImage\n}\n\nfunc (p *ProxyImage) Display() {\n    if p.realImage == nil {\n        p.realImage = NewRealImage(p.filename) // 首次访问时加载\n    }\n    p.realImage.Display()\n}\n\n// 使用\nvar image Image = &ProxyImage{filename: \"photo.jpg\"}\nimage.Display() // 此时才真正加载"
+    },
+    {
+      "type": "comparison",
+      "title": "装饰器 vs 代理",
+      "columns": [
+        {
+          "title": "装饰器",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "目的", "description": "增强功能" },
+            { "label": "特点", "description": "客户端控制装饰" },
+            { "label": "示例", "description": "日志、缓存、压缩" }
+          ]
+        },
+        {
+          "title": "代理",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "目的", "description": "控制访问" },
+            { "label": "特点", "description": "代理控制访问" },
+            { "label": "示例", "description": "延迟加载、权限检查" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "结构型模式总结",
+      "highlightFirst": true,
+      "headers": ["模式", "意图", "典型应用"],
+      "rows": [
+        ["适配器", "接口转换", "SDK 集成、API 兼容"],
+        ["装饰器", "动态增强", "中间件、Stream 包装"],
+        ["代理", "控制访问", "懒加载、RPC、AOP"],
+        ["外观", "简化接口", "子系统统一入口"],
+        ["组合", "树形结构", "文件系统、UI 组件"]
+      ]
+    }
+  ],
+  "relatedTopics": ["面向对象", "中间件", "AOP"]
+}

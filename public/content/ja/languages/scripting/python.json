@@ -5,10 +5,180 @@
     "description": "Python のコア構文、よく使うライブラリとベストプラクティス",
     "order": 1,
     "tags": [
-      "python",
-      "scripting",
-      "dynamic"
+      "Python",
+      "スクリプト言語",
+      "データサイエンス"
     ]
   },
-  "content": "<h1>Python 言語基礎</h1>\n<h2>Python 概要</h2>\n<p>Python はシンプルで読みやすい高レベルプログラミング言語で、Web 開発、データサイエンス、自動化、人工知能など幅広い分野で使用されています。</p>\n<pre><code>Python の特徴\n├── 動的型付け - 実行時の型チェック\n├── インタープリタ実行 - コンパイル不要\n├── シンプルな構文 - 高い可読性\n├── 豊富なエコシステム - PyPI の膨大なパッケージ\n└── クロスプラットフォーム - 一度書けばどこでも実行\n</code></pre>\n<h2>基本構文</h2>\n<h3>変数と型</h3>\n<pre><code class=\"language-python\"># 変数宣言 (型アノテーション不要)\nname = \"Python\"\nversion = 3.12\nis_dynamic = True\n\n# 型アノテーション (Python 3.5+)\nname: str = \"Python\"\nage: int = 30\nscores: list[int] = [90, 85, 88]\n\n# 基本型\ni = 42              # int\nf = 3.14            # float\ns = \"hello\"         # str\nb = True            # bool\nn = None            # NoneType\n</code></pre>\n<h3>文字列</h3>\n<pre><code class=\"language-python\"># 文字列操作\ns = \"Hello, World\"\ns.lower()           # \"hello, world\"\ns.upper()           # \"HELLO, WORLD\"\ns.split(\",\")        # [\"Hello\", \" World\"]\n\",\".join([\"a\", \"b\"])  # \"a,b\"\n\n# f-string (推奨)\nname = \"Alice\"\nf\"Name: {name}, Age: {age}\"\nf\"Price: {price:.2f}\"\n</code></pre>\n<h3>データ構造</h3>\n<pre><code class=\"language-python\"># リスト (可変)\nfruits = [\"apple\", \"banana\", \"cherry\"]\nfruits.append(\"date\")\nfruits.sort()\n\n# リスト内包表記\nsquares = [x**2 for x in range(10)]\nevens = [x for x in range(20) if x % 2 == 0]\n\n# タプル (不変)\npoint = (10, 20)\nx, y = point  # アンパック\n\n# 集合\nunique = {1, 2, 3, 3}  # {1, 2, 3}\n\n# 辞書\nuser = {\n    \"name\": \"Alice\",\n    \"age\": 30,\n}\nuser.get(\"phone\", \"N/A\")\n</code></pre>\n<h3>制御フロー</h3>\n<pre><code class=\"language-python\"># if-elif-else\nif score >= 90:\n    grade = \"A\"\nelif score >= 80:\n    grade = \"B\"\nelse:\n    grade = \"C\"\n\n# for ループ\nfor i, fruit in enumerate(fruits):\n    print(f\"{i}: {fruit}\")\n\n# while ループ\nwhile count > 0:\n    count -= 1\n</code></pre>\n<h3>関数</h3>\n<pre><code class=\"language-python\"># 基本関数\ndef greet(name: str, greeting: str = \"Hello\") -> str:\n    return f\"{greeting}, {name}!\"\n\n# 可変引数\ndef sum_all(*args):\n    return sum(args)\n\n# キーワード可変引数\ndef print_info(**kwargs):\n    for key, value in kwargs.items():\n        print(f\"{key}: {value}\")\n\n# Lambda\nsquare = lambda x: x ** 2\n\n# デコレータ\ndef timer(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        print(f\"Time: {time.time() - start:.2f}s\")\n        return result\n    return wrapper\n\n@timer\ndef slow_function():\n    time.sleep(1)\n</code></pre>\n<h3>クラスとオブジェクト</h3>\n<pre><code class=\"language-python\">from dataclasses import dataclass\n\n# 基本クラス\nclass Person:\n    def __init__(self, name: str, age: int):\n        self.name = name\n        self.age = age\n\n    def greet(self) -> str:\n        return f\"Hello, I'm {self.name}\"\n\n# 継承\nclass Student(Person):\n    def __init__(self, name: str, age: int, grade: int):\n        super().__init__(name, age)\n        self.grade = grade\n\n# dataclass (Python 3.7+)\n@dataclass\nclass Point:\n    x: float\n    y: float\n    z: float = 0.0\n</code></pre>\n<h2>例外処理</h2>\n<pre><code class=\"language-python\">try:\n    result = 10 / 0\nexcept ZeroDivisionError as e:\n    print(f\"Error: {e}\")\nexcept Exception as e:\n    print(f\"Unexpected error: {e}\")\nfinally:\n    print(\"Cleanup\")\n\n# コンテキストマネージャ\nwith open(\"file.txt\", \"r\") as f:\n    content = f.read()\n</code></pre>\n<h2>非同期プログラミング</h2>\n<pre><code class=\"language-python\">import asyncio\n\nasync def fetch_data(url: str) -> str:\n    await asyncio.sleep(1)\n    return f\"Data from {url}\"\n\nasync def main():\n    results = await asyncio.gather(\n        fetch_data(\"http://a.com\"),\n        fetch_data(\"http://b.com\"),\n    )\n\nasyncio.run(main())\n</code></pre>\n<h2>よく使う標準ライブラリ</h2>\n<pre><code class=\"language-python\"># pathlib - パス操作 (推奨)\nfrom pathlib import Path\np = Path(\"dir/file.txt\")\np.exists()\np.read_text()\n\n# json\nimport json\ndata = json.loads('{\"name\": \"Alice\"}')\njson.dumps(data, indent=2)\n\n# datetime\nfrom datetime import datetime\nnow = datetime.now()\nnow.strftime(\"%Y-%m-%d %H:%M:%S\")\n</code></pre>\n<h2>まとめ</h2>\n<p>Python のポイント：</p>\n<ol>\n<li><strong>シンプルな構文</strong> - 高い可読性、緩やかな学習曲線</li>\n<li><strong>動的型付け</strong> - 柔軟だが型エラーに注意</li>\n<li><strong>豊富なエコシステム</strong> - ほぼすべてのニーズに対応</li>\n<li><strong>マルチパラダイム</strong> - OOP、関数型プログラミング対応</li>\n<li><strong>型アノテーション</strong> - モダン Python では推奨</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Python は簡潔で読みやすい高級プログラミング言語",
+        "動的型付け、インタプリタ実行",
+        "PyPI エコシステムが豊富、ライブラリ多数",
+        "Web、AI、データ分析で幅広く利用"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構文",
+      "language": "python",
+      "code": "# 変数と型アノテーション\nname: str = \"Python\"\nage: int = 30\nscores: list[int] = [90, 85, 88]\n\n# データ構造\nfruits = [\"apple\", \"banana\"]  # リスト\npoint = (10, 20)              # タプル\nunique = {1, 2, 3}            # セット\nuser = {\"name\": \"Alice\"}      # 辞書\n\n# リスト内包表記\nsquares = [x**2 for x in range(10)]\nevens = [x for x in range(20) if x % 2 == 0]\n\n# f-string フォーマット\nf\"Name: {name}, Age: {age}\"\nf\"Price: {price:.2f}\""
+    },
+    {
+      "type": "cards",
+      "title": "データ構造",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "リスト List",
+          "badge": "可変",
+          "badgeColor": "blue",
+          "points": [
+            "append/insert/remove",
+            "スライス操作対応",
+            "リスト内包表記"
+          ]
+        },
+        {
+          "title": "辞書 Dict",
+          "badge": "キーバリュー",
+          "badgeColor": "green",
+          "points": [
+            "O(1) 検索",
+            "keys/values/items",
+            "辞書内包表記"
+          ]
+        },
+        {
+          "title": "タプル Tuple",
+          "badge": "不変",
+          "badgeColor": "amber",
+          "points": [
+            "変更不可",
+            "辞書キーとして使用可",
+            "アンパック代入"
+          ]
+        },
+        {
+          "title": "セット Set",
+          "badge": "重複除去",
+          "badgeColor": "purple",
+          "points": [
+            "自動重複排除",
+            "積/和/差集合",
+            "O(1) 存在チェック"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "関数とクラス",
+      "language": "python",
+      "code": "# 関数\ndef greet(name: str, greeting: str = \"Hello\") -> str:\n    return f\"{greeting}, {name}!\"\n\n# Lambda\nsorted(users, key=lambda u: u[\"age\"])\n\n# デコレータ\n@timer\ndef slow_function():\n    time.sleep(1)\n\n# クラス\n@dataclass\nclass User:\n    name: str\n    age: int\n    email: str = \"\"\n\n# 非同期関数\nasync def fetch_data(url: str) -> str:\n    await asyncio.sleep(1)\n    return \"data\""
+    },
+    {
+      "type": "comparison",
+      "title": "例外処理",
+      "columns": [
+        {
+          "title": "try-except",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "例外をキャッチ"
+            },
+            {
+              "label": "構文",
+              "description": "try/except/else/finally"
+            }
+          ]
+        },
+        {
+          "title": "raise",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "例外をスロー"
+            },
+            {
+              "label": "構文",
+              "description": "raise ValueError(msg)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "よく使う標準ライブラリ",
+      "highlightFirst": true,
+      "headers": [
+        "モジュール",
+        "用途",
+        "例"
+      ],
+      "rows": [
+        [
+          "pathlib",
+          "パス操作",
+          "Path(\".\").glob(\"*.py\")"
+        ],
+        [
+          "json",
+          "JSON 処理",
+          "json.loads/dumps"
+        ],
+        [
+          "datetime",
+          "日付時刻",
+          "datetime.now()"
+        ],
+        [
+          "collections",
+          "データ構造",
+          "Counter, defaultdict"
+        ],
+        [
+          "asyncio",
+          "非同期プログラミング",
+          "asyncio.gather()"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "型アノテーション",
+          "description": "typing モジュールで可読性向上"
+        },
+        {
+          "label": "仮想環境",
+          "description": "venv や poetry で依存管理"
+        },
+        {
+          "label": "f-string",
+          "description": "推奨の文字列フォーマット方式"
+        },
+        {
+          "label": "dataclass",
+          "description": "データクラス定義を簡略化"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Shell",
+    "データサイエンス",
+    "Web 開発"
+  ]
 }

@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "title": "分库分表",
+    "description": "数据库分片策略、分布式数据库架构与数据迁移",
+    "order": 3,
+    "tags": ["分库分表", "分片", "分布式"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "单库单表无法满足需求时进行水平扩展",
+        "垂直拆分按业务，水平拆分按数据",
+        "分片键决定数据分布",
+        "分布式 ID 保证全局唯一"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "拆分方式",
+      "columns": [
+        {
+          "title": "垂直拆分",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "分库", "description": "按业务领域拆分" },
+            { "label": "分表", "description": "按列拆分大字段" },
+            { "label": "适用", "description": "业务解耦" }
+          ]
+        },
+        {
+          "title": "水平拆分",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "分库", "description": "数据分散多库" },
+            { "label": "分表", "description": "数据分散多表" },
+            { "label": "适用", "description": "数据量大" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "分片策略",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "哈希分片",
+          "badge": "均匀",
+          "badgeColor": "blue",
+          "points": [
+            "user_id % N",
+            "数据均匀分布",
+            "范围查询需跨分片"
+          ]
+        },
+        {
+          "title": "范围分片",
+          "badge": "连续",
+          "badgeColor": "green",
+          "points": [
+            "按 ID 或时间范围",
+            "范围查询高效",
+            "可能数据倾斜"
+          ]
+        },
+        {
+          "title": "一致性哈希",
+          "badge": "扩容友好",
+          "badgeColor": "purple",
+          "points": [
+            "虚拟节点环",
+            "扩容迁移数据少",
+            "负载均衡"
+          ]
+        },
+        {
+          "title": "复合分片",
+          "badge": "组合",
+          "badgeColor": "amber",
+          "points": [
+            "先按时间分库",
+            "再按哈希分表",
+            "灵活组合"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "分片键选择",
+      "highlightFirst": true,
+      "headers": ["要求", "说明", "示例"],
+      "rows": [
+        ["离散性高", "数据均匀分布", "user_id"],
+        ["查询频繁", "避免跨分片查询", "订单查用户ID"],
+        ["不常变更", "避免数据迁移", "不用状态字段"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Snowflake ID",
+      "language": "text",
+      "code": "Snowflake ID 结构 (64 bit):\n┌─────────┬────────────┬──────────┬──────────┐\n│ 1 bit   │ 41 bit     │ 10 bit   │ 12 bit   │\n│ 符号位  │ 时间戳     │ 机器 ID  │ 序列号   │\n└─────────┴────────────┴──────────┴──────────┘\n\n特点:\n- 趋势递增，适合索引\n- 分布式生成，无单点\n- 每毫秒 4096 个 ID"
+    },
+    {
+      "type": "table",
+      "title": "分片中间件",
+      "highlightFirst": true,
+      "headers": ["中间件", "特点", "适用场景"],
+      "rows": [
+        ["ShardingSphere", "Java 生态、功能全", "Java 应用"],
+        ["Vitess", "MySQL 兼容、云原生", "大规模集群"],
+        ["MyCat", "国产、透明代理", "中小规模"]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "数据迁移步骤",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "双写", "description": "新旧同步", "color": "bg-blue-500" },
+        { "label": "历史迁移", "description": "批量导入", "color": "bg-purple-500" },
+        { "label": "数据校验", "description": "一致性检查", "color": "bg-cyan-500" },
+        { "label": "切读", "description": "灰度切换", "color": "bg-amber-500" },
+        { "label": "停写旧库", "description": "完成迁移", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "注意事项",
+      "style": "check",
+      "items": [
+        { "label": "避免跨分片事务", "description": "使用最终一致性或 Saga" },
+        { "label": "跨分片查询", "description": "并行查询 + 结果合并" },
+        { "label": "分页问题", "description": "每分片多取数据再排序" },
+        { "label": "全局表", "description": "小表全量复制到每个分片" }
+      ]
+    }
+  ],
+  "relatedTopics": ["分布式事务", "数据库范式", "微服务"]
+}

@@ -2,14 +2,220 @@
   "slug": "mysql",
   "meta": {
     "title": "MySQL",
-    "description": "MySQL データベースコアコンセプト、クエリ最適化と高可用性アーキテクチャ",
+    "description": "MySQL データベースのコア概念、クエリ最適化と高可用性アーキテクチャ",
     "order": 1,
     "tags": [
-      "database",
-      "mysql",
-      "sql",
-      "relational"
+      "MySQL",
+      "SQL",
+      "リレーショナルデータベース"
     ]
   },
-  "content": "<h1>MySQL</h1>\n<h2>MySQL 概要</h2>\n<p>MySQL は最も人気のあるオープンソースリレーショナルデータベースで、Web アプリケーションや企業システムで広く使用されています。</p>\n<pre><code>MySQL アーキテクチャ\n├── 接続層 - コネクションプール、認証\n├── サービス層 - パース、最適化、キャッシュ\n├── エンジン層 - InnoDB、MyISAM\n└── ストレージ層 - ファイルシステム、ログ\n</code></pre>\n<h2>ストレージエンジン</h2>\n<h3>InnoDB</h3>\n<pre><code>InnoDB 特性\n├── トランザクション - ACID 保証\n├── 行レベルロック - 高並行性\n├── 外部キー制約 - データ整合性\n├── MVCC - マルチバージョン並行制御\n├── クラスタードインデックス - 主キーインデックスにデータ格納\n└── クラッシュリカバリ - redo/undo log\n</code></pre>\n<h3>エンジン比較</h3>\n<pre><code>特性比較\n├── InnoDB\n│   ├── トランザクション: サポート\n│   ├── ロック粒度: 行ロック\n│   ├── 外部キー: サポート\n│   └── 適用: OLTP\n└── MyISAM\n    ├── トランザクション: 非サポート\n    ├── ロック粒度: テーブルロック\n    ├── 外部キー: 非サポート\n    └── 適用: 読み取り専用/読み取り多\n</code></pre>\n<h2>インデックス</h2>\n<h3>インデックスタイプ</h3>\n<pre><code class=\"language-sql\">-- B+Tree インデックス (デフォルト)\nCREATE INDEX idx_name ON users(name);\n\n-- ユニークインデックス\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 複合インデックス\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- 全文インデックス\nCREATE FULLTEXT INDEX idx_content ON articles(content);\n\n-- プレフィックスインデックス\nCREATE INDEX idx_title ON articles(title(20));\n</code></pre>\n<h3>インデックス最適化</h3>\n<pre><code class=\"language-sql\">-- カバリングインデックス\nCREATE INDEX idx_cover ON orders(user_id, status, created_at);\nSELECT user_id, status, created_at FROM orders WHERE user_id = 1;\n\n-- 最左プレフィックス原則\n-- インデックス (a, b, c)\nWHERE a = 1                  -- インデックス使用\nWHERE a = 1 AND b = 2        -- インデックス使用\nWHERE a = 1 AND b = 2 AND c = 3  -- インデックス使用\nWHERE b = 2                  -- インデックス不使用\nWHERE a = 1 AND c = 3        -- 部分使用 (a)\n\n-- EXPLAIN 分析\nEXPLAIN SELECT * FROM users WHERE name = 'test';\n</code></pre>\n<h2>トランザクション</h2>\n<h3>トランザクション特性 (ACID)</h3>\n<pre><code>ACID\n├── Atomicity (原子性) - 全て成功か全て失敗\n├── Consistency (一貫性) - データ整合性制約\n├── Isolation (分離性) - トランザクション相互不干渉\n└── Durability (永続性) - コミット後永久保存\n</code></pre>\n<h3>分離レベル</h3>\n<pre><code class=\"language-sql\">-- 分離レベル確認\nSELECT @@transaction_isolation;\n\n-- 分離レベル設定\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\n\n-- 分離レベル\n-- READ UNCOMMITTED - ダーティリード\n-- READ COMMITTED - ノンリピータブルリード\n-- REPEATABLE READ - ファントムリード (MySQL デフォルト)\n-- SERIALIZABLE - シリアライザブル\n</code></pre>\n<h3>MVCC</h3>\n<pre><code>マルチバージョン並行制御\n├── 各行に隠しカラム\n│   ├── DB_TRX_ID - 最終変更トランザクション ID\n│   ├── DB_ROLL_PTR - ロールバックポインタ\n│   └── DB_ROW_ID - 隠し主キー\n├── Undo Log - バージョンチェーン\n├── Read View - 可視性判定\n└── スナップショット読み取り vs 現在読み取り\n</code></pre>\n<h2>ロック機構</h2>\n<h3>ロックタイプ</h3>\n<pre><code class=\"language-sql\">-- 共有ロック (S)\nSELECT * FROM users WHERE id = 1 LOCK IN SHARE MODE;\n\n-- 排他ロック (X)\nSELECT * FROM users WHERE id = 1 FOR UPDATE;\n\n-- インテンションロック - テーブルレベル識別\n-- IS: インテンション共有ロック\n-- IX: インテンション排他ロック\n\n-- ギャップロック (Gap Lock)\n-- ファントムリード防止、範囲ロック\n\n-- ネクストキーロック (Next-Key Lock)\n-- 行ロック + ギャップロック\n</code></pre>\n<h3>デッドロック処理</h3>\n<pre><code class=\"language-sql\">-- デッドロックログ確認\nSHOW ENGINE INNODB STATUS;\n\n-- タイムアウト設定\nSET innodb_lock_wait_timeout = 50;\n\n-- デッドロック検出\nSET innodb_deadlock_detect = ON;\n</code></pre>\n<h2>クエリ最適化</h2>\n<h3>スロークエリ分析</h3>\n<pre><code class=\"language-sql\">-- スロークエリログ有効化\nSET GLOBAL slow_query_log = ON;\nSET GLOBAL long_query_time = 1;\n\n-- 実行計画分析\nEXPLAIN SELECT * FROM orders WHERE user_id = 1;\n\n-- インデックス使用確認\nSHOW INDEX FROM orders;\n\n-- オプティマイザヒント\nSELECT /*+ INDEX(orders idx_user) */ * FROM orders WHERE user_id = 1;\n</code></pre>\n<h3>SQL 最適化テクニック</h3>\n<pre><code class=\"language-sql\">-- SELECT * を避ける\nSELECT id, name, email FROM users WHERE status = 1;\n\n-- LIMIT 使用\nSELECT * FROM orders ORDER BY created_at DESC LIMIT 10;\n\n-- インデックス列での関数使用を避ける\n-- 悪い例\nSELECT * FROM users WHERE YEAR(created_at) = 2024;\n-- 良い例\nSELECT * FROM users WHERE created_at >= '2024-01-01' AND created_at &#x3C; '2025-01-01';\n\n-- IN の代わりに EXISTS 使用\nSELECT * FROM users u WHERE EXISTS (\n    SELECT 1 FROM orders o WHERE o.user_id = u.id\n);\n\n-- バルクインサート\nINSERT INTO users (name, email) VALUES\n('user1', 'user1@example.com'),\n('user2', 'user2@example.com'),\n('user3', 'user3@example.com');\n</code></pre>\n<h2>高可用性アーキテクチャ</h2>\n<h3>マスタースレーブレプリケーション</h3>\n<pre><code class=\"language-yaml\"># マスター設定\nserver-id: 1\nlog-bin: mysql-bin\nbinlog-format: ROW\n\n# スレーブ設定\nserver-id: 2\nrelay-log: relay-bin\nread-only: ON\n\n# レプリケーションタイプ\n├── 非同期レプリケーション - デフォルト、データ損失可能性\n├── 半同期レプリケーション - 少なくとも 1 スレーブ確認\n└── グループレプリケーション - マルチマスター、強一貫性\n</code></pre>\n<h3>シャーディング</h3>\n<pre><code>シャーディング戦略\n├── 水平シャーディング - 行で分割\n│   ├── Range - 範囲で\n│   ├── Hash - ハッシュで\n│   └── List - リストで\n└── 垂直シャーディング - 列で分割\n\nミドルウェア\n├── ShardingSphere\n├── MyCat\n└── Vitess\n</code></pre>\n<h2>まとめ</h2>\n<p>MySQL のポイント：</p>\n<ol>\n<li><strong>ストレージエンジン</strong> - InnoDB トランザクション、行ロック</li>\n<li><strong>インデックス</strong> - B+Tree、カバリング、最左プレフィックス</li>\n<li><strong>トランザクション</strong> - ACID、分離レベル、MVCC</li>\n<li><strong>ロック</strong> - 行ロック、ギャップロック、デッドロック</li>\n<li><strong>高可用性</strong> - レプリケーション、シャーディング</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "MySQL は最も人気のあるオープンソースリレーショナルデータベース",
+        "InnoDB エンジンはトランザクションと行ロックをサポート",
+        "B+Tree インデックス構造、カバリングインデックスをサポート",
+        "MVCC マルチバージョン同時実行制御"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ストレージエンジン",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "InnoDB",
+          "badge": "推奨",
+          "badgeColor": "green",
+          "points": [
+            "ACID トランザクションサポート",
+            "行レベルロック、高並列性",
+            "外部キー制約",
+            "クラッシュリカバリ"
+          ]
+        },
+        {
+          "title": "MyISAM",
+          "badge": "レガシー",
+          "badgeColor": "gray",
+          "points": [
+            "トランザクション非対応",
+            "テーブルレベルロック",
+            "全文インデックス",
+            "読み取り専用シナリオ向け"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "インデックスタイプ",
+      "language": "sql",
+      "code": "-- B+Tree インデックス (デフォルト)\nCREATE INDEX idx_name ON users(name);\n\n-- ユニークインデックス\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 複合インデックス\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- 全文インデックス\nCREATE FULLTEXT INDEX idx_content ON articles(content);\n\n-- 最左プレフィックス原則\n-- インデックス (a, b, c)\nWHERE a = 1                  -- インデックス使用\nWHERE a = 1 AND b = 2        -- インデックス使用\nWHERE b = 2                  -- インデックス不使用"
+    },
+    {
+      "type": "comparison",
+      "title": "トランザクション分離レベル",
+      "columns": [
+        {
+          "title": "READ UNCOMMITTED",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "問題",
+              "description": "ダーティリード"
+            },
+            {
+              "label": "性能",
+              "description": "最高"
+            }
+          ]
+        },
+        {
+          "title": "READ COMMITTED",
+          "color": "from-amber-500 to-yellow-500",
+          "items": [
+            {
+              "label": "問題",
+              "description": "ノンリピータブルリード"
+            },
+            {
+              "label": "性能",
+              "description": "高め"
+            }
+          ]
+        },
+        {
+          "title": "REPEATABLE READ",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "問題",
+              "description": "ファントムリード"
+            },
+            {
+              "label": "性能",
+              "description": "デフォルトレベル"
+            }
+          ]
+        },
+        {
+          "title": "SERIALIZABLE",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "問題",
+              "description": "なし"
+            },
+            {
+              "label": "性能",
+              "description": "最低"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ロックタイプ",
+      "highlightFirst": true,
+      "headers": [
+        "ロックタイプ",
+        "粒度",
+        "並列性",
+        "適用シナリオ"
+      ],
+      "rows": [
+        [
+          "共有ロック (S)",
+          "行",
+          "複数読み取り可",
+          "SELECT ... LOCK IN SHARE MODE"
+        ],
+        [
+          "排他ロック (X)",
+          "行",
+          "排他",
+          "SELECT ... FOR UPDATE"
+        ],
+        [
+          "ギャップロック",
+          "範囲",
+          "ファントムリード防止",
+          "REPEATABLE READ レベル"
+        ],
+        [
+          "テーブルロック",
+          "テーブル",
+          "低",
+          "DDL 操作"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "クエリ最適化",
+      "language": "sql",
+      "code": "-- 実行計画分析\nEXPLAIN SELECT * FROM orders WHERE user_id = 1;\n\n-- SELECT * を避ける\nSELECT id, name, email FROM users;\n\n-- インデックス列での関数使用を避ける\n-- 誤り: WHERE YEAR(created_at) = 2024\n-- 正解:\nWHERE created_at >= '2024-01-01' AND created_at < '2025-01-01';\n\n-- バルクインサート\nINSERT INTO users (name, email) VALUES\n('user1', 'u1@test.com'),\n('user2', 'u2@test.com');"
+    },
+    {
+      "type": "flow",
+      "title": "主従レプリケーション",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "マスター書き込み",
+          "description": "Binlog",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "ログ転送",
+          "description": "IO Thread",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "スレーブ受信",
+          "description": "Relay Log",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "リプレイ適用",
+          "description": "SQL Thread",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "高可用性ソリューション",
+      "style": "check",
+      "items": [
+        {
+          "label": "主従レプリケーション",
+          "description": "非同期/セミ同期/グループレプリケーション"
+        },
+        {
+          "label": "読み書き分離",
+          "description": "マスター書き込み、スレーブ読み取り、ProxySQL/MaxScale"
+        },
+        {
+          "label": "シャーディング",
+          "description": "ShardingSphere、MyCat、Vitess"
+        },
+        {
+          "label": "MGR",
+          "description": "MySQL Group Replication マルチマスター"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "PostgreSQL",
+    "インデックス最適化",
+    "シャーディング"
+  ]
 }

@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "title": "React Hooks 详解",
+    "description": "常用 Hooks 与自定义 Hook 开发",
+    "order": 2,
+    "tags": ["React", "Hooks", "状态管理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Hooks 让函数组件拥有状态和生命周期",
+        "useState 管理组件状态",
+        "useEffect 处理副作用",
+        "自定义 Hook 实现逻辑复用"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "常用 Hooks",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "useState",
+          "badge": "状态",
+          "badgeColor": "blue",
+          "points": [
+            "组件内部状态",
+            "返回 [state, setState]",
+            "支持函数初始化"
+          ]
+        },
+        {
+          "title": "useEffect",
+          "badge": "副作用",
+          "badgeColor": "green",
+          "points": [
+            "数据获取、订阅",
+            "依赖数组控制执行",
+            "返回清理函数"
+          ]
+        },
+        {
+          "title": "useContext",
+          "badge": "上下文",
+          "badgeColor": "amber",
+          "points": [
+            "跨层级传递数据",
+            "避免 Props 透传",
+            "主题、语言、用户"
+          ]
+        },
+        {
+          "title": "useRef",
+          "badge": "引用",
+          "badgeColor": "purple",
+          "points": [
+            "DOM 元素引用",
+            "保存可变值",
+            "不触发重渲染"
+          ]
+        },
+        {
+          "title": "useMemo",
+          "badge": "性能",
+          "badgeColor": "red",
+          "points": [
+            "缓存计算结果",
+            "依赖变化时重算",
+            "避免昂贵计算"
+          ]
+        },
+        {
+          "title": "useCallback",
+          "badge": "性能",
+          "badgeColor": "cyan",
+          "points": [
+            "缓存函数引用",
+            "子组件优化",
+            "配合 React.memo"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础 Hooks 示例",
+      "language": "tsx",
+      "code": "function Counter() {\n  // useState - 状态管理\n  const [count, setCount] = useState(0);\n\n  // useEffect - 副作用\n  useEffect(() => {\n    document.title = `Count: ${count}`;\n    return () => {\n      // 清理函数\n    };\n  }, [count]); // 依赖数组\n\n  // useRef - 引用\n  const inputRef = useRef<HTMLInputElement>(null);\n\n  return (\n    <div>\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(c => c + 1)}>+1</button>\n      <input ref={inputRef} />\n    </div>\n  );\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "自定义 Hook 示例",
+      "language": "tsx",
+      "code": "// 数据获取 Hook\nfunction useFetch<T>(url: string) {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<Error | null>(null);\n\n  useEffect(() => {\n    let cancelled = false;\n    setLoading(true);\n    \n    fetch(url)\n      .then(res => res.json())\n      .then(data => {\n        if (!cancelled) setData(data);\n      })\n      .catch(err => {\n        if (!cancelled) setError(err);\n      })\n      .finally(() => {\n        if (!cancelled) setLoading(false);\n      });\n\n    return () => { cancelled = true; };\n  }, [url]);\n\n  return { data, loading, error };\n}\n\n// 使用\nfunction UserProfile({ userId }: { userId: string }) {\n  const { data: user, loading, error } = useFetch<User>(`/api/users/${userId}`);\n  // ...\n}"
+    },
+    {
+      "type": "table",
+      "title": "Hooks 规则",
+      "highlightFirst": true,
+      "headers": ["规则", "说明"],
+      "rows": [
+        ["只在顶层调用", "不要在循环、条件、嵌套函数中调用"],
+        ["只在函数组件中调用", "或在自定义 Hook 中调用"],
+        ["以 use 开头命名", "自定义 Hook 必须以 use 开头"],
+        ["依赖数组完整", "useEffect/useMemo/useCallback 依赖完整"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "提取自定义 Hook", "description": "将可复用的逻辑提取为自定义 Hook" },
+        { "label": "正确设置依赖", "description": "使用 eslint-plugin-react-hooks 检查" },
+        { "label": "避免过度优化", "description": "useMemo/useCallback 并非必须" },
+        { "label": "清理副作用", "description": "useEffect 返回清理函数防止内存泄漏" }
+      ]
+    }
+  ],
+  "relatedTopics": ["React 组件", "性能优化", "状态管理"]
+}

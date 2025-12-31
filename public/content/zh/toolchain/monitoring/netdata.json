@@ -1,0 +1,257 @@
+{
+  "slug": "netdata",
+  "meta": {
+    "title": "Netdata",
+    "description": "Netdata 实时性能监控与可视化平台",
+    "order": 5,
+    "tags": [
+      "Netdata",
+      "监控",
+      "实时",
+      "可视化"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Netdata 是开源的实时性能监控工具",
+        "开箱即用，自动发现数千种指标",
+        "毫秒级数据采集，极低资源占用",
+        "内置 Web UI，无需额外配置"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心特性",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "实时监控",
+          "badge": "1s 粒度",
+          "badgeColor": "green",
+          "points": [
+            "每秒采集数据",
+            "实时图表展示",
+            "无延迟告警"
+          ]
+        },
+        {
+          "title": "零配置",
+          "badge": "自动发现",
+          "badgeColor": "blue",
+          "points": [
+            "自动检测服务",
+            "开箱即用",
+            "智能默认值"
+          ]
+        },
+        {
+          "title": "轻量级",
+          "badge": "低开销",
+          "badgeColor": "purple",
+          "points": [
+            "单核 1-3% CPU",
+            "内存占用小",
+            "边缘设备友好"
+          ]
+        },
+        {
+          "title": "丰富指标",
+          "badge": "2000+",
+          "badgeColor": "amber",
+          "points": [
+            "系统/容器指标",
+            "应用程序指标",
+            "硬件传感器"
+          ]
+        },
+        {
+          "title": "内置告警",
+          "badge": "ML 驱动",
+          "badgeColor": "red",
+          "points": [
+            "预配置告警规则",
+            "异常检测",
+            "多渠道通知"
+          ]
+        },
+        {
+          "title": "分布式",
+          "badge": "Cloud",
+          "badgeColor": "cyan",
+          "points": [
+            "Netdata Cloud",
+            "集中管理",
+            "跨节点查询"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "快速安装",
+      "language": "bash",
+      "code": "# 一键安装 (推荐)\nbash <(curl -Ss https://get.netdata.cloud/kickstart.sh)\n\n# Docker 运行\ndocker run -d --name=netdata \\\n  --pid=host \\\n  --network=host \\\n  -v netdataconfig:/etc/netdata \\\n  -v netdatalib:/var/lib/netdata \\\n  -v netdatacache:/var/cache/netdata \\\n  -v /etc/passwd:/host/etc/passwd:ro \\\n  -v /etc/group:/host/etc/group:ro \\\n  -v /etc/localtime:/etc/localtime:ro \\\n  -v /proc:/host/proc:ro \\\n  -v /sys:/host/sys:ro \\\n  -v /etc/os-release:/host/etc/os-release:ro \\\n  -v /var/log:/host/var/log:ro \\\n  -v /var/run/docker.sock:/var/run/docker.sock:ro \\\n  --restart unless-stopped \\\n  --cap-add SYS_PTRACE \\\n  --security-opt apparmor=unconfined \\\n  netdata/netdata\n\n# 访问 Web UI\n# http://localhost:19999"
+    },
+    {
+      "type": "flow",
+      "title": "架构模式",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Agent",
+          "description": "节点采集器",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Parent",
+          "description": "流数据聚合",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Cloud",
+          "description": "集中管理",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "配置文件 netdata.conf",
+      "language": "ini",
+      "code": "[global]\n  # 数据存储目录\n  cache directory = /var/cache/netdata\n  # 历史数据保留\n  history = 3996\n  # 更新频率 (秒)\n  update every = 1\n  # 内存模式: ram, save, map, dbengine\n  memory mode = dbengine\n\n[web]\n  # Web UI 端口\n  default port = 19999\n  # 绑定地址\n  bind to = *\n\n[plugins]\n  # 启用/禁用插件\n  proc = yes\n  diskspace = yes\n  cgroups = yes\n  tc = no\n\n[plugin:proc]\n  # /proc 文件系统采集配置\n  /proc/net/dev = yes\n  /proc/diskstats = yes\n  /proc/net/snmp = yes"
+    },
+    {
+      "type": "codeBlock",
+      "title": "告警配置",
+      "language": "yaml",
+      "code": "# /etc/netdata/health.d/custom.conf\n\n# CPU 使用率告警\nalarm: cpu_usage_high\n    on: system.cpu\nlookup: average -3m percentage of user,system,softirq,irq,guest\n every: 1m\n  warn: $this > 80\n  crit: $this > 95\n  info: CPU utilization is high\n    to: sysadmin\n\n# 磁盘空间告警\nalarm: disk_space_low\n    on: disk.space\nlookup: average -1m percentage of avail\n every: 1m\n  warn: $this < 20\n  crit: $this < 10\n  info: Disk space is running low\n    to: sysadmin\n\n# 内存使用告警\nalarm: ram_usage_high\n    on: system.ram\nlookup: average -3m percentage of used\n every: 1m\n  warn: $this > 80\n  crit: $this > 90"
+    },
+    {
+      "type": "codeBlock",
+      "title": "通知配置",
+      "language": "bash",
+      "code": "# /etc/netdata/health_alarm_notify.conf\n\n# Slack 通知\nSLACK_WEBHOOK_URL=\"https://hooks.slack.com/services/xxx\"\nDEFAULT_RECIPIENT_SLACK=\"#alerts\"\n\n# Email 通知\nEMAIL_SENDER=\"netdata@example.com\"\nDEFAULT_RECIPIENT_EMAIL=\"admin@example.com\"\n\n# PagerDuty\nPD_SERVICE_KEY=\"your-pagerduty-key\"\n\n# Telegram\nTELEGRAM_BOT_TOKEN=\"your-bot-token\"\nDEFAULT_RECIPIENT_TELEGRAM=\"your-chat-id\"\n\n# 角色配置\nrole_recipients_slack[sysadmin]=\"#ops-alerts\"\nrole_recipients_email[sysadmin]=\"ops@example.com\""
+    },
+    {
+      "type": "table",
+      "title": "监控覆盖范围",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "指标示例",
+        "采集器"
+      ],
+      "rows": [
+        [
+          "系统",
+          "CPU、内存、磁盘、网络",
+          "proc.plugin"
+        ],
+        [
+          "容器",
+          "Docker、K8s Pod 资源",
+          "cgroups.plugin"
+        ],
+        [
+          "数据库",
+          "MySQL、PostgreSQL、Redis",
+          "python.d.plugin"
+        ],
+        [
+          "Web 服务",
+          "Nginx、Apache、Tomcat",
+          "go.d.plugin"
+        ],
+        [
+          "消息队列",
+          "Kafka、RabbitMQ",
+          "go.d.plugin"
+        ],
+        [
+          "硬件",
+          "温度、风扇、电压",
+          "sensors"
+        ]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Netdata vs 其他方案",
+      "columns": [
+        {
+          "title": "Netdata",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "部署",
+              "description": "一键安装，开箱即用"
+            },
+            {
+              "label": "粒度",
+              "description": "1 秒实时数据"
+            },
+            {
+              "label": "资源",
+              "description": "极低 CPU/内存"
+            }
+          ]
+        },
+        {
+          "title": "Prometheus",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            {
+              "label": "部署",
+              "description": "需要配置 Exporter"
+            },
+            {
+              "label": "粒度",
+              "description": "15-60 秒"
+            },
+            {
+              "label": "资源",
+              "description": "中等"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 dbengine",
+          "description": "长期存储历史数据，支持压缩"
+        },
+        {
+          "label": "Parent-Child 架构",
+          "description": "大规模部署使用流式聚合"
+        },
+        {
+          "label": "Netdata Cloud",
+          "description": "多节点集中管理和告警"
+        },
+        {
+          "label": "自定义 Dashboard",
+          "description": "根据业务需求定制监控面板"
+        },
+        {
+          "label": "集成 Prometheus",
+          "description": "导出指标到 Prometheus 生态"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Prometheus",
+    "Grafana",
+    "系统监控",
+    "可观测性"
+  ]
+}

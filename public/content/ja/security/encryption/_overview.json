@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "title": "暗号化技術",
+    "description": "共通鍵暗号、公開鍵暗号とハッシュアルゴリズム",
+    "icon": "lock"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "共通鍵暗号：暗号化と復号に同じ鍵を使用",
+        "公開鍵暗号：公開鍵で暗号化、秘密鍵で復号",
+        "ハッシュアルゴリズム：不可逆の一方向関数",
+        "鍵管理：鍵の生成、保存とローテーション"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "暗号化はデータの機密性と完全性を保護する中核技術です。共通鍵暗号は高速ですが鍵配布が困難、公開鍵暗号は鍵配布問題を解決しますが低速です。実際のアプリケーションでは通常両方を組み合わせて使用します。ハッシュアルゴリズムはデータ完全性の検証やパスワード保存に使用されます。"
+    },
+    {
+      "type": "cards",
+      "title": "暗号アルゴリズム分類",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "共通鍵暗号",
+          "badge": "高速",
+          "badgeColor": "blue",
+          "points": [
+            "AES-256-GCM",
+            "ChaCha20-Poly1305",
+            "SM4（中国国家規格）"
+          ]
+        },
+        {
+          "title": "公開鍵暗号",
+          "badge": "安全",
+          "badgeColor": "green",
+          "points": [
+            "RSA-2048+",
+            "ECDSA",
+            "SM2（中国国家規格）"
+          ]
+        },
+        {
+          "title": "ハッシュ",
+          "badge": "完全性",
+          "badgeColor": "purple",
+          "points": [
+            "SHA-256/384/512",
+            "BLAKE3",
+            "SM3（中国国家規格）"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "アルゴリズム選択ガイド",
+      "highlightFirst": true,
+      "headers": ["シナリオ", "推奨アルゴリズム", "説明"],
+      "rows": [
+        ["データ暗号化", "AES-256-GCM", "認証付き暗号、改ざん防止"],
+        ["パスワード保存", "Argon2id", "GPU/ASIC 耐性"],
+        ["デジタル署名", "Ed25519", "高性能楕円曲線"],
+        ["鍵交換", "X25519", "モダン DH プロトコル"],
+        ["データ完全性", "SHA-256", "汎用ハッシュ"]
+      ]
+    }
+  ],
+  "relatedTopics": ["TLS", "PKI", "鍵管理"],
+  "articles": [
+    {
+      "slug": "symmetric",
+      "title": "共通鍵暗号",
+      "description": "AES、ChaCha20 と暗号化モード",
+      "priority": "essential"
+    },
+    {
+      "slug": "asymmetric",
+      "title": "公開鍵暗号",
+      "description": "RSA、楕円曲線とデジタル署名",
+      "priority": "essential"
+    },
+    {
+      "slug": "hash",
+      "title": "ハッシュアルゴリズム",
+      "description": "SHA シリーズ、パスワードハッシュと HMAC",
+      "priority": "recommended"
+    }
+  ]
+}

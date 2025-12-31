@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "title": "分散型データベース",
+    "description": "分散型データベースアーキテクチャ、一貫性と水平スケーリング",
+    "icon": "database"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "重要ポイント",
+      "items": [
+        "分散型データベースが単一マシンの容量と性能のボトルネックを解決",
+        "CAP 定理：一貫性、可用性、分断耐性",
+        "NewSQL がリレーショナルモデルと水平スケーリングを両立",
+        "HTAP が OLTP と OLAP を統合"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "分散型データベースは、単一マシンのデータベースの容量、性能、可用性の制限を解決するために設計されたシステムです。データを複数のノードに分散させることで、水平スケーリング、高可用性、災害復旧能力を実現します。TiDB や CockroachDB などの NewSQL データベースは、SQL 互換性を維持しながら分散ストレージとトランザクション機能を提供します。"
+    },
+    {
+      "type": "comparison",
+      "title": "分散型 vs 単一マシンデータベース",
+      "columns": [
+        {
+          "title": "分散型データベース",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "スケーラビリティ", "description": "水平スケール、自動シャーディング" },
+            { "label": "容量", "description": "PB レベルのストレージ" },
+            { "label": "可用性", "description": "マルチレプリカ自動フェイルオーバー" },
+            { "label": "一貫性", "description": "分散トランザクション、強一貫性" }
+          ]
+        },
+        {
+          "title": "単一マシンデータベース",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "スケーラビリティ", "description": "垂直スケール、手動シャーディング" },
+            { "label": "容量", "description": "TB レベルのストレージ" },
+            { "label": "可用性", "description": "主従レプリケーション、手動切替" },
+            { "label": "一貫性", "description": "単一マシントランザクション、シンプル" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コアコンセプト",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "データシャーディング",
+          "badge": "Sharding",
+          "badgeColor": "blue",
+          "points": [
+            "Range シャーディング：範囲分割",
+            "Hash シャーディング：均等分散",
+            "自動分割と負荷分散"
+          ]
+        },
+        {
+          "title": "一貫性プロトコル",
+          "badge": "Consensus",
+          "badgeColor": "green",
+          "points": [
+            "Raft プロトコル：マルチレプリカ一貫性",
+            "Paxos：分散合意",
+            "2PC/3PC：分散トランザクション"
+          ]
+        },
+        {
+          "title": "高可用性アーキテクチャ",
+          "badge": "HA",
+          "badgeColor": "purple",
+          "points": [
+            "マルチレプリカ冗長ストレージ",
+            "自動障害検出とフェイルオーバー",
+            "クロスデータセンター災害復旧"
+          ]
+        },
+        {
+          "title": "HTAP 機能",
+          "badge": "ハイブリッド",
+          "badgeColor": "amber",
+          "points": [
+            "行ストアで OLTP サポート",
+            "カラムナストアで OLAP 高速化",
+            "リアルタイムデータ同期"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "分散トランザクションフロー",
+      "subtitle": "二相コミット (2PC)",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Prepare", "description": "準備フェーズ", "color": "bg-blue-500" },
+        { "label": "Commit/Abort", "description": "コミット/ロールバック", "color": "bg-purple-500" },
+        { "label": "Apply", "description": "変更適用", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "主要な分散型データベース",
+      "highlightFirst": true,
+      "headers": ["データベース", "互換プロトコル", "一貫性", "特徴"],
+      "rows": [
+        ["TiDB", "MySQL", "強一貫性", "HTAP、オープンソース、PingCAP"],
+        ["CockroachDB", "PostgreSQL", "強一貫性", "Geo-distributed"],
+        ["OceanBase", "MySQL/Oracle", "強一貫性", "Ant Group"],
+        ["YugabyteDB", "PostgreSQL", "強一貫性", "クラウドネイティブ"]
+      ]
+    }
+  ],
+  "relatedTopics": ["シャーディング", "CAP 定理", "分散トランザクション"],
+  "articles": [
+    {
+      "slug": "tidb",
+      "title": "TiDB",
+      "description": "MySQL 互換の分散型 HTAP データベース",
+      "priority": "recommended"
+    }
+  ]
+}

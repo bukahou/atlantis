@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "title": "Go 言語基礎",
+    "description": "Go 言語のコア機能、並行プログラミングとクラウドネイティブ開発",
+    "order": 1,
+    "tags": ["Go", "Golang", "並行処理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Go は Google が開発した静的型付けコンパイル言語",
+        "シンプルな構文、高速コンパイル",
+        "goroutine + channel によるネイティブ並行処理",
+        "クラウドネイティブ開発の第一選択肢 (Docker, K8s)"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "言語特性",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "シンプル",
+          "badge": "設計",
+          "badgeColor": "blue",
+          "points": [
+            "25 個のキーワード",
+            "クラス継承なし",
+            "暗黙的インターフェース実装"
+          ]
+        },
+        {
+          "title": "高効率",
+          "badge": "性能",
+          "badgeColor": "green",
+          "points": [
+            "マシンコードにコンパイル",
+            "静的リンク",
+            "GC 最適化"
+          ]
+        },
+        {
+          "title": "並行処理",
+          "badge": "ネイティブ",
+          "badgeColor": "purple",
+          "points": [
+            "軽量な goroutine",
+            "channel 通信",
+            "select 多重化"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構文",
+      "language": "go",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // 変数宣言\n    var name string = \"Go\"\n    version := \"1.21\"  // 短縮変数宣言\n    \n    // スライス\n    slice := []int{1, 2, 3}\n    slice = append(slice, 4)\n    \n    // Map\n    m := map[string]int{\"a\": 1, \"b\": 2}\n    value, ok := m[\"a\"]\n    \n    // 構造体\n    type User struct {\n        Name string `json:\"name\"`\n        Age  int\n    }\n    \n    fmt.Println(name, version)\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Goroutine 並行処理",
+      "language": "go",
+      "code": "// goroutine を起動\ngo func() {\n    fmt.Println(\"Hello from goroutine\")\n}()\n\n// Channel 通信\nch := make(chan int, 10)\nch <- 42        // 送信\nvalue := <-ch   // 受信\n\n// Select 多重化\nselect {\ncase msg := <-ch1:\n    fmt.Println(msg)\ncase msg := <-ch2:\n    fmt.Println(msg)\ncase <-time.After(time.Second):\n    fmt.Println(\"timeout\")\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "インターフェース vs ジェネリクス",
+      "columns": [
+        {
+          "title": "インターフェース",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "定義", "description": "メソッドの集合" },
+            { "label": "特徴", "description": "暗黙的実装" },
+            { "label": "用途", "description": "ポリモーフィズム、DI" }
+          ]
+        },
+        {
+          "title": "ジェネリクス (1.18+)",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "定義", "description": "型パラメータ化" },
+            { "label": "特徴", "description": "型制約" },
+            { "label": "用途", "description": "汎用データ構造" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "エラーハンドリング",
+      "language": "go",
+      "code": "func readConfig(path string) (*Config, error) {\n    data, err := os.ReadFile(path)\n    if err != nil {\n        return nil, fmt.Errorf(\"read failed: %w\", err)\n    }\n    \n    var cfg Config\n    if err := json.Unmarshal(data, &cfg); err != nil {\n        return nil, err\n    }\n    return &cfg, nil\n}\n\n// エラーチェック\nif errors.Is(err, os.ErrNotExist) { }\nvar myErr *MyError\nif errors.As(err, &myErr) { }"
+    },
+    {
+      "type": "table",
+      "title": "よく使う標準ライブラリ",
+      "highlightFirst": true,
+      "headers": ["パッケージ", "用途", "例"],
+      "rows": [
+        ["fmt", "フォーマット I/O", "Printf, Sprintf"],
+        ["net/http", "HTTP サービス", "ListenAndServe"],
+        ["encoding/json", "JSON エンコード/デコード", "Marshal, Unmarshal"],
+        ["context", "コンテキスト制御", "WithTimeout, WithCancel"],
+        ["sync", "同期プリミティブ", "Mutex, WaitGroup"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "インターフェースを受け取り構造体を返す", "description": "コードの柔軟性を向上" },
+        { "label": "context を使用", "description": "キャンセルシグナルとタイムアウトの伝播" },
+        { "label": "エラーラッピング", "description": "fmt.Errorf + %w でエラーチェーン保持" },
+        { "label": "defer でリソース解放", "description": "確実なリソースクローズ" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Rust", "クラウドネイティブ", "マイクロサービス"]
+}

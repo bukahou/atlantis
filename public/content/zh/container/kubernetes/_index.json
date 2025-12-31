@@ -2,31 +2,66 @@
   "items": [
     {
       "slug": "pod",
-      "title": "Kubernetes Pod 详解",
-      "description": "Pod 概念、生命周期、配置与最佳实践",
+      "title": "Pod 详解",
+      "description": "Pod 的生命周期、配置与调度策略",
       "href": "/container/kubernetes/pod",
       "order": 1
     },
     {
       "slug": "service",
-      "title": "Kubernetes Service 详解",
-      "description": "Service 类型、服务发现与负载均衡配置",
+      "title": "Service 与网络",
+      "description": "Kubernetes 网络：Service、Ingress 与 NetworkPolicy",
       "href": "/container/kubernetes/service",
       "order": 2
     },
     {
       "slug": "deployment",
-      "title": "Kubernetes Deployment 详解",
-      "description": "Deployment 配置、更新策略与滚动发布实践",
+      "title": "Deployment 部署",
+      "description": "声明式部署、滚动更新与回滚",
       "href": "/container/kubernetes/deployment",
       "order": 3
     },
     {
+      "slug": "workloads",
+      "title": "工作负载",
+      "description": "Kubernetes 工作负载：StatefulSet、DaemonSet、Job 与 CronJob",
+      "href": "/container/kubernetes/workloads",
+      "order": 3
+    },
+    {
+      "slug": "config",
+      "title": "配置管理",
+      "description": "Kubernetes 配置管理：Namespace、ConfigMap 与 Secret",
+      "href": "/container/kubernetes/config",
+      "order": 4
+    },
+    {
       "slug": "helm",
-      "title": "Helm 包管理详解",
-      "description": "Helm Chart 开发、仓库管理与最佳实践",
+      "title": "Helm 包管理",
+      "description": "Helm Chart 开发与应用部署",
       "href": "/container/kubernetes/helm",
       "order": 4
+    },
+    {
+      "slug": "storage",
+      "title": "存储管理",
+      "description": "Kubernetes 存储：PV、PVC、StorageClass 与动态供给",
+      "href": "/container/kubernetes/storage",
+      "order": 5
+    },
+    {
+      "slug": "scheduling",
+      "title": "调度策略",
+      "description": "Kubernetes 调度：Label/Selector、Affinity、Taint/Toleration",
+      "href": "/container/kubernetes/scheduling",
+      "order": 6
+    },
+    {
+      "slug": "operations",
+      "title": "运维操作",
+      "description": "Kubernetes 运维：健康检查、HPA、RBAC 与故障排查",
+      "href": "/container/kubernetes/operations",
+      "order": 7
     }
   ]
 }

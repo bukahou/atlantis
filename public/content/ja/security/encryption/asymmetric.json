@@ -1,0 +1,153 @@
+{
+  "slug": "asymmetric",
+  "meta": {
+    "title": "非対称暗号",
+    "description": "RSA、楕円曲線とデジタル署名",
+    "order": 2,
+    "tags": [
+      "暗号化",
+      "RSA",
+      "ECC",
+      "署名"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "非対称暗号：公開鍵で暗号化、秘密鍵で復号",
+        "デジタル署名：秘密鍵で署名、公開鍵で検証",
+        "用途：鍵交換、デジタル署名、本人認証",
+        "よく使うアルゴリズム：RSA、ECDSA、Ed25519"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "RSA vs 楕円曲線",
+      "columns": [
+        {
+          "title": "RSA",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            {
+              "label": "セキュリティ",
+              "description": "2048+ビット"
+            },
+            {
+              "label": "性能",
+              "description": "比較的遅い"
+            },
+            {
+              "label": "鍵サイズ",
+              "description": "大きい"
+            },
+            {
+              "label": "用途",
+              "description": "従来システム、TLS"
+            }
+          ]
+        },
+        {
+          "title": "ECC (楕円曲線)",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "セキュリティ",
+              "description": "256ビット ≈ RSA 3072"
+            },
+            {
+              "label": "性能",
+              "description": "高速"
+            },
+            {
+              "label": "鍵サイズ",
+              "description": "小さい"
+            },
+            {
+              "label": "用途",
+              "description": "モバイル、IoT、モダンシステム"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "RSA 暗号化と復号",
+      "language": "go",
+      "code": "import (\n    \"crypto/rand\"\n    \"crypto/rsa\"\n    \"crypto/sha256\"\n)\n\n// RSA鍵ペア生成\nfunc GenerateRSAKeyPair() (*rsa.PrivateKey, error) {\n    return rsa.GenerateKey(rand.Reader, 2048)\n}\n\n// RSA-OAEP 暗号化\nfunc EncryptRSA(publicKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {\n    return rsa.EncryptOAEP(\n        sha256.New(),\n        rand.Reader,\n        publicKey,\n        plaintext,\n        nil,\n    )\n}\n\n// 復号\nfunc DecryptRSA(privateKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {\n    return rsa.DecryptOAEP(\n        sha256.New(),\n        rand.Reader,\n        privateKey,\n        ciphertext,\n        nil,\n    )\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Ed25519 デジタル署名",
+      "language": "go",
+      "code": "import (\n    \"crypto/ed25519\"\n    \"crypto/rand\"\n)\n\n// 鍵ペア生成\nfunc GenerateEd25519KeyPair() (ed25519.PublicKey, ed25519.PrivateKey, error) {\n    return ed25519.GenerateKey(rand.Reader)\n}\n\n// 署名\nfunc Sign(privateKey ed25519.PrivateKey, message []byte) []byte {\n    return ed25519.Sign(privateKey, message)\n}\n\n// 署名検証\nfunc Verify(publicKey ed25519.PublicKey, message, signature []byte) bool {\n    return ed25519.Verify(publicKey, message, signature)\n}\n\n// 実用例：JWT署名\nfunc SignJWT(claims map[string]any, privateKey ed25519.PrivateKey) string {\n    header := base64URL(json(`{\"alg\":\"EdDSA\",\"typ\":\"JWT\"}`))\n    payload := base64URL(json(claims))\n    \n    signingInput := header + \".\" + payload\n    signature := Sign(privateKey, []byte(signingInput))\n    \n    return signingInput + \".\" + base64URL(signature)\n}"
+    },
+    {
+      "type": "table",
+      "title": "アルゴリズム選択ガイド",
+      "highlightFirst": true,
+      "headers": [
+        "用途",
+        "推奨アルゴリズム",
+        "鍵長"
+      ],
+      "rows": [
+        [
+          "小データ暗号化",
+          "RSA-OAEP",
+          "2048+"
+        ],
+        [
+          "デジタル署名",
+          "Ed25519",
+          "256ビット曲線"
+        ],
+        [
+          "TLS鍵交換",
+          "X25519",
+          "256ビット曲線"
+        ],
+        [
+          "証明書署名",
+          "ECDSA P-256",
+          "256ビット曲線"
+        ],
+        [
+          "レガシー互換",
+          "RSA-2048",
+          "2048ビット"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "セキュリティプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "秘密鍵の安全な保管",
+          "description": "HSMまたは暗号化ストレージを使用"
+        },
+        {
+          "label": "証明書の有効期限",
+          "description": "TLS証明書は1年以内"
+        },
+        {
+          "label": "鍵ローテーション",
+          "description": "定期的に鍵ペアを更新"
+        },
+        {
+          "label": "モダンなアルゴリズムを優先",
+          "description": "Ed25519 > ECDSA > RSA"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "対称暗号",
+    "TLS",
+    "証明書"
+  ]
+}

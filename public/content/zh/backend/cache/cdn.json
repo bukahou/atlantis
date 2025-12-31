@@ -1,0 +1,208 @@
+{
+  "slug": "cdn",
+  "meta": {
+    "title": "CDN 内容分发网络",
+    "description": "全球内容分发与边缘加速",
+    "order": 2,
+    "tags": [
+      "CDN",
+      "边缘计算",
+      "缓存",
+      "性能优化"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "将内容缓存到全球边缘节点",
+        "用户就近访问，减少延迟",
+        "分担源站压力，提升可用性",
+        "支持静态资源和动态加速"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "CDN 简介",
+      "content": "CDN（Content Delivery Network）是一种分布式网络架构，通过将内容缓存到全球各地的边缘节点，使用户能够从最近的节点获取内容，从而显著减少访问延迟。CDN 不仅能加速静态资源的分发，还能提供 DDoS 防护、WAF、边缘计算等增值服务。"
+    },
+    {
+      "type": "flow",
+      "title": "CDN 工作原理",
+      "subtitle": "用户请求的处理流程",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "DNS 解析",
+          "description": "智能调度",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "边缘节点",
+          "description": "就近响应",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "缓存命中?",
+          "description": "判断",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "回源/响应",
+          "description": "返回内容",
+          "color": "bg-amber-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主流 CDN 服务商",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Cloudflare",
+          "badge": "全球",
+          "badgeColor": "orange",
+          "points": [
+            "免费套餐",
+            "DDoS 防护",
+            "Workers 边缘计算",
+            "全球 300+ 节点"
+          ]
+        },
+        {
+          "title": "AWS CloudFront",
+          "badge": "AWS",
+          "badgeColor": "amber",
+          "points": [
+            "与 AWS 深度集成",
+            "Lambda@Edge",
+            "实时日志",
+            "按需付费"
+          ]
+        },
+        {
+          "title": "阿里云 CDN",
+          "badge": "国内",
+          "badgeColor": "blue",
+          "points": [
+            "国内节点丰富",
+            "HTTPS 免费",
+            "全站加速",
+            "边缘脚本"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "缓存策略",
+      "highlightFirst": true,
+      "headers": [
+        "策略",
+        "说明",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "遵循源站",
+          "使用 Cache-Control 头",
+          "动态内容"
+        ],
+        [
+          "固定 TTL",
+          "统一缓存时间",
+          "静态资源"
+        ],
+        [
+          "URL 版本化",
+          "文件名包含哈希",
+          "长期缓存"
+        ],
+        [
+          "Query String",
+          "区分参数缓存",
+          "A/B 测试"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "缓存控制头示例",
+      "language": "http",
+      "code": "# 静态资源 - 长期缓存\nCache-Control: public, max-age=31536000, immutable\n\n# HTML 页面 - 验证缓存\nCache-Control: no-cache\nETag: \"abc123\"\n\n# API 响应 - 短期缓存\nCache-Control: private, max-age=60\n\n# 敏感数据 - 不缓存\nCache-Control: no-store"
+    },
+    {
+      "type": "comparison",
+      "title": "静态加速 vs 全站加速",
+      "columns": [
+        {
+          "title": "静态加速",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "内容",
+              "description": "图片/CSS/JS"
+            },
+            {
+              "label": "缓存",
+              "description": "边缘完全缓存"
+            },
+            {
+              "label": "成本",
+              "description": "较低"
+            }
+          ]
+        },
+        {
+          "title": "全站加速",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "内容",
+              "description": "动态 + 静态"
+            },
+            {
+              "label": "优化",
+              "description": "协议优化/路由"
+            },
+            {
+              "label": "成本",
+              "description": "较高"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "资源版本化",
+          "description": "文件名带 hash，实现长期缓存"
+        },
+        {
+          "label": "分离域名",
+          "description": "静态资源使用独立域名"
+        },
+        {
+          "label": "HTTPS 全站",
+          "description": "提升安全性和 SEO"
+        },
+        {
+          "label": "监控命中率",
+          "description": "关注缓存效率和回源率"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "HTTP 缓存",
+    "性能优化",
+    "边缘计算"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "title": "Docker Compose",
+    "description": "Docker Compose マルチコンテナオーケストレーション：サービス定義、ネットワークとデプロイ",
+    "order": 5,
+    "tags": ["Docker", "Compose", "オーケストレーション", "マルチコンテナ"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "YAML ファイルでマルチコンテナアプリケーションを定義",
+        "ワンクリックでアプリケーションスタック全体を起動/停止",
+        "自動でネットワークを作成しコンテナ間通信を実現",
+        "開発環境とシンプルな本番デプロイに適する"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本例",
+      "language": "yaml",
+      "code": "# docker-compose.yml\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - \"80:80\"\n    volumes:\n      - ./html:/usr/share/nginx/html:ro\n    depends_on:\n      - api\n\n  api:\n    build: ./api\n    environment:\n      - DATABASE_URL=postgres://db:5432/app\n    depends_on:\n      - db\n\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_DB: app\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: secret\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n\nvolumes:\n  pgdata:"
+    },
+    {
+      "type": "codeBlock",
+      "title": "よく使うコマンド",
+      "language": "bash",
+      "code": "# サービスを起動 (バックグラウンド実行)\ndocker compose up -d\n\n# サービス状態を確認\ndocker compose ps\n\n# ログを確認\ndocker compose logs -f\ndocker compose logs api  # サービスを指定\n\n# サービスを停止\ndocker compose stop\n\n# 停止してコンテナ、ネットワークを削除\ndocker compose down\n\n# 削除して Volume もクリーンアップ\ndocker compose down -v\n\n# イメージを再ビルド\ndocker compose build\ndocker compose up -d --build\n\n# サービスをスケールアウト\ndocker compose up -d --scale api=3\n\n# コンテナに入る\ndocker compose exec api sh"
+    },
+    {
+      "type": "cards",
+      "title": "サービス設定オプション",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ビルド設定",
+          "badge": "build",
+          "badgeColor": "blue",
+          "points": [
+            "build: ./path",
+            "context + dockerfile",
+            "args ビルド引数",
+            "target マルチステージターゲット"
+          ]
+        },
+        {
+          "title": "ランタイム設定",
+          "badge": "runtime",
+          "badgeColor": "green",
+          "points": [
+            "command コマンドを上書き",
+            "entrypoint エントリポイント",
+            "working_dir 作業ディレクトリ",
+            "user 実行ユーザー"
+          ]
+        },
+        {
+          "title": "リソース制限",
+          "badge": "deploy",
+          "badgeColor": "amber",
+          "points": [
+            "cpus: CPU 制限",
+            "memory: メモリ制限",
+            "replicas: レプリカ数",
+            "restart_policy"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ネットワーク設定",
+      "language": "yaml",
+      "code": "services:\n  frontend:\n    networks:\n      - frontend-net\n\n  api:\n    networks:\n      - frontend-net\n      - backend-net\n\n  db:\n    networks:\n      - backend-net\n\nnetworks:\n  frontend-net:\n    driver: bridge\n  backend-net:\n    driver: bridge\n    internal: true  # 外部アクセスを禁止\n\n# コンテナ間はサービス名で通信\n# frontend -> http://api:3000\n# api -> postgres://db:5432"
+    },
+    {
+      "type": "codeBlock",
+      "title": "環境変数設定",
+      "language": "yaml",
+      "code": "services:\n  api:\n    # 方式1: 直接定義\n    environment:\n      - NODE_ENV=production\n      - DB_HOST=db\n\n    # 方式2: .env ファイルから\n    env_file:\n      - .env\n      - .env.local\n\n    # 方式3: 変数置換\n    environment:\n      - DB_PASSWORD=${DB_PASSWORD:-default}\n\n# .env ファイル\n# DB_PASSWORD=secret\n# API_KEY=xxx"
+    },
+    {
+      "type": "codeBlock",
+      "title": "ヘルスチェックと依存関係",
+      "language": "yaml",
+      "code": "services:\n  api:\n    depends_on:\n      db:\n        condition: service_healthy\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n      start_period: 40s\n\n  db:\n    image: postgres:15\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U user -d app\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5"
+    },
+    {
+      "type": "codeBlock",
+      "title": "リソース制限 (deploy)",
+      "language": "yaml",
+      "code": "services:\n  api:\n    deploy:\n      replicas: 2\n      resources:\n        limits:\n          cpus: '0.5'\n          memory: 512M\n        reservations:\n          cpus: '0.25'\n          memory: 256M\n      restart_policy:\n        condition: on-failure\n        delay: 5s\n        max_attempts: 3\n        window: 120s"
+    },
+    {
+      "type": "codeBlock",
+      "title": "マルチ環境設定",
+      "language": "yaml",
+      "code": "# docker-compose.yml (基本設定)\nservices:\n  api:\n    build: .\n    environment:\n      - NODE_ENV=development\n\n# docker-compose.prod.yml (本番上書き)\nservices:\n  api:\n    environment:\n      - NODE_ENV=production\n    deploy:\n      replicas: 3\n\n# 使用方法\n# 開発: docker compose up\n# 本番: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
+    },
+    {
+      "type": "table",
+      "title": "Compose vs Kubernetes",
+      "highlightFirst": true,
+      "headers": ["特性", "Docker Compose", "Kubernetes"],
+      "rows": [
+        ["適用シナリオ", "単一ホスト/開発環境", "クラスタ/本番環境"],
+        ["オーケストレーション規模", "数十コンテナ", "数千 Pod"],
+        ["高可用性", "なし", "内蔵"],
+        ["サービスディスカバリ", "DNS (コンテナ名)", "Service/DNS"],
+        ["ローリングアップデート", "基本サポート", "完全サポート"],
+        ["学習曲線", "低い", "高い"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": ".env ファイルを使用", "description": "機密情報を compose ファイルにハードコードしない" },
+        { "label": "ヘルスチェックを設定", "description": "依存サービスの準備完了後に起動を確認" },
+        { "label": "名前付き Volume", "description": "データ損失を防ぎ、管理を容易に" },
+        { "label": "リソースを制限", "description": "単一サービスによる過剰なリソース消費を防止" },
+        { "label": "ネットワークを分離", "description": "フロントエンドとバックエンドを分離、データベースは internal ネットワークを使用" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker 基礎", "Docker ネットワーク", "Kubernetes"]
+}

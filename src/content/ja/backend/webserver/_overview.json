@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Web サーバー",
+    "description": "高性能 Web サーバーの構成と最適化",
+    "icon": "server"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Web サーバーは HTTP リクエストを処理しレスポンスを返す",
+        "静的ファイル配信、リバースプロキシ、ロードバランシングをサポート",
+        "パフォーマンス最適化：コネクション再利用、キャッシュ、圧縮",
+        "セキュリティ設定：SSL/TLS、アクセス制御、レート制限"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "Web サーバーはインターネットインフラの中核コンポーネントで、クライアントからのリクエストを受け取り、適切なコンテンツを返します。現代の Web サーバーは静的ファイル配信だけでなく、リバースプロキシ、ロードバランサー、API ゲートウェイなど多様な役割を果たします。適切な Web サーバーを選択し正しく構成することは、高性能・高可用性 Web アプリケーション構築に不可欠です。"
+    },
+    {
+      "type": "comparison",
+      "title": "主要 Web サーバー比較",
+      "columns": [
+        {
+          "title": "Nginx",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "アーキテクチャ", "description": "イベント駆動、非同期ノンブロッキング" },
+            { "label": "性能", "description": "高並列処理、低メモリ使用" },
+            { "label": "適用", "description": "リバースプロキシ、静的配信" }
+          ]
+        },
+        {
+          "title": "Apache",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "アーキテクチャ", "description": "マルチプロセス/スレッドモデル" },
+            { "label": "性能", "description": "豊富なモジュール、高い拡張性" },
+            { "label": "適用", "description": "動的コンテンツ、.htaccess" }
+          ]
+        },
+        {
+          "title": "Caddy",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "アーキテクチャ", "description": "Go 言語で実装" },
+            { "label": "性能", "description": "自動 HTTPS、シンプルな設定" },
+            { "label": "適用", "description": "クイックデプロイ、開発環境" }
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["ロードバランサー", "SSL/TLS", "CDN"],
+  "articles": [
+    {
+      "slug": "nginx",
+      "title": "Nginx",
+      "description": "高性能 Web サーバーとリバースプロキシ",
+      "priority": "essential"
+    },
+    {
+      "slug": "apache",
+      "title": "Apache",
+      "description": "機能豊富な老舗 Web サーバー",
+      "priority": "recommended"
+    },
+    {
+      "slug": "caddy",
+      "title": "Caddy",
+      "description": "自動 HTTPS のモダン Web サーバー",
+      "priority": "optional"
+    }
+  ]
+}

@@ -5,11 +5,199 @@
     "description": "PostgreSQL 高级特性、JSON 支持与扩展功能",
     "order": 2,
     "tags": [
-      "database",
-      "postgresql",
-      "sql",
-      "relational"
+      "PostgreSQL",
+      "SQL",
+      "关系型数据库"
     ]
   },
-  "content": "<h1>PostgreSQL</h1>\n<h2>PostgreSQL 概述</h2>\n<p>PostgreSQL 是功能强大的开源对象关系型数据库，以其可靠性、功能丰富性和扩展性著称。</p>\n<pre><code>PostgreSQL 特性\n├── ACID 事务\n├── MVCC 并发控制\n├── 丰富数据类型 (JSON、Array、范围)\n├── 全文搜索\n├── 可扩展 (自定义类型、函数、索引)\n└── 强大的 SQL 支持 (CTE、窗口函数)\n</code></pre>\n<h2>数据类型</h2>\n<h3>JSON/JSONB</h3>\n<pre><code class=\"language-sql\">-- JSONB 类型 (推荐)\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    attributes JSONB\n);\n\n-- 插入 JSON\nINSERT INTO products (name, attributes) VALUES\n('iPhone', '{\"brand\": \"Apple\", \"storage\": 128, \"colors\": [\"black\", \"white\"]}');\n\n-- 查询 JSON 字段\nSELECT name, attributes->>'brand' as brand FROM products;\nSELECT * FROM products WHERE attributes->>'brand' = 'Apple';\nSELECT * FROM products WHERE attributes @> '{\"brand\": \"Apple\"}';\n\n-- JSON 操作符\n-> : 获取 JSON 对象字段 (返回 JSON)\n->> : 获取 JSON 对象字段 (返回文本)\n#> : 按路径获取 (返回 JSON)\n#>> : 按路径获取 (返回文本)\n@> : 包含\n&#x3C;@ : 被包含\n? : 键存在\n</code></pre>\n<h3>数组类型</h3>\n<pre><code class=\"language-sql\">-- 数组类型\nCREATE TABLE users (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    tags TEXT[]\n);\n\n-- 数组操作\nINSERT INTO users (name, tags) VALUES ('Alice', ARRAY['developer', 'golang']);\n\n-- 查询\nSELECT * FROM users WHERE 'developer' = ANY(tags);\nSELECT * FROM users WHERE tags @> ARRAY['developer'];\n\n-- 数组函数\nSELECT array_agg(name) FROM users;\nSELECT unnest(tags) FROM users WHERE id = 1;\n</code></pre>\n<h3>范围类型</h3>\n<pre><code class=\"language-sql\">-- 范围类型\nCREATE TABLE reservations (\n    id SERIAL PRIMARY KEY,\n    room_id INT,\n    during TSTZRANGE\n);\n\n-- 使用范围\nINSERT INTO reservations (room_id, during) VALUES\n(1, '[2024-01-01 14:00, 2024-01-01 16:00)');\n\n-- 范围查询\nSELECT * FROM reservations WHERE during &#x26;&#x26; '[2024-01-01 15:00, 2024-01-01 17:00)';\n\n-- 范围操作符\n&#x26;&#x26; : 重叠\n@> : 包含\n&#x3C;@ : 被包含\n-|- : 相邻\n</code></pre>\n<h2>索引</h2>\n<h3>索引类型</h3>\n<pre><code class=\"language-sql\">-- B-Tree (默认)\nCREATE INDEX idx_name ON users(name);\n\n-- Hash\nCREATE INDEX idx_email_hash ON users USING HASH(email);\n\n-- GiST (通用搜索树)\nCREATE INDEX idx_location ON places USING GIST(location);\n\n-- GIN (倒排索引)\nCREATE INDEX idx_tags ON users USING GIN(tags);\nCREATE INDEX idx_attributes ON products USING GIN(attributes);\n\n-- BRIN (块范围)\nCREATE INDEX idx_created ON logs USING BRIN(created_at);\n</code></pre>\n<h3>部分索引</h3>\n<pre><code class=\"language-sql\">-- 部分索引\nCREATE INDEX idx_active_users ON users(email) WHERE status = 'active';\n\n-- 表达式索引\nCREATE INDEX idx_lower_email ON users(LOWER(email));\n\n-- 并发创建\nCREATE INDEX CONCURRENTLY idx_name ON users(name);\n</code></pre>\n<h2>高级查询</h2>\n<h3>窗口函数</h3>\n<pre><code class=\"language-sql\">-- 排名\nSELECT name, department, salary,\n    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as rank\nFROM employees;\n\n-- 累计\nSELECT date, amount,\n    SUM(amount) OVER (ORDER BY date) as running_total\nFROM sales;\n\n-- 前后行\nSELECT date, value,\n    LAG(value) OVER (ORDER BY date) as prev_value,\n    LEAD(value) OVER (ORDER BY date) as next_value\nFROM metrics;\n</code></pre>\n<h3>CTE (公共表表达式)</h3>\n<pre><code class=\"language-sql\">-- 基础 CTE\nWITH active_users AS (\n    SELECT * FROM users WHERE status = 'active'\n)\nSELECT * FROM active_users WHERE created_at > '2024-01-01';\n\n-- 递归 CTE\nWITH RECURSIVE subordinates AS (\n    SELECT id, name, manager_id, 1 as level\n    FROM employees WHERE id = 1\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, s.level + 1\n    FROM employees e\n    JOIN subordinates s ON e.manager_id = s.id\n)\nSELECT * FROM subordinates;\n</code></pre>\n<h3>全文搜索</h3>\n<pre><code class=\"language-sql\">-- 全文搜索\nCREATE TABLE articles (\n    id SERIAL PRIMARY KEY,\n    title TEXT,\n    content TEXT,\n    search_vector TSVECTOR\n);\n\n-- 创建搜索向量\nUPDATE articles SET search_vector =\n    setweight(to_tsvector('english', title), 'A') ||\n    setweight(to_tsvector('english', content), 'B');\n\n-- GIN 索引\nCREATE INDEX idx_search ON articles USING GIN(search_vector);\n\n-- 搜索\nSELECT * FROM articles\nWHERE search_vector @@ to_tsquery('english', 'postgresql &#x26; database');\n\n-- 排名\nSELECT title, ts_rank(search_vector, query) as rank\nFROM articles, to_tsquery('english', 'postgresql') query\nWHERE search_vector @@ query\nORDER BY rank DESC;\n</code></pre>\n<h2>事务与并发</h2>\n<h3>隔离级别</h3>\n<pre><code class=\"language-sql\">-- PostgreSQL 隔离级别\n-- READ COMMITTED (默认)\n-- REPEATABLE READ\n-- SERIALIZABLE\n\nBEGIN ISOLATION LEVEL SERIALIZABLE;\n-- 操作\nCOMMIT;\n</code></pre>\n<h3>咨询锁</h3>\n<pre><code class=\"language-sql\">-- 获取锁\nSELECT pg_advisory_lock(12345);\n\n-- 尝试获取\nSELECT pg_try_advisory_lock(12345);\n\n-- 释放锁\nSELECT pg_advisory_unlock(12345);\n\n-- 会话级锁\nSELECT pg_advisory_lock(hashtext('resource_name'));\n</code></pre>\n<h2>扩展</h2>\n<h3>常用扩展</h3>\n<pre><code class=\"language-sql\">-- 查看可用扩展\nSELECT * FROM pg_available_extensions;\n\n-- 安装扩展\nCREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";\nCREATE EXTENSION IF NOT EXISTS \"pg_trgm\";\nCREATE EXTENSION IF NOT EXISTS \"postgis\";\n\n-- uuid 生成\nSELECT uuid_generate_v4();\n\n-- 相似度搜索 (pg_trgm)\nSELECT * FROM products\nWHERE name % 'iphon'\nORDER BY similarity(name, 'iphon') DESC;\n</code></pre>\n<h3>自定义函数</h3>\n<pre><code class=\"language-sql\">-- PL/pgSQL 函数\nCREATE OR REPLACE FUNCTION get_user_orders(user_id INT)\nRETURNS TABLE(order_id INT, total DECIMAL) AS $$\nBEGIN\n    RETURN QUERY\n    SELECT id, amount FROM orders WHERE user_id = user_id;\nEND;\n$$ LANGUAGE plpgsql;\n\n-- 使用\nSELECT * FROM get_user_orders(1);\n</code></pre>\n<h2>性能优化</h2>\n<pre><code class=\"language-sql\">-- 分析查询计划\nEXPLAIN ANALYZE SELECT * FROM users WHERE name = 'test';\n\n-- 查看表统计\nSELECT * FROM pg_stat_user_tables WHERE relname = 'users';\n\n-- 更新统计\nANALYZE users;\n\n-- 查看索引使用\nSELECT * FROM pg_stat_user_indexes WHERE relname = 'users';\n</code></pre>\n<h2>总结</h2>\n<p>PostgreSQL 要点：</p>\n<ol>\n<li><strong>数据类型</strong> - JSON、数组、范围类型</li>\n<li><strong>索引</strong> - B-Tree、GIN、GiST、BRIN</li>\n<li><strong>高级查询</strong> - 窗口函数、CTE、全文搜索</li>\n<li><strong>扩展</strong> - uuid、postgis、pg_trgm</li>\n<li><strong>可靠性</strong> - ACID、MVCC、咨询锁</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "PostgreSQL 是功能强大的开源对象关系型数据库",
+        "支持丰富数据类型：JSON、Array、范围类型",
+        "强大的 SQL 支持：CTE、窗口函数",
+        "高度可扩展：自定义类型、函数、索引"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "特色数据类型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "JSONB",
+          "badge": "半结构化",
+          "badgeColor": "blue",
+          "points": [
+            "二进制存储",
+            "支持索引",
+            "丰富操作符"
+          ]
+        },
+        {
+          "title": "Array",
+          "badge": "集合",
+          "badgeColor": "green",
+          "points": [
+            "原生数组支持",
+            "ANY/ALL 查询",
+            "数组函数"
+          ]
+        },
+        {
+          "title": "Range",
+          "badge": "范围",
+          "badgeColor": "purple",
+          "points": [
+            "时间/数值范围",
+            "重叠检测",
+            "排除约束"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JSONB 操作",
+      "language": "sql",
+      "code": "-- 创建带 JSONB 的表\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    attributes JSONB\n);\n\n-- 查询 JSON 字段\nSELECT name, attributes->>'brand' as brand FROM products;\nSELECT * FROM products WHERE attributes @> '{\"brand\": \"Apple\"}';\n\n-- JSON 操作符\n->  获取对象字段 (返回 JSON)\n->> 获取对象字段 (返回文本)\n@>  包含\n?   键存在"
+    },
+    {
+      "type": "comparison",
+      "title": "索引类型",
+      "columns": [
+        {
+          "title": "B-Tree",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "默认索引类型"
+            },
+            {
+              "label": "适用",
+              "description": "等值、范围查询"
+            }
+          ]
+        },
+        {
+          "title": "GIN",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "倒排索引"
+            },
+            {
+              "label": "适用",
+              "description": "JSONB、全文搜索"
+            }
+          ]
+        },
+        {
+          "title": "GiST",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "通用搜索树"
+            },
+            {
+              "label": "适用",
+              "description": "地理数据、范围"
+            }
+          ]
+        },
+        {
+          "title": "BRIN",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "块范围索引"
+            },
+            {
+              "label": "适用",
+              "description": "时序数据"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "窗口函数",
+      "language": "sql",
+      "code": "-- 排名函数\nSELECT name, department, salary,\n    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as rank\nFROM employees;\n\n-- 累计计算\nSELECT date, amount,\n    SUM(amount) OVER (ORDER BY date) as running_total\nFROM sales;\n\n-- 前后行\nSELECT date, value,\n    LAG(value) OVER (ORDER BY date) as prev_value,\n    LEAD(value) OVER (ORDER BY date) as next_value\nFROM metrics;"
+    },
+    {
+      "type": "codeBlock",
+      "title": "递归 CTE",
+      "language": "sql",
+      "code": "-- 递归查询组织架构\nWITH RECURSIVE subordinates AS (\n    SELECT id, name, manager_id, 1 as level\n    FROM employees WHERE id = 1\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, s.level + 1\n    FROM employees e\n    JOIN subordinates s ON e.manager_id = s.id\n)\nSELECT * FROM subordinates;"
+    },
+    {
+      "type": "table",
+      "title": "常用扩展",
+      "highlightFirst": true,
+      "headers": [
+        "扩展",
+        "功能",
+        "用途"
+      ],
+      "rows": [
+        [
+          "uuid-ossp",
+          "UUID 生成",
+          "分布式 ID"
+        ],
+        [
+          "pg_trgm",
+          "相似度搜索",
+          "模糊匹配"
+        ],
+        [
+          "PostGIS",
+          "地理空间",
+          "GIS 应用"
+        ],
+        [
+          "pg_stat_statements",
+          "查询统计",
+          "性能分析"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 JSONB",
+          "description": "比 JSON 类型性能更好，支持索引"
+        },
+        {
+          "label": "部分索引",
+          "description": "只索引常用条件的数据子集"
+        },
+        {
+          "label": "EXPLAIN ANALYZE",
+          "description": "分析实际执行计划"
+        },
+        {
+          "label": "连接池",
+          "description": "使用 PgBouncer 管理连接"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "MySQL",
+    "JSONB",
+    "全文搜索"
+  ]
 }

@@ -1,0 +1,123 @@
+{
+  "slug": "traefik",
+  "meta": {
+    "title": "Traefik",
+    "description": "云原生边缘路由器与反向代理",
+    "order": 2,
+    "tags": [
+      "Traefik",
+      "云原生",
+      "Kubernetes",
+      "Docker"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "自动服务发现：对接 Docker、K8s、Consul 等",
+        "动态配置：无需重启即可更新路由",
+        "自动 HTTPS：集成 Let's Encrypt",
+        "丰富的中间件：认证、限流、重试等"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Traefik 简介",
+      "content": "Traefik 是一款现代化的云原生边缘路由器，专为微服务和容器化环境设计。它能够自动发现服务并动态更新路由配置，非常适合 Docker 和 Kubernetes 环境。Traefik 内置了 Let's Encrypt 支持，可以自动获取和续期 SSL 证书。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker 环境配置",
+      "language": "yaml",
+      "code": "# docker-compose.yml\nversion: '3'\n\nservices:\n  traefik:\n    image: traefik:v3.0\n    command:\n      - \"--api.dashboard=true\"\n      - \"--providers.docker=true\"\n      - \"--providers.docker.exposedbydefault=false\"\n      - \"--entrypoints.web.address=:80\"\n      - \"--entrypoints.websecure.address=:443\"\n      - \"--certificatesresolvers.letsencrypt.acme.email=admin@example.com\"\n      - \"--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json\"\n      - \"--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web\"\n    ports:\n      - \"80:80\"\n      - \"443:443\"\n    volumes:\n      - /var/run/docker.sock:/var/run/docker.sock:ro\n      - ./letsencrypt:/letsencrypt\n    labels:\n      - \"traefik.enable=true\"\n      - \"traefik.http.routers.dashboard.rule=Host(`traefik.example.com`)\"\n      - \"traefik.http.routers.dashboard.service=api@internal\""
+    },
+    {
+      "type": "cards",
+      "title": "核心特性",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "服务发现",
+          "badge": "核心",
+          "badgeColor": "blue",
+          "points": [
+            "Docker 标签发现",
+            "Kubernetes Ingress",
+            "Consul/etcd 集成",
+            "文件配置提供者"
+          ]
+        },
+        {
+          "title": "中间件",
+          "badge": "功能",
+          "badgeColor": "green",
+          "points": [
+            "BasicAuth/DigestAuth",
+            "RateLimit 限流",
+            "Retry 重试",
+            "CircuitBreaker 熔断"
+          ]
+        },
+        {
+          "title": "路由规则",
+          "badge": "路由",
+          "badgeColor": "purple",
+          "points": [
+            "Host 域名匹配",
+            "Path 路径匹配",
+            "Headers 头匹配",
+            "Query 参数匹配"
+          ]
+        },
+        {
+          "title": "可观测性",
+          "badge": "监控",
+          "badgeColor": "amber",
+          "points": [
+            "Dashboard 可视化",
+            "Prometheus 指标",
+            "Jaeger/Zipkin 链路追踪",
+            "访问日志"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Kubernetes IngressRoute",
+      "language": "yaml",
+      "code": "apiVersion: traefik.io/v1alpha1\nkind: IngressRoute\nmetadata:\n  name: myapp\n  namespace: default\nspec:\n  entryPoints:\n    - websecure\n  routes:\n    - match: Host(`app.example.com`)\n      kind: Rule\n      services:\n        - name: myapp\n          port: 80\n      middlewares:\n        - name: ratelimit\n        - name: auth\n  tls:\n    certResolver: letsencrypt\n---\napiVersion: traefik.io/v1alpha1\nkind: Middleware\nmetadata:\n  name: ratelimit\nspec:\n  rateLimit:\n    average: 100\n    burst: 50\n---\napiVersion: traefik.io/v1alpha1\nkind: Middleware\nmetadata:\n  name: auth\nspec:\n  basicAuth:\n    secret: authsecret"
+    },
+    {
+      "type": "list",
+      "title": "使用场景",
+      "style": "check",
+      "items": [
+        {
+          "label": "Docker Compose",
+          "description": "通过容器标签自动配置路由"
+        },
+        {
+          "label": "Kubernetes",
+          "description": "替代 Nginx Ingress Controller"
+        },
+        {
+          "label": "微服务网关",
+          "description": "统一入口、认证、限流"
+        },
+        {
+          "label": "多环境部署",
+          "description": "开发/测试/生产环境统一配置"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Kubernetes",
+    "Docker",
+    "服务网格"
+  ]
+}

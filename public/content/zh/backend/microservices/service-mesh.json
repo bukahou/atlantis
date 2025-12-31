@@ -1,0 +1,270 @@
+{
+  "slug": "service-mesh",
+  "meta": {
+    "title": "服务网格",
+    "description": "Service Mesh 架构、Istio 实践与流量管理",
+    "order": 4,
+    "tags": [
+      "Service Mesh",
+      "Istio",
+      "微服务",
+      "Sidecar"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "服务网格是处理服务间通信的基础设施层",
+        "Sidecar 代理拦截所有网络流量",
+        "将网络功能从应用代码中解耦",
+        "统一的流量管理、安全和可观测性"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "服务网格架构",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "控制平面",
+          "description": "策略配置下发",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "数据平面",
+          "description": "Sidecar 代理",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "服务 A",
+          "description": "业务容器",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "服务 B",
+          "description": "业务容器",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "主流服务网格对比",
+      "columns": [
+        {
+          "title": "Istio",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "代理",
+              "description": "Envoy"
+            },
+            {
+              "label": "特点",
+              "description": "功能全面，企业级"
+            },
+            {
+              "label": "复杂度",
+              "description": "较高"
+            },
+            {
+              "label": "资源",
+              "description": "较高"
+            }
+          ]
+        },
+        {
+          "title": "Linkerd",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "代理",
+              "description": "linkerd2-proxy (Rust)"
+            },
+            {
+              "label": "特点",
+              "description": "轻量、简单"
+            },
+            {
+              "label": "复杂度",
+              "description": "较低"
+            },
+            {
+              "label": "资源",
+              "description": "较低"
+            }
+          ]
+        },
+        {
+          "title": "Cilium",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            {
+              "label": "代理",
+              "description": "eBPF (无 Sidecar)"
+            },
+            {
+              "label": "特点",
+              "description": "高性能"
+            },
+            {
+              "label": "复杂度",
+              "description": "中等"
+            },
+            {
+              "label": "资源",
+              "description": "低"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心功能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "流量管理",
+          "badge": "Traffic",
+          "badgeColor": "blue",
+          "points": [
+            "智能路由",
+            "金丝雀发布",
+            "A/B 测试",
+            "流量镜像"
+          ]
+        },
+        {
+          "title": "安全",
+          "badge": "Security",
+          "badgeColor": "green",
+          "points": [
+            "mTLS 双向认证",
+            "服务身份",
+            "访问控制策略",
+            "证书自动轮换"
+          ]
+        },
+        {
+          "title": "可观测性",
+          "badge": "Observability",
+          "badgeColor": "purple",
+          "points": [
+            "分布式追踪",
+            "服务拓扑图",
+            "黄金指标监控",
+            "访问日志"
+          ]
+        },
+        {
+          "title": "弹性",
+          "badge": "Resilience",
+          "badgeColor": "amber",
+          "points": [
+            "超时控制",
+            "重试策略",
+            "熔断器",
+            "限流"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Istio VirtualService 流量路由",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: VirtualService\nmetadata:\n  name: reviews\nspec:\n  hosts:\n    - reviews\n  http:\n    # 金丝雀发布：10% 流量到 v2\n    - match:\n        - headers:\n            end-user:\n              exact: jason\n      route:\n        - destination:\n            host: reviews\n            subset: v2\n    - route:\n        - destination:\n            host: reviews\n            subset: v1\n          weight: 90\n        - destination:\n            host: reviews\n            subset: v2\n          weight: 10"
+    },
+    {
+      "type": "codeBlock",
+      "title": "DestinationRule 负载均衡与熔断",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: DestinationRule\nmetadata:\n  name: reviews\nspec:\n  host: reviews\n  trafficPolicy:\n    loadBalancer:\n      simple: ROUND_ROBIN\n    connectionPool:\n      tcp:\n        maxConnections: 100\n      http:\n        h2UpgradePolicy: UPGRADE\n        http1MaxPendingRequests: 100\n        http2MaxRequests: 1000\n    outlierDetection:\n      consecutive5xxErrors: 5\n      interval: 30s\n      baseEjectionTime: 30s\n      maxEjectionPercent: 50\n  subsets:\n    - name: v1\n      labels:\n        version: v1\n    - name: v2\n      labels:\n        version: v2"
+    },
+    {
+      "type": "codeBlock",
+      "title": "PeerAuthentication mTLS 配置",
+      "language": "yaml",
+      "code": "# 命名空间级别强制 mTLS\napiVersion: security.istio.io/v1beta1\nkind: PeerAuthentication\nmetadata:\n  name: default\n  namespace: production\nspec:\n  mtls:\n    mode: STRICT\n\n---\n# 授权策略\napiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: frontend-to-backend\n  namespace: production\nspec:\n  selector:\n    matchLabels:\n      app: backend\n  action: ALLOW\n  rules:\n    - from:\n        - source:\n            principals:\n              - cluster.local/ns/production/sa/frontend\n      to:\n        - operation:\n            methods: [\"GET\", \"POST\"]\n            paths: [\"/api/*\"]"
+    },
+    {
+      "type": "codeBlock",
+      "title": "故障注入测试",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: VirtualService\nmetadata:\n  name: ratings\nspec:\n  hosts:\n    - ratings\n  http:\n    - fault:\n        # 注入延迟\n        delay:\n          percentage:\n            value: 10\n          fixedDelay: 5s\n        # 注入错误\n        abort:\n          percentage:\n            value: 5\n          httpStatus: 500\n      route:\n        - destination:\n            host: ratings"
+    },
+    {
+      "type": "table",
+      "title": "Istio 组件",
+      "highlightFirst": true,
+      "headers": [
+        "组件",
+        "功能",
+        "说明"
+      ],
+      "rows": [
+        [
+          "istiod",
+          "控制平面",
+          "配置下发、证书管理"
+        ],
+        [
+          "Envoy",
+          "数据平面代理",
+          "Sidecar 流量拦截"
+        ],
+        [
+          "Ingress Gateway",
+          "入口网关",
+          "集群入口流量管理"
+        ],
+        [
+          "Egress Gateway",
+          "出口网关",
+          "外部访问控制"
+        ],
+        [
+          "Kiali",
+          "可视化",
+          "服务拓扑与监控"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "渐进式采用",
+          "description": "先在非生产环境验证"
+        },
+        {
+          "label": "资源规划",
+          "description": "Sidecar 会增加资源消耗"
+        },
+        {
+          "label": "命名空间隔离",
+          "description": "按环境/团队划分"
+        },
+        {
+          "label": "监控先行",
+          "description": "部署前确保可观测性"
+        },
+        {
+          "label": "严格 mTLS",
+          "description": "生产环境强制双向认证"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Kubernetes",
+    "微服务架构",
+    "Envoy"
+  ]
+}

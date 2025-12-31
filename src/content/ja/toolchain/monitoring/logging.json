@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "title": "ログシステム",
+    "description": "ログ収集、処理と分析：ELK/Loki ログスタック",
+    "order": 3,
+    "tags": ["ログ", "ELK", "Loki", "オブザーバビリティ"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ログはオブザーバビリティの三本柱の一つ",
+        "構造化ログはクエリと分析を容易にする",
+        "集中ログ管理がトラブルシューティング効率を向上",
+        "ログレベル：DEBUG/INFO/WARN/ERROR"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "ログスタック比較",
+      "columns": [
+        {
+          "title": "ELK Stack",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "コンポーネント", "description": "ES + Logstash + Kibana" },
+            { "label": "特徴", "description": "全文検索が強力" },
+            { "label": "リソース", "description": "高め" }
+          ]
+        },
+        {
+          "title": "Loki + Grafana",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "コンポーネント", "description": "Loki + Promtail + Grafana" },
+            { "label": "特徴", "description": "ラベルインデックス、軽量" },
+            { "label": "リソース", "description": "低め" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "ELK アーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "アプリ", "description": "ログ生成", "color": "bg-blue-500" },
+        { "label": "Filebeat", "description": "収集・転送", "color": "bg-purple-500" },
+        { "label": "Logstash", "description": "解析・処理", "color": "bg-orange-500" },
+        { "label": "Elasticsearch", "description": "保存・インデックス", "color": "bg-green-500" },
+        { "label": "Kibana", "description": "可視化", "color": "bg-cyan-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "構造化ログ (JSON)",
+      "language": "json",
+      "code": "{\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\",\n  \"level\": \"INFO\",\n  \"service\": \"api-gateway\",\n  \"trace_id\": \"abc123\",\n  \"span_id\": \"def456\",\n  \"message\": \"Request processed\",\n  \"http\": {\n    \"method\": \"POST\",\n    \"path\": \"/api/users\",\n    \"status_code\": 200,\n    \"duration_ms\": 45\n  },\n  \"user_id\": \"user_789\"\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Logstash 設定",
+      "language": "ruby",
+      "code": "input {\n  beats {\n    port => 5044\n  }\n}\n\nfilter {\n  json {\n    source => \"message\"\n  }\n  \n  date {\n    match => [\"timestamp\", \"ISO8601\"]\n    target => \"@timestamp\"\n  }\n  \n  geoip {\n    source => \"client_ip\"\n  }\n  \n  mutate {\n    remove_field => [\"agent\", \"host\", \"ecs\"]\n  }\n}\n\noutput {\n  elasticsearch {\n    hosts => [\"elasticsearch:9200\"]\n    index => \"logs-%{[service]}-%{+YYYY.MM.dd}\"\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Loki + Promtail 設定",
+      "language": "yaml",
+      "code": "# promtail-config.yaml\nserver:\n  http_listen_port: 9080\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: http://loki:3100/loki/api/v1/push\n\nscrape_configs:\n  - job_name: kubernetes-pods\n    kubernetes_sd_configs:\n      - role: pod\n    pipeline_stages:\n      - json:\n          expressions:\n            level: level\n            message: message\n      - labels:\n          level:\n      - timestamp:\n          source: timestamp\n          format: RFC3339"
+    },
+    {
+      "type": "codeBlock",
+      "title": "LogQL クエリ (Loki)",
+      "language": "logql",
+      "code": "# 基本クエリ\n{namespace=\"production\", app=\"api\"}\n\n# ログ内容フィルタ\n{app=\"api\"} |= \"error\"\n{app=\"api\"} |~ \"status_code=(4|5)\\\\d{2}\"\n\n# JSON 解析\n{app=\"api\"} | json | level=\"ERROR\"\n\n# 集約統計\nsum(rate({app=\"api\"} |= \"error\" [5m])) by (service)\n\n# ログカウント\ncount_over_time({app=\"api\", level=\"ERROR\"}[1h])"
+    },
+    {
+      "type": "table",
+      "title": "ログレベル",
+      "highlightFirst": true,
+      "headers": ["レベル", "用途", "本番環境"],
+      "rows": [
+        ["DEBUG", "デバッグ情報", "オフ"],
+        ["INFO", "正常操作", "オン"],
+        ["WARN", "潜在的問題", "オン"],
+        ["ERROR", "エラー情報", "オン + アラート"],
+        ["FATAL", "致命的エラー", "オン + アラート"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "構造化ログ", "description": "JSON 形式を使用し、解析とクエリを容易に" },
+        { "label": "統一フォーマット", "description": "チームでログフィールドと命名規約を統一" },
+        { "label": "トレース連携", "description": "trace_id を含め、分散トレーシングを実現" },
+        { "label": "ログローテーション", "description": "保持ポリシーを設定し、ストレージオーバーフローを回避" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Prometheus", "Grafana", "オブザーバビリティ"]
+}

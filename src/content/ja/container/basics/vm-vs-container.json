@@ -1,0 +1,274 @@
+{
+  "meta": {
+    "title": "仮想マシン vs コンテナ",
+    "description": "仮想化技術の比較：Hypervisor、コンテナランタイムと分離メカニズム",
+    "order": 1,
+    "tags": ["コンテナ", "仮想マシン", "Hypervisor", "Namespace", "cgroups"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "仮想マシンは Hypervisor でハードウェアレベルの仮想化を実現",
+        "コンテナは Linux カーネル機能でプロセスレベルの分離を実現",
+        "VM の Guest OS は完全な OS (カーネル+ユーザー空間)",
+        "コンテナイメージはユーザー空間のみ、ホストカーネルを共有",
+        "複数コンテナは Namespace で分離、cgroups でリソース制限"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "仮想マシンアーキテクチャ",
+      "direction": "vertical",
+      "steps": [
+        { "label": "アプリケーション", "description": "App + Libs", "color": "bg-blue-500" },
+        { "label": "Guest OS", "description": "完全な OS", "color": "bg-cyan-500" },
+        { "label": "Hypervisor", "description": "VMware/KVM/Hyper-V", "color": "bg-purple-500" },
+        { "label": "Host OS", "description": "ホスト OS (Type 2)", "color": "bg-orange-500" },
+        { "label": "ハードウェア", "description": "CPU/Memory/Storage", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "コンテナアーキテクチャ",
+      "direction": "vertical",
+      "steps": [
+        { "label": "アプリケーション", "description": "App + Libs", "color": "bg-blue-500" },
+        { "label": "コンテナランタイム", "description": "containerd/CRI-O", "color": "bg-cyan-500" },
+        { "label": "Linux カーネル", "description": "Namespace + cgroups", "color": "bg-purple-500" },
+        { "label": "Host OS", "description": "ホスト OS", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "text",
+      "title": "OS の本質的な違い",
+      "content": "OS はカーネル空間 (Kernel Space) とユーザー空間 (User Space) の2つで構成されます。カーネルはハードウェア管理、プロセススケジューリング、メモリ管理などの低レベル操作を担当し、ユーザー空間にはシステムライブラリ、ツールチェーン、アプリケーションなどが含まれます。VM の Guest OS は完全なカーネルとユーザー空間を含み、各 VM は独立したカーネルインスタンスを実行します。一方、コンテナイメージはユーザー空間（ライブラリ、ツール、設定ファイル）のみを含み、すべてのコンテナはホストマシンの同一カーネルを共有します。これがコンテナイメージが MB レベルで、VM イメージが GB レベルである根本的な理由です。"
+    },
+    {
+      "type": "comparison",
+      "title": "イメージ OS vs VM OS",
+      "columns": [
+        {
+          "title": "VM Guest OS",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "完全なカーネル", "description": "独立した Linux/Windows カーネルインスタンス" },
+            { "label": "独立したユーザー空間", "description": "完全な /bin, /lib, /etc など" },
+            { "label": "独立した起動フロー", "description": "BIOS → Bootloader → Kernel → Init" },
+            { "label": "リソースオーバーヘッド", "description": "カーネルが数百 MB のメモリを消費" }
+          ]
+        },
+        {
+          "title": "コンテナイメージ",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "カーネルなし", "description": "ホストカーネルを共有、自前のカーネルなし" },
+            { "label": "ユーザー空間のみ", "description": "アプリ実行に必要なライブラリとツールのみ" },
+            { "label": "プロセス起動", "description": "アプリプロセスを直接起動、ブート不要" },
+            { "label": "リソースオーバーヘッド", "description": "アプリ自体のメモリ消費のみ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "コンテナがカーネルを共有する証明",
+      "language": "bash",
+      "code": "# ホストでカーネルバージョンを確認\nuname -r\n# 出力: 5.15.0-generic\n\n# コンテナ内でカーネルバージョンを確認 (完全に同じ!)\ndocker run --rm alpine uname -r\n# 出力: 5.15.0-generic  ← ホストと同じ\n\n# コンテナ内のプロセスはホストから見える\ndocker run -d --name test nginx\ndocker top test\n# またはホストで直接 ps aux | grep nginx\n\n# コンテナは本質的にホスト上のプロセス\nps aux | grep 'nginx: master'"
+    },
+    {
+      "type": "text",
+      "title": "複数コンテナの共存原理",
+      "content": "複数のコンテナが同一マシン上で共存し互いに分離できるのは、Linux カーネルの2つの機能に依存しています。Namespace は分離ビューを提供し、各コンテナが「独立したシステムのように見える」ようにします。cgroups はリソース制限を提供し、単一コンテナがホストリソースを使い尽くすのを防ぎます。各コンテナは独立したプロセスツリー（PID Namespace）、ネットワークスタック（NET Namespace）、ファイルシステムビュー（MNT Namespace）を持ちますが、プロセスは実際には同一カーネル上で実行され、カーネルのスケジューラやメモリマネージャなどのコアコンポーネントを共有しています。"
+    },
+    {
+      "type": "flow",
+      "title": "複数コンテナの分離アーキテクチャ",
+      "direction": "vertical",
+      "steps": [
+        { "label": "Container A", "description": "PID NS: 1,2,3 | NET NS: 172.17.0.2 | MNT NS: /app-a", "color": "bg-blue-500" },
+        { "label": "Container B", "description": "PID NS: 1,2 | NET NS: 172.17.0.3 | MNT NS: /app-b", "color": "bg-cyan-500" },
+        { "label": "Container C", "description": "PID NS: 1 | NET NS: 172.17.0.4 | MNT NS: /app-c", "color": "bg-green-500" },
+        { "label": "ホストカーネル", "description": "全コンテナプロセスを統一スケジューリング (実際の PID: 1000-3000)", "color": "bg-purple-500" },
+        { "label": "ハードウェアリソース", "description": "CPU / Memory / Disk / Network", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "複数コンテナの分離デモ",
+      "language": "bash",
+      "code": "# 2つのコンテナを起動\ndocker run -d --name app1 nginx\ndocker run -d --name app2 nginx\n\n# コンテナ内から見える PID は両方とも 1 (各自の PID Namespace)\ndocker exec app1 ps aux | head -2\n# PID 1: nginx master process\n\ndocker exec app2 ps aux | head -2  \n# PID 1: nginx master process (別の Namespace、互いに干渉しない)\n\n# しかしホスト上では異なる PID\nps aux | grep 'nginx: master'\n# PID 12345: nginx (app1)\n# PID 12567: nginx (app2)\n\n# ネットワークも分離、各自独立した IP\ndocker inspect app1 --format '{{.NetworkSettings.IPAddress}}'\n# 172.17.0.2\ndocker inspect app2 --format '{{.NetworkSettings.IPAddress}}'\n# 172.17.0.3"
+    },
+    {
+      "type": "cards",
+      "title": "Hypervisor タイプ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Type 1 (ベアメタル)",
+          "badge": "エンタープライズ",
+          "badgeColor": "blue",
+          "points": [
+            "ハードウェア上で直接実行",
+            "VMware ESXi",
+            "Microsoft Hyper-V",
+            "KVM (Linux 内蔵)",
+            "高性能、本番環境向け"
+          ]
+        },
+        {
+          "title": "Type 2 (ホスト型)",
+          "badge": "デスクトップ",
+          "badgeColor": "green",
+          "points": [
+            "ホスト OS 上で実行",
+            "VMware Workstation",
+            "VirtualBox",
+            "Parallels Desktop",
+            "開発・テスト環境でよく使用"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Linux コンテナのコア技術",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Namespace (名前空間)",
+          "badge": "分離",
+          "badgeColor": "blue",
+          "points": [
+            "PID: プロセス ID 分離、コンテナ内 PID は 1 から開始",
+            "NET: 独立したネットワークスタック、IP、ポート",
+            "MNT: 独立したファイルシステムマウントポイント",
+            "UTS: 独立したホスト名とドメイン名",
+            "IPC: 独立したプロセス間通信",
+            "USER: ユーザー ID マッピング分離"
+          ]
+        },
+        {
+          "title": "cgroups (コントロールグループ)",
+          "badge": "制限",
+          "badgeColor": "green",
+          "points": [
+            "cpu: CPU タイムスライスの制限",
+            "memory: メモリ使用量の制限 (OOM)",
+            "blkio: ブロックデバイス I/O の制限",
+            "cpuset: CPU コアへのバインド",
+            "devices: デバイスアクセスの制御",
+            "freezer: プロセスグループの一時停止/再開"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Namespace デモ",
+      "language": "bash",
+      "code": "# 現在のプロセスの Namespace を確認\nls -la /proc/$$/ns/\n\n# 新しい PID Namespace を作成してシェルを実行\nsudo unshare --pid --fork --mount-proc /bin/bash\nps aux  # 現在の Namespace のプロセスのみ表示\n\n# 新しい NET Namespace を作成\nsudo ip netns add test-ns\nsudo ip netns exec test-ns ip addr  # 独立したネットワークスタック\n\n# コンテナの Namespace を確認\ndocker inspect --format '{{.State.Pid}}' <container>\nls -la /proc/<pid>/ns/"
+    },
+    {
+      "type": "codeBlock",
+      "title": "cgroups デモ",
+      "language": "bash",
+      "code": "# cgroup マウントポイントを確認\nmount | grep cgroup\n\n# コンテナの cgroup 制限を確認\ncat /sys/fs/cgroup/memory/docker/<container-id>/memory.limit_in_bytes\ncat /sys/fs/cgroup/cpu/docker/<container-id>/cpu.cfs_quota_us\n\n# 手動で cgroup を作成してメモリを制限\nsudo mkdir /sys/fs/cgroup/memory/test-cgroup\necho 100000000 > /sys/fs/cgroup/memory/test-cgroup/memory.limit_in_bytes  # 100MB\necho $$ > /sys/fs/cgroup/memory/test-cgroup/cgroup.procs  # 現在のプロセスを追加"
+    },
+    {
+      "type": "table",
+      "title": "詳細比較",
+      "highlightFirst": true,
+      "headers": ["特性", "仮想マシン", "コンテナ"],
+      "rows": [
+        ["起動時間", "分単位", "秒/ミリ秒単位"],
+        ["イメージサイズ", "GB レベル (完全な OS 含む)", "MB レベル (アプリ+依存のみ)"],
+        ["リソースオーバーヘッド", "高い (各 VM に独立カーネル)", "低い (ホストカーネル共有)"],
+        ["分離レベル", "ハードウェアレベル (強い分離)", "プロセスレベル (カーネル共有)"],
+        ["セキュリティ", "高い (独立カーネル)", "相対的に低い (カーネル脆弱性リスク)"],
+        ["密度", "1台あたり数十台", "1台あたり数百〜数千"],
+        ["マイグレーション", "マシン全体の移行", "イメージ移行"],
+        ["典型的な用途", "異種 OS、強い分離", "マイクロサービス、CI/CD、クラウドネイティブ"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コンテナランタイム",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "containerd",
+          "badge": "主流",
+          "badgeColor": "blue",
+          "points": [
+            "Docker から分離したランタイム",
+            "K8s デフォルトランタイム",
+            "CNCF 卒業プロジェクト"
+          ]
+        },
+        {
+          "title": "CRI-O",
+          "badge": "軽量",
+          "badgeColor": "green",
+          "points": [
+            "K8s 専用設計",
+            "Red Hat 主導",
+            "最小限の実装"
+          ]
+        },
+        {
+          "title": "runc",
+          "badge": "低レベル",
+          "badgeColor": "gray",
+          "points": [
+            "OCI リファレンス実装",
+            "実際にコンテナを作成",
+            "上位ランタイムから呼び出される"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "選択の指針",
+      "columns": [
+        {
+          "title": "仮想マシンを選択",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "異種 OS", "description": "Windows/異なる Linux ディストリビューションが必要" },
+            { "label": "強い分離", "description": "マルチテナント、セキュリティ重視のシーン" },
+            { "label": "レガシーシステム", "description": "コンテナ化できない古いアプリ" },
+            { "label": "完全な環境", "description": "完全なシステム環境のシミュレーションが必要" }
+          ]
+        },
+        {
+          "title": "コンテナを選択",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "マイクロサービス", "description": "高速デプロイ、弾力的なスケーリング" },
+            { "label": "CI/CD", "description": "ビルド環境の一貫性" },
+            { "label": "高密度", "description": "1台で多数のサービスを実行" },
+            { "label": "クラウドネイティブ", "description": "K8s エコシステム、DevOps" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "セキュリティ重視なら VM", "description": "マルチテナント分離は仮想マシンを優先" },
+        { "label": "マイクロサービスならコンテナ", "description": "高速イテレーション、弾力的スケーリングのシーン" },
+        { "label": "ハイブリッドデプロイ", "description": "VM 内でコンテナを実行し、分離と効率を両立" },
+        { "label": "コンテナセキュリティ強化", "description": "gVisor/Kata Containers で分離を強化" }
+      ]
+    }
+  ],
+  "relatedTopics": ["コンテナイメージ", "Docker", "Kubernetes", "Linux カーネル"]
+}

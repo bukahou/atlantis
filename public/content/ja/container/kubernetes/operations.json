@@ -1,0 +1,205 @@
+{
+  "slug": "operations",
+  "meta": {
+    "title": "運用操作",
+    "description": "Kubernetes 運用：ヘルスチェック、HPA、RBAC とトラブルシューティング",
+    "order": 7,
+    "tags": [
+      "Kubernetes",
+      "運用",
+      "Probes",
+      "HPA",
+      "RBAC"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ヘルスチェック (Probes) はアプリケーションの正常動作を確保",
+        "HPA は負荷に応じて自動スケーリング",
+        "RBAC はきめ細かな権限制御を実現",
+        "トラブルシューティングの方法とツールを習得"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ヘルスチェックタイプ",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Liveness Probe",
+          "badge": "生存",
+          "badgeColor": "red",
+          "points": [
+            "コンテナが生存しているか確認",
+            "失敗するとコンテナを再起動",
+            "デッドロック/無応答を防止",
+            "Service トラフィックに影響しない"
+          ]
+        },
+        {
+          "title": "Readiness Probe",
+          "badge": "準備完了",
+          "badgeColor": "green",
+          "points": [
+            "トラフィックを受信できるか確認",
+            "失敗すると Service から除外",
+            "起動完了後に負荷に参加",
+            "コンテナを再起動しない"
+          ]
+        },
+        {
+          "title": "Startup Probe",
+          "badge": "起動",
+          "badgeColor": "blue",
+          "points": [
+            "起動が遅いアプリケーション専用",
+            "成功後に他のプローブを有効化",
+            "Liveness に早期に kill されるのを防止",
+            "K8s 1.16+"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ヘルスチェック設定",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    ports:\n    - containerPort: 8080\n    \n    # HTTP プローブ\n    livenessProbe:\n      httpGet:\n        path: /healthz\n        port: 8080\n      initialDelaySeconds: 10  # 起動後の待機時間\n      periodSeconds: 10        # チェック間隔\n      timeoutSeconds: 5        # タイムアウト時間\n      failureThreshold: 3      # 失敗回数\n    \n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 8080\n      initialDelaySeconds: 5\n      periodSeconds: 5\n    \n    # 起動が遅いアプリケーションには startupProbe を使用\n    startupProbe:\n      httpGet:\n        path: /healthz\n        port: 8080\n      failureThreshold: 30\n      periodSeconds: 10  # 最大300秒の起動待機\n\n---\n# TCP プローブ（データベースに適している）\nlivenessProbe:\n  tcpSocket:\n    port: 3306\n  periodSeconds: 10\n\n# コマンドプローブ\nlivenessProbe:\n  exec:\n    command:\n    - cat\n    - /tmp/healthy\n  periodSeconds: 5"
+    },
+    {
+      "type": "codeBlock",
+      "title": "HPA 水平オートスケーリング",
+      "language": "yaml",
+      "code": "# Metrics Server のインストールが必要\n# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml\n\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: web-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n  # CPU メトリクス\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 70\n  # メモリメトリクス\n  - type: Resource\n    resource:\n      name: memory\n      target:\n        type: Utilization\n        averageUtilization: 80\n  # カスタムメトリクス（Prometheus Adapter が必要）\n  - type: Pods\n    pods:\n      metric:\n        name: http_requests_per_second\n      target:\n        type: AverageValue\n        averageValue: 1000\n  behavior:\n    scaleDown:\n      stabilizationWindowSeconds: 300  # スケールダウン安定化ウィンドウ\n      policies:\n      - type: Percent\n        value: 10\n        periodSeconds: 60\n    scaleUp:\n      stabilizationWindowSeconds: 0\n      policies:\n      - type: Percent\n        value: 100\n        periodSeconds: 15"
+    },
+    {
+      "type": "codeBlock",
+      "title": "RBAC 権限設定",
+      "language": "yaml",
+      "code": "# Role（名前空間レベル）\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\n  namespace: default\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"pods/log\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n- apiGroups: [\"apps\"]\n  resources: [\"deployments\"]\n  verbs: [\"get\", \"list\"]\n---\n# RoleBinding\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: read-pods\n  namespace: default\nsubjects:\n- kind: ServiceAccount\n  name: app-sa\n  namespace: default\n- kind: User\n  name: developer\n  apiGroup: rbac.authorization.k8s.io\nroleRef:\n  kind: Role\n  name: pod-reader\n  apiGroup: rbac.authorization.k8s.io\n---\n# ClusterRole（クラスターレベル）\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: secret-reader\nrules:\n- apiGroups: [\"\"]\n  resources: [\"secrets\"]\n  verbs: [\"get\", \"list\"]\n---\n# ServiceAccount\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: app-sa\n  namespace: default"
+    },
+    {
+      "type": "table",
+      "title": "RBAC リソース",
+      "highlightFirst": true,
+      "headers": [
+        "リソース",
+        "スコープ",
+        "説明"
+      ],
+      "rows": [
+        [
+          "Role",
+          "名前空間",
+          "名前空間内の権限を定義"
+        ],
+        [
+          "ClusterRole",
+          "クラスター",
+          "クラスターレベルの権限を定義"
+        ],
+        [
+          "RoleBinding",
+          "名前空間",
+          "Role をユーザーにバインド"
+        ],
+        [
+          "ClusterRoleBinding",
+          "クラスター",
+          "ClusterRole をユーザーにバインド"
+        ],
+        [
+          "ServiceAccount",
+          "名前空間",
+          "Pod のアイデンティティ"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "トラブルシューティングコマンド",
+      "language": "bash",
+      "code": "# Pod ステータスの調査\nkubectl get pods -o wide\nkubectl describe pod <pod-name>\nkubectl logs <pod-name> -c <container>\nkubectl logs <pod-name> --previous  # 前のコンテナのログ\n\n# コンテナに入ってデバッグ\nkubectl exec -it <pod-name> -- /bin/sh\n\n# 一時デバッグコンテナ (K8s 1.25+)\nkubectl debug <pod-name> -it --image=busybox\n\n# イベントの表示\nkubectl get events --sort-by='.lastTimestamp'\nkubectl get events -w  # リアルタイム監視\n\n# リソース使用量\nkubectl top nodes\nkubectl top pods\n\n# API リソースの表示\nkubectl api-resources\nkubectl explain pod.spec.containers\n\n# 権限チェック\nkubectl auth can-i create pods\nkubectl auth can-i list secrets --as=system:serviceaccount:default:app-sa"
+    },
+    {
+      "type": "table",
+      "title": "Pod の一般的な問題",
+      "highlightFirst": true,
+      "headers": [
+        "ステータス",
+        "原因",
+        "調査方法"
+      ],
+      "rows": [
+        [
+          "Pending",
+          "リソース不足/スケジューリング失敗",
+          "describe pod で Events を確認"
+        ],
+        [
+          "ImagePullBackOff",
+          "イメージプル失敗",
+          "イメージ名/認証を確認"
+        ],
+        [
+          "CrashLoopBackOff",
+          "コンテナが繰り返しクラッシュ",
+          "logs --previous を確認"
+        ],
+        [
+          "OOMKilled",
+          "メモリ超過",
+          "memory limits を増加"
+        ],
+        [
+          "Evicted",
+          "ノードリソース不足",
+          "ノードリソースを確認/Pod をクリーンアップ"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "リソース要求と制限",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    resources:\n      requests:         # スケジューリングの基準\n        cpu: 100m       # 0.1 CPU\n        memory: 128Mi\n      limits:           # 実行時の制限\n        cpu: 500m       # 0.5 CPU\n        memory: 512Mi\n\n# CPU: 1 = 1000m (millicores)\n# Memory: Ki, Mi, Gi\n\n# QoS クラス:\n# Guaranteed: requests = limits\n# Burstable: requests < limits\n# BestEffort: requests/limits なし"
+    },
+    {
+      "type": "list",
+      "title": "運用ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "ヘルスチェックを設定",
+          "description": "すべての本番 Pod に Probes を必須設定"
+        },
+        {
+          "label": "リソース制限を設定",
+          "description": "リソース競合と OOM を防止"
+        },
+        {
+          "label": "HPA を有効化",
+          "description": "トラフィック変動に応じて自動スケーリング"
+        },
+        {
+          "label": "最小権限の原則",
+          "description": "RBAC で必要な権限のみを付与"
+        },
+        {
+          "label": "監視アラート",
+          "description": "Prometheus + Grafana でクラスターを監視"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Pod",
+    "Deployment",
+    "モニタリング",
+    "ログ"
+  ]
+}

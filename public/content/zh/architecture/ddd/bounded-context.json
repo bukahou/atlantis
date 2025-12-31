@@ -1,0 +1,150 @@
+{
+  "slug": "bounded-context",
+  "meta": {
+    "title": "限界上下文",
+    "description": "领域边界划分与上下文映射",
+    "order": 1,
+    "tags": [
+      "DDD",
+      "限界上下文",
+      "领域建模"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "限界上下文是模型的边界，同一术语在不同上下文可有不同含义",
+        "每个限界上下文有自己的通用语言",
+        "上下文映射定义了不同上下文间的关系",
+        "限界上下文通常对应一个微服务"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "为什么需要限界上下文",
+      "content": "在复杂系统中，试图建立一个统一的大模型往往导致混乱。例如「用户」在不同场景下含义不同：在认证上下文是「账号」，在订单上下文是「买家」，在物流上下文是「收件人」。限界上下文让每个领域有自己清晰的模型。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "上下文边界示例",
+      "language": "text",
+      "code": "电商系统的限界上下文划分：\n\n┌─────────────────────────────────────────────────────────────┐\n│                        电商平台                             │\n├─────────────┬─────────────┬─────────────┬─────────────────┤\n│  认证上下文  │  商品上下文  │  订单上下文  │   物流上下文    │\n├─────────────┼─────────────┼─────────────┼─────────────────┤\n│  Account    │  Product    │  Order      │   Shipment      │\n│  Credential │  Category   │  OrderItem  │   Package       │\n│  Session    │  Inventory  │  Payment    │   Tracking      │\n│             │  Price      │  Buyer      │   Recipient     │\n└─────────────┴─────────────┴─────────────┴─────────────────┘\n\n「用户」在不同上下文的表示：\n- 认证上下文：Account（账号、密码、权限）\n- 订单上下文：Buyer（买家ID、地址、联系方式）\n- 物流上下文：Recipient（收件人姓名、电话、地址）"
+    },
+    {
+      "type": "cards",
+      "title": "上下文映射模式",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "合作关系",
+          "badge": "Partnership",
+          "badgeColor": "blue",
+          "points": [
+            "两团队共同演进",
+            "相互依赖",
+            "需要协调"
+          ]
+        },
+        {
+          "title": "客户-供应商",
+          "badge": "Customer-Supplier",
+          "badgeColor": "green",
+          "points": [
+            "上下游关系",
+            "下游依赖上游",
+            "上游需满足下游需求"
+          ]
+        },
+        {
+          "title": "防腐层",
+          "badge": "ACL",
+          "badgeColor": "purple",
+          "points": [
+            "隔离外部模型",
+            "翻译/适配",
+            "保护核心域"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "防腐层实现",
+      "language": "typescript",
+      "code": "// 外部系统的用户模型（不受控制）\ninterface LegacyUser {\n  user_id: string;\n  full_name: string;\n  email_address: string;\n  phone_number: string;\n  created_at: string;\n}\n\n// 我们的领域模型\ninterface Customer {\n  id: CustomerId;\n  name: CustomerName;\n  contact: ContactInfo;\n  registeredAt: Date;\n}\n\n// 防腐层：翻译外部模型\nclass CustomerAntiCorruptionLayer {\n  constructor(private legacyUserService: LegacyUserService) {}\n  \n  async getCustomer(id: string): Promise<Customer> {\n    // 调用外部系统\n    const legacyUser = await this.legacyUserService.getUser(id);\n    \n    // 翻译为领域模型\n    return {\n      id: new CustomerId(legacyUser.user_id),\n      name: new CustomerName(legacyUser.full_name),\n      contact: new ContactInfo(\n        legacyUser.email_address,\n        legacyUser.phone_number\n      ),\n      registeredAt: new Date(legacyUser.created_at),\n    };\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "上下文映射模式",
+      "highlightFirst": true,
+      "headers": [
+        "模式",
+        "关系",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "共享内核",
+          "共享部分模型",
+          "紧密合作的团队"
+        ],
+        [
+          "客户-供应商",
+          "上下游依赖",
+          "核心域与支撑域"
+        ],
+        [
+          "遵奉者",
+          "完全遵从上游",
+          "与标准/规范对接"
+        ],
+        [
+          "防腐层",
+          "隔离翻译",
+          "集成遗留系统"
+        ],
+        [
+          "开放主机服务",
+          "提供标准API",
+          "平台对外开放"
+        ],
+        [
+          "各行其道",
+          "无依赖",
+          "独立子系统"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "实践建议",
+      "style": "check",
+      "items": [
+        {
+          "label": "从业务边界出发",
+          "description": "限界上下文应该对应业务能力"
+        },
+        {
+          "label": "团队对齐",
+          "description": "一个上下文最好由一个团队负责"
+        },
+        {
+          "label": "明确接口",
+          "description": "上下文间通过明确的API/事件通信"
+        },
+        {
+          "label": "持续演进",
+          "description": "边界会随业务变化而调整"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "微服务",
+    "领域建模",
+    "事件驱动"
+  ]
+}

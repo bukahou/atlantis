@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "title": "設定管理",
+    "description": "Kubernetes 設定管理：Namespace、ConfigMap と Secret",
+    "order": 4,
+    "tags": ["Kubernetes", "ConfigMap", "Secret", "Namespace"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Namespace はリソース分離とマルチテナントを実現",
+        "ConfigMap は非機密設定データを保存",
+        "Secret は機密情報を保存（Base64 エンコード）",
+        "設定とアプリケーションを分離し、環境切り替えを容易に"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "設定リソースタイプ",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Namespace",
+          "badge": "分離",
+          "badgeColor": "blue",
+          "points": [
+            "リソースの論理的分離",
+            "マルチ環境/マルチテナント",
+            "リソースクォータ制限",
+            "RBAC 権限境界"
+          ]
+        },
+        {
+          "title": "ConfigMap",
+          "badge": "設定",
+          "badgeColor": "green",
+          "points": [
+            "キーバリューペア設定",
+            "設定ファイルの保存",
+            "環境変数への注入",
+            "ボリュームマウント方式"
+          ]
+        },
+        {
+          "title": "Secret",
+          "badge": "機密",
+          "badgeColor": "red",
+          "points": [
+            "パスワード/キーの保存",
+            "Base64 エンコード",
+            "TLS 証明書",
+            "Docker 認証"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Namespace 管理",
+      "language": "yaml",
+      "code": "# Namespace を作成\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: production\n  labels:\n    env: production\n---\n# リソースクォータ\napiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: prod-quota\n  namespace: production\nspec:\n  hard:\n    requests.cpu: \"10\"\n    requests.memory: 20Gi\n    limits.cpu: \"20\"\n    limits.memory: 40Gi\n    pods: \"50\"\n    services: \"10\"\n---\n# LimitRange（デフォルトリソース制限）\napiVersion: v1\nkind: LimitRange\nmetadata:\n  name: default-limits\n  namespace: production\nspec:\n  limits:\n  - default:\n      cpu: 500m\n      memory: 512Mi\n    defaultRequest:\n      cpu: 100m\n      memory: 128Mi\n    type: Container"
+    },
+    {
+      "type": "codeBlock",
+      "title": "ConfigMap の作成と使用",
+      "language": "yaml",
+      "code": "# ConfigMap 定義\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  # キーバリューペア\n  DATABASE_HOST: mysql.default.svc\n  LOG_LEVEL: info\n  # 設定ファイル\n  nginx.conf: |\n    server {\n      listen 80;\n      location / {\n        proxy_pass http://backend:3000;\n      }\n    }\n---\n# Pod での ConfigMap 使用\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    # 方法1: 環境変数\n    env:\n    - name: DB_HOST\n      valueFrom:\n        configMapKeyRef:\n          name: app-config\n          key: DATABASE_HOST\n    # 方法2: 全てをインポート\n    envFrom:\n    - configMapRef:\n        name: app-config\n    # 方法3: ボリュームマウント\n    volumeMounts:\n    - name: config\n      mountPath: /etc/nginx/nginx.conf\n      subPath: nginx.conf\n  volumes:\n  - name: config\n    configMap:\n      name: app-config"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Secret の作成と使用",
+      "language": "yaml",
+      "code": "# コマンドラインで作成\n# kubectl create secret generic db-secret \\\n#   --from-literal=username=admin \\\n#   --from-literal=password=secret123\n\n# YAML 定義（値は Base64 エンコードが必要）\napiVersion: v1\nkind: Secret\nmetadata:\n  name: db-secret\ntype: Opaque\nstringData:  # stringData を使用すると平文で記述可能\n  username: admin\n  password: secret123\n---\n# TLS Secret\napiVersion: v1\nkind: Secret\nmetadata:\n  name: tls-secret\ntype: kubernetes.io/tls\ndata:\n  tls.crt: <base64-encoded-cert>\n  tls.key: <base64-encoded-key>\n---\n# Pod での Secret 使用\napiVersion: v1\nkind: Pod\nmetadata:\n  name: myapp\nspec:\n  containers:\n  - name: app\n    image: myapp:v1\n    env:\n    - name: DB_PASSWORD\n      valueFrom:\n        secretKeyRef:\n          name: db-secret\n          key: password\n    volumeMounts:\n    - name: secrets\n      mountPath: /etc/secrets\n      readOnly: true\n  volumes:\n  - name: secrets\n    secret:\n      secretName: db-secret"
+    },
+    {
+      "type": "table",
+      "title": "Secret タイプ",
+      "highlightFirst": true,
+      "headers": ["タイプ", "用途", "必須フィールド"],
+      "rows": [
+        ["Opaque", "汎用 Secret", "任意"],
+        ["kubernetes.io/tls", "TLS 証明書", "tls.crt, tls.key"],
+        ["kubernetes.io/dockerconfigjson", "イメージプル認証", ".dockerconfigjson"],
+        ["kubernetes.io/basic-auth", "Basic 認証", "username, password"],
+        ["kubernetes.io/ssh-auth", "SSH 認証", "ssh-privatekey"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Registry Secret",
+      "language": "bash",
+      "code": "# イメージプル Secret を作成\nkubectl create secret docker-registry regcred \\\n  --docker-server=registry.example.com \\\n  --docker-username=user \\\n  --docker-password=password \\\n  --docker-email=user@example.com\n\n# Pod での使用\n# spec:\n#   imagePullSecrets:\n#   - name: regcred\n\n# ServiceAccount で自動使用を設定\nkubectl patch serviceaccount default \\\n  -p '{\"imagePullSecrets\": [{\"name\": \"regcred\"}]}'"
+    },
+    {
+      "type": "codeBlock",
+      "title": "設定のホットリロード",
+      "language": "yaml",
+      "code": "# ConfigMap 更新後、ボリュームマウントされたファイルは自動更新\n#（約1分の遅延、kubelet sync 周期で設定可能）\n\n# 環境変数方式の場合、Pod の再起動が必要\n# Deployment の annotation を使用してローリングアップデートをトリガー可能\n\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: myapp\nspec:\n  template:\n    metadata:\n      annotations:\n        # この値を変更して再デプロイをトリガー\n        configmap-version: \"v2\"\n    spec:\n      containers:\n      - name: app\n        image: myapp:v1\n        envFrom:\n        - configMapRef:\n            name: app-config"
+    },
+    {
+      "type": "comparison",
+      "title": "ConfigMap vs Secret",
+      "columns": [
+        {
+          "title": "ConfigMap",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "用途", "description": "非機密設定" },
+            { "label": "保存", "description": "平文で保存" },
+            { "label": "サイズ制限", "description": "1MB" },
+            { "label": "例", "description": "データベースアドレス、ログレベル" }
+          ]
+        },
+        {
+          "title": "Secret",
+          "color": "from-red-500 to-pink-500",
+          "items": [
+            { "label": "用途", "description": "機密情報" },
+            { "label": "保存", "description": "Base64 エンコード（暗号化ではない）" },
+            { "label": "サイズ制限", "description": "1MB" },
+            { "label": "例", "description": "パスワード、API キー、証明書" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "Namespace で環境を分離", "description": "dev/staging/production を分離" },
+        { "label": "Git に Secret を保存しない", "description": "SealedSecrets や External Secrets を使用" },
+        { "label": "Secret 暗号化を有効化", "description": "etcd 暗号化ストレージを設定" },
+        { "label": "RBAC でアクセスを制限", "description": "最小権限の原則" },
+        { "label": "ボリュームマウントを優先", "description": "ホットリロード対応、環境変数より柔軟" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Pod", "RBAC", "Helm", "GitOps"]
+}

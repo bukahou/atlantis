@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "title": "服务端渲染 SSR",
+    "description": "Next.js 与 SSR/SSG 渲染策略",
+    "order": 3,
+    "tags": ["React", "Next.js", "SSR", "SSG"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "SSR 在服务端生成 HTML",
+        "SSG 在构建时生成静态页面",
+        "ISR 支持增量静态再生成",
+        "Next.js 是 React SSR 首选框架"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "渲染策略对比",
+      "columns": [
+        {
+          "title": "CSR 客户端渲染",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            { "label": "渲染", "description": "浏览器执行 JS" },
+            { "label": "SEO", "description": "较差" },
+            { "label": "首屏", "description": "较慢" }
+          ]
+        },
+        {
+          "title": "SSR 服务端渲染",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "渲染", "description": "每次请求服务端生成" },
+            { "label": "SEO", "description": "良好" },
+            { "label": "首屏", "description": "较快" }
+          ]
+        },
+        {
+          "title": "SSG 静态生成",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "渲染", "description": "构建时生成" },
+            { "label": "SEO", "description": "最佳" },
+            { "label": "首屏", "description": "最快" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Next.js App Router",
+      "language": "tsx",
+      "code": "// app/page.tsx - 默认服务端组件\nexport default async function HomePage() {\n  const data = await fetch('https://api.example.com/data');\n  return <div>{/* 渲染数据 */}</div>;\n}\n\n// app/posts/[id]/page.tsx - 动态路由\nexport async function generateStaticParams() {\n  const posts = await getPosts();\n  return posts.map((post) => ({ id: post.id }));\n}\n\nexport default async function PostPage({ params }: { params: { id: string } }) {\n  const post = await getPost(params.id);\n  return <article>{post.content}</article>;\n}\n\n// 客户端组件\n'use client'\nexport function Counter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "Next.js 特性",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "App Router",
+          "badge": "路由",
+          "badgeColor": "blue",
+          "points": [
+            "基于文件系统的路由",
+            "嵌套布局",
+            "服务端组件默认"
+          ]
+        },
+        {
+          "title": "数据获取",
+          "badge": "Data",
+          "badgeColor": "green",
+          "points": [
+            "服务端 async 组件",
+            "自动请求去重",
+            "增量静态再生成"
+          ]
+        },
+        {
+          "title": "优化",
+          "badge": "Performance",
+          "badgeColor": "amber",
+          "points": [
+            "自动代码分割",
+            "Image 组件优化",
+            "Font 字体优化"
+          ]
+        },
+        {
+          "title": "部署",
+          "badge": "Deploy",
+          "badgeColor": "purple",
+          "points": [
+            "Vercel 一键部署",
+            "边缘运行时",
+            "Serverless Functions"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "选择渲染策略",
+      "highlightFirst": true,
+      "headers": ["场景", "推荐策略", "原因"],
+      "rows": [
+        ["博客、文档", "SSG", "内容不常变化"],
+        ["电商产品页", "ISR", "需要更新但可容忍延迟"],
+        ["用户仪表盘", "SSR", "个性化内容"],
+        ["高交互应用", "CSR", "频繁状态变化"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "服务端组件优先", "description": "减少客户端 JS 体积" },
+        { "label": "合理使用 ISR", "description": "revalidate 设置合适的更新间隔" },
+        { "label": "流式渲染", "description": "使用 Suspense 改善加载体验" },
+        { "label": "Edge Runtime", "description": "对延迟敏感的页面使用边缘运行时" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Next.js", "性能优化", "SEO"]
+}

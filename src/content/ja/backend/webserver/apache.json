@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "title": "Apache HTTP Server",
+    "description": "機能豊富なオープンソース Web サーバー",
+    "order": 2,
+    "tags": ["Apache", "Webサーバー", "httpd", "mod"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "モジュラーアーキテクチャ、機能豊富で拡張可能",
+        ".htaccess でディレクトリレベル設定をサポート",
+        "複数の MPM モードで様々なシナリオに対応",
+        "充実したドキュメントとコミュニティサポート"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Apache 概要",
+      "content": "Apache HTTP Server は世界で最も広く使用されている Web サーバーの一つで、Apache Software Foundation によって維持されています。モジュラー設計により機能拡張が非常に柔軟で、.htaccess ファイルによるディレクトリレベルの設定が可能なため、共有ホスティング環境で特に有用です。Apache は複数の MPM をサポートし、要件に応じて適切な並列処理モデルを選択できます。"
+    },
+    {
+      "type": "comparison",
+      "title": "MPM モード比較",
+      "columns": [
+        {
+          "title": "prefork",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "モデル", "description": "マルチプロセス、プロセスごとにシングルスレッド" },
+            { "label": "互換性", "description": "非スレッドセーフモジュールと互換" },
+            { "label": "適用", "description": "mod_php 環境" }
+          ]
+        },
+        {
+          "title": "worker",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "モデル", "description": "マルチプロセス、プロセスごとにマルチスレッド" },
+            { "label": "性能", "description": "メモリ使用量が低い" },
+            { "label": "適用", "description": "高並列静的コンテンツ" }
+          ]
+        },
+        {
+          "title": "event",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "モデル", "description": "イベント駆動 + マルチスレッド" },
+            { "label": "性能", "description": "最適な並列処理" },
+            { "label": "適用", "description": "2.4+ で推奨" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "バーチャルホスト設定",
+      "language": "apache",
+      "code": "<VirtualHost *:80>\n    ServerName example.com\n    ServerAlias www.example.com\n    DocumentRoot /var/www/example\n    \n    <Directory /var/www/example>\n        Options -Indexes +FollowSymLinks\n        AllowOverride All\n        Require all granted\n    </Directory>\n    \n    ErrorLog ${APACHE_LOG_DIR}/example_error.log\n    CustomLog ${APACHE_LOG_DIR}/example_access.log combined\n</VirtualHost>"
+    },
+    {
+      "type": "cards",
+      "title": "主要モジュール",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "mod_rewrite",
+          "badge": "コア",
+          "badgeColor": "blue",
+          "points": [
+            "URL 書き換えルール",
+            "正規表現マッチ",
+            "条件判定"
+          ]
+        },
+        {
+          "title": "mod_proxy",
+          "badge": "プロキシ",
+          "badgeColor": "green",
+          "points": [
+            "リバースプロキシ",
+            "ロードバランシング",
+            "WebSocket プロキシ"
+          ]
+        },
+        {
+          "title": "mod_security",
+          "badge": "セキュリティ",
+          "badgeColor": "red",
+          "points": [
+            "Web アプリケーション FW",
+            "SQL インジェクション防御",
+            "XSS 防御"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "event MPM を使用", "description": "Apache 2.4+ では event モードを推奨" },
+        { "label": "不要なモジュールを無効化", "description": "メモリ使用量と攻撃対象を削減" },
+        { "label": ".htaccess を制限", "description": "AllowOverride None でパフォーマンス向上" },
+        { "label": "HTTP/2 を有効化", "description": "mod_http2 でモダンプロトコルをサポート" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Nginx", "mod_rewrite", "SSL/TLS"]
+}

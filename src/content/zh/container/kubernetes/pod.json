@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "Pod 详解",
+    "description": "Pod 的生命周期、配置与调度策略",
+    "order": 1,
+    "tags": ["Kubernetes", "Pod", "容器"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Pod 是 Kubernetes 最小的调度单元",
+        "一个 Pod 可以包含多个容器",
+        "Pod 内容器共享网络和存储",
+        "Pod 是临时的，随时可能被重建"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Pod",
+      "content": "Pod 是 Kubernetes 中最小的可部署单元，它封装了一个或多个容器、存储资源、网络 IP 以及容器运行选项。Pod 中的容器总是被调度到同一节点，共享网络命名空间（IP 和端口）。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Pod 配置示例",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web-app\n  labels:\n    app: web\nspec:\n  containers:\n  - name: nginx\n    image: nginx:1.24\n    ports:\n    - containerPort: 80\n    resources:\n      requests:\n        memory: \"64Mi\"\n        cpu: \"100m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"200m\"\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 80\n      initialDelaySeconds: 10\n      periodSeconds: 5\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 80\n      initialDelaySeconds: 5\n      periodSeconds: 3"
+    },
+    {
+      "type": "flow",
+      "title": "Pod 生命周期",
+      "subtitle": "从创建到终止的状态变化",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Pending", "description": "等待调度", "color": "bg-gray-500" },
+        { "label": "Creating", "description": "创建容器", "color": "bg-blue-500" },
+        { "label": "Running", "description": "运行中", "color": "bg-green-500" },
+        { "label": "Succeeded/Failed", "description": "终止", "color": "bg-yellow-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Pod 配置项",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "资源配置",
+          "badge": "Resources",
+          "badgeColor": "blue",
+          "points": [
+            "requests - 最小资源需求",
+            "limits - 最大资源限制",
+            "QoS: Guaranteed/Burstable/BestEffort"
+          ]
+        },
+        {
+          "title": "健康检查",
+          "badge": "Probes",
+          "badgeColor": "green",
+          "points": [
+            "livenessProbe - 存活检查",
+            "readinessProbe - 就绪检查",
+            "startupProbe - 启动检查"
+          ]
+        },
+        {
+          "title": "环境配置",
+          "badge": "Env",
+          "badgeColor": "amber",
+          "points": [
+            "env - 环境变量",
+            "envFrom - 从 ConfigMap/Secret",
+            "volumeMounts - 挂载卷"
+          ]
+        },
+        {
+          "title": "调度配置",
+          "badge": "Schedule",
+          "badgeColor": "purple",
+          "points": [
+            "nodeSelector - 节点选择",
+            "affinity - 亲和性规则",
+            "tolerations - 容忍污点"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "健康检查类型",
+      "columns": [
+        {
+          "title": "Liveness Probe",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "用途", "description": "检测容器是否存活" },
+            { "label": "失败行为", "description": "重启容器" },
+            { "label": "场景", "description": "检测死锁、无响应" }
+          ]
+        },
+        {
+          "title": "Readiness Probe",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "用途", "description": "检测容器是否就绪" },
+            { "label": "失败行为", "description": "从 Service 移除" },
+            { "label": "场景", "description": "预热、依赖检查" }
+          ]
+        },
+        {
+          "title": "Startup Probe",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "用途", "description": "检测容器是否启动" },
+            { "label": "失败行为", "description": "重启容器" },
+            { "label": "场景", "description": "慢启动应用" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Pod 调试命令",
+      "highlightFirst": true,
+      "headers": ["命令", "说明"],
+      "rows": [
+        ["kubectl get pods -o wide", "查看 Pod 列表和节点"],
+        ["kubectl describe pod <name>", "查看 Pod 详情和事件"],
+        ["kubectl logs <pod> -c <container>", "查看容器日志"],
+        ["kubectl exec -it <pod> -- bash", "进入 Pod 执行命令"],
+        ["kubectl top pod <name>", "查看 Pod 资源使用"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "设置资源限制", "description": "始终配置 requests 和 limits" },
+        { "label": "配置健康检查", "description": "所有生产 Pod 都应有探针" },
+        { "label": "使用标签", "description": "合理使用 labels 便于管理和选择" },
+        { "label": "避免直接创建 Pod", "description": "使用 Deployment 等控制器管理" },
+        { "label": "优雅终止", "description": "设置 terminationGracePeriodSeconds" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Deployment", "Service", "ConfigMap"]
+}

@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "slug": "varnish",
+      "title": "Varnish Cache",
+      "description": "高性能 HTTP 加速缓存代理",
+      "href": "/backend/cache/varnish",
+      "order": 1
+    },
+    {
+      "slug": "cdn",
+      "title": "CDN 内容分发网络",
+      "description": "全球内容分发与边缘加速",
+      "href": "/backend/cache/cdn",
+      "order": 2
+    }
+  ]
+}

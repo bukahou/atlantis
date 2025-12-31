@@ -1,0 +1,188 @@
+{
+  "slug": "java",
+  "meta": {
+    "title": "Java",
+    "description": "エンタープライズ開発、Spring エコシステムと JVM チューニング",
+    "order": 1,
+    "tags": [
+      "Java",
+      "JVM",
+      "Spring",
+      "エンタープライズ"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "オブジェクト指向、クロスプラットフォーム（Write Once, Run Anywhere）",
+        "JVM 仮想マシン、GC 自動メモリ管理",
+        "強力なエンタープライズエコシステム：Spring、Hibernate、MyBatis",
+        "ビッグデータエコシステム：Hadoop、Spark、Flink"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Java 概要",
+      "content": "Java は Sun Microsystems（現 Oracle）が 1995 年にリリースしたオブジェクト指向プログラミング言語です。「一度書けばどこでも動く」という理念と強力なエンタープライズエコシステムにより、世界で最も人気のあるプログラミング言語の一つとなり、エンタープライズアプリケーション、Android 開発、ビッグデータ処理などで広く使用されています。"
+    },
+    {
+      "type": "cards",
+      "title": "コア特性",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "オブジェクト指向",
+          "badge": "コア",
+          "badgeColor": "blue",
+          "points": [
+            "カプセル化、継承、多態性",
+            "インターフェースと抽象クラス",
+            "デザインパターン"
+          ]
+        },
+        {
+          "title": "JVM",
+          "badge": "ランタイム",
+          "badgeColor": "green",
+          "points": [
+            "バイトコードでクロスプラットフォーム",
+            "JIT 即時コンパイル",
+            "GC ガベージコレクション"
+          ]
+        },
+        {
+          "title": "並行処理",
+          "badge": "マルチスレッド",
+          "badgeColor": "purple",
+          "points": [
+            "Thread/Runnable",
+            "スレッドプール Executor",
+            "並行パッケージ j.u.c"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構文",
+      "language": "java",
+      "code": "public class HelloWorld {\n    public static void main(String[] args) {\n        // 変数宣言\n        String name = \"Java\";\n        int version = 21;\n        var message = \"Hello\"; // 型推論 (Java 10+)\n        \n        // コレクション\n        List<String> list = new ArrayList<>();\n        list.add(\"item\");\n        \n        Map<String, Integer> map = new HashMap<>();\n        map.put(\"key\", 1);\n        \n        // Stream API (Java 8+)\n        list.stream()\n            .filter(s -> s.length() > 3)\n            .map(String::toUpperCase)\n            .forEach(System.out::println);\n        \n        // Record (Java 16+)\n        record User(String name, int age) {}\n        var user = new User(\"Alice\", 30);\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "並行プログラミング",
+      "language": "java",
+      "code": "// スレッドプール\nExecutorService executor = Executors.newFixedThreadPool(10);\nexecutor.submit(() -> {\n    System.out.println(\"非同期タスク\");\n});\n\n// CompletableFuture\nCompletableFuture.supplyAsync(() -> fetchData())\n    .thenApply(data -> process(data))\n    .thenAccept(result -> save(result))\n    .exceptionally(e -> { log.error(e); return null; });\n\n// 仮想スレッド (Java 21+)\nThread.startVirtualThread(() -> {\n    System.out.println(\"仮想スレッド\");\n});"
+    },
+    {
+      "type": "comparison",
+      "title": "Spring Boot vs 従来の Spring",
+      "columns": [
+        {
+          "title": "Spring Boot",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "設定",
+              "description": "設定より規約"
+            },
+            {
+              "label": "起動",
+              "description": "組み込み Tomcat"
+            },
+            {
+              "label": "デプロイ",
+              "description": "独立 JAR"
+            }
+          ]
+        },
+        {
+          "title": "従来の Spring",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            {
+              "label": "設定",
+              "description": "大量の XML/アノテーション"
+            },
+            {
+              "label": "起動",
+              "description": "外部コンテナ"
+            },
+            {
+              "label": "デプロイ",
+              "description": "WAR パッケージ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "JVM チューニングパラメータ",
+      "highlightFirst": true,
+      "headers": [
+        "パラメータ",
+        "説明",
+        "例"
+      ],
+      "rows": [
+        [
+          "-Xms",
+          "初期ヒープサイズ",
+          "-Xms512m"
+        ],
+        [
+          "-Xmx",
+          "最大ヒープサイズ",
+          "-Xmx2g"
+        ],
+        [
+          "-XX:+UseG1GC",
+          "G1 GC を使用",
+          "Java 9+ デフォルト"
+        ],
+        [
+          "-XX:+UseZGC",
+          "ZGC を使用（低レイテンシ）",
+          "Java 15+"
+        ],
+        [
+          "-XX:MetaspaceSize",
+          "メタスペース初期サイズ",
+          "-XX:MetaspaceSize=256m"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "モダン Java 機能",
+      "style": "check",
+      "items": [
+        {
+          "label": "Record クラス (Java 16)",
+          "description": "不変データクラスの簡潔な構文"
+        },
+        {
+          "label": "パターンマッチング (Java 21)",
+          "description": "switch 式と instanceof パターン"
+        },
+        {
+          "label": "仮想スレッド (Java 21)",
+          "description": "軽量スレッド、高並行性サポート"
+        },
+        {
+          "label": "シールドクラス (Java 17)",
+          "description": "継承階層の制限"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Spring Boot",
+    "JVM",
+    "マイクロサービス"
+  ]
+}

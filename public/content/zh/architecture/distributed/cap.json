@@ -1,0 +1,193 @@
+{
+  "slug": "cap",
+  "meta": {
+    "title": "CAP 理论",
+    "description": "分布式系统的不可能三角",
+    "order": 1,
+    "tags": [
+      "分布式",
+      "CAP",
+      "一致性"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "C (Consistency)：所有节点看到相同的数据",
+        "A (Availability)：每个请求都能得到响应",
+        "P (Partition Tolerance)：网络分区时系统继续运行",
+        "CAP 定理：三者最多只能同时满足两个"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "CAP 定理",
+      "content": "CAP 定理由 Eric Brewer 于 2000 年提出，指出在分布式系统中，一致性、可用性和分区容错性三者不可能同时满足。由于网络分区在分布式系统中不可避免，实际上是在 C 和 A 之间做权衡。"
+    },
+    {
+      "type": "comparison",
+      "title": "CP vs AP 系统",
+      "columns": [
+        {
+          "title": "CP 系统",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            {
+              "label": "特点",
+              "description": "保证一致性，牺牲可用性"
+            },
+            {
+              "label": "场景",
+              "description": "金融交易、库存系统"
+            },
+            {
+              "label": "代表",
+              "description": "ZooKeeper、etcd、HBase"
+            }
+          ]
+        },
+        {
+          "title": "AP 系统",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "特点",
+              "description": "保证可用性，允许暂时不一致"
+            },
+            {
+              "label": "场景",
+              "description": "社交、电商浏览"
+            },
+            {
+              "label": "代表",
+              "description": "Cassandra、DynamoDB、CouchDB"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "三个维度详解",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "一致性 C",
+          "badge": "Consistency",
+          "badgeColor": "blue",
+          "points": [
+            "线性一致性",
+            "顺序一致性",
+            "因果一致性"
+          ]
+        },
+        {
+          "title": "可用性 A",
+          "badge": "Availability",
+          "badgeColor": "green",
+          "points": [
+            "每个请求有响应",
+            "非错误响应",
+            "合理时间内"
+          ]
+        },
+        {
+          "title": "分区容错 P",
+          "badge": "Partition",
+          "badgeColor": "purple",
+          "points": [
+            "网络分区时可用",
+            "节点通信失败",
+            "现实中必须考虑"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "常见数据库 CAP 选择",
+      "highlightFirst": true,
+      "headers": [
+        "数据库",
+        "类型",
+        "CAP 选择",
+        "说明"
+      ],
+      "rows": [
+        [
+          "MySQL (主从)",
+          "关系型",
+          "CA (单机)",
+          "网络分区时不可用"
+        ],
+        [
+          "PostgreSQL",
+          "关系型",
+          "CA (单机)",
+          "可配置同步复制"
+        ],
+        [
+          "MongoDB",
+          "文档",
+          "CP/AP 可配",
+          "取决于写关注级别"
+        ],
+        [
+          "Cassandra",
+          "宽列",
+          "AP",
+          "最终一致性"
+        ],
+        [
+          "Redis Cluster",
+          "KV",
+          "AP",
+          "异步复制"
+        ],
+        [
+          "etcd",
+          "KV",
+          "CP",
+          "Raft 强一致"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "CAP 权衡示例",
+      "language": "text",
+      "code": "场景：电商库存系统\n\n方案 1：CP 优先（强一致）\n- 写入时同步所有副本\n- 网络分区时拒绝写入\n- 适合：库存扣减，防止超卖\n\n方案 2：AP 优先（高可用）\n- 写入时异步复制\n- 网络分区时继续服务\n- 适合：商品浏览、购物车\n\n实践：混合策略\n- 核心库存：CP，同步扣减\n- 库存展示：AP，异步更新，允许短暂不一致"
+    },
+    {
+      "type": "list",
+      "title": "实践建议",
+      "style": "check",
+      "items": [
+        {
+          "label": "P 必须考虑",
+          "description": "网络分区在分布式系统中不可避免"
+        },
+        {
+          "label": "业务场景决定",
+          "description": "不同业务对 C 和 A 的需求不同"
+        },
+        {
+          "label": "可分区域设计",
+          "description": "核心数据 CP，边缘数据 AP"
+        },
+        {
+          "label": "最终一致性",
+          "description": "AP 系统通过补偿机制达到最终一致"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "分布式事务",
+    "一致性模型",
+    "BASE 理论"
+  ]
+}

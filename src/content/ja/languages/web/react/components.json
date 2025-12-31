@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "React 组件设计",
+    "description": "组件拆分、状态管理与设计模式",
+    "order": 1,
+    "tags": ["React", "组件", "设计模式"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "组件是 React 的基本构建单元",
+        "函数组件 + Hooks 是现代推荐方式",
+        "单一职责原则指导组件拆分",
+        "合理的 Props 设计提升复用性"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "组件类型",
+      "columns": [
+        {
+          "title": "展示组件",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "职责", "description": "UI 渲染" },
+            { "label": "状态", "description": "无/少状态" },
+            { "label": "数据", "description": "通过 Props 接收" }
+          ]
+        },
+        {
+          "title": "容器组件",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "职责", "description": "业务逻辑" },
+            { "label": "状态", "description": "管理状态" },
+            { "label": "数据", "description": "获取和处理数据" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "组件设计示例",
+      "language": "tsx",
+      "code": "// 展示组件 - 只关心 UI\ninterface ButtonProps {\n  children: React.ReactNode;\n  variant?: 'primary' | 'secondary';\n  size?: 'sm' | 'md' | 'lg';\n  onClick?: () => void;\n}\n\nfunction Button({ children, variant = 'primary', size = 'md', onClick }: ButtonProps) {\n  return (\n    <button\n      className={`btn btn-${variant} btn-${size}`}\n      onClick={onClick}\n    >\n      {children}\n    </button>\n  );\n}\n\n// 容器组件 - 处理业务逻辑\nfunction UserList() {\n  const [users, setUsers] = useState<User[]>([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    fetchUsers().then(setUsers).finally(() => setLoading(false));\n  }, []);\n\n  if (loading) return <Spinner />;\n  return <UserTable users={users} />;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "设计模式",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "复合组件",
+          "badge": "Compound",
+          "badgeColor": "blue",
+          "points": [
+            "父组件管理状态",
+            "子组件共享上下文",
+            "如 Tabs、Select 组件"
+          ]
+        },
+        {
+          "title": "渲染属性",
+          "badge": "Render Props",
+          "badgeColor": "green",
+          "points": [
+            "将渲染逻辑作为 Props",
+            "提高组件灵活性",
+            "可被 Hooks 替代"
+          ]
+        },
+        {
+          "title": "高阶组件",
+          "badge": "HOC",
+          "badgeColor": "amber",
+          "points": [
+            "包装组件添加功能",
+            "代码复用",
+            "withAuth, withLoading"
+          ]
+        },
+        {
+          "title": "自定义 Hook",
+          "badge": "Hooks",
+          "badgeColor": "purple",
+          "points": [
+            "逻辑复用首选",
+            "可组合可测试",
+            "useForm, useFetch"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "单一职责", "description": "每个组件只做一件事" },
+        { "label": "Props 类型", "description": "使用 TypeScript 定义 Props 类型" },
+        { "label": "默认值", "description": "为可选 Props 提供合理默认值" },
+        { "label": "组合优于继承", "description": "使用 children 和组合模式" },
+        { "label": "避免 Props 透传", "description": "使用 Context 或状态管理" }
+      ]
+    }
+  ],
+  "relatedTopics": ["React Hooks", "状态管理", "性能优化"]
+}

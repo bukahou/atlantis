@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "title": "gRPC",
+    "description": "高性能 RPC フレームワークと Protocol Buffers",
+    "order": 3,
+    "tags": ["API", "gRPC", "マイクロサービス"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "gRPC は Google オープンソースの高性能 RPC フレームワーク",
+        "HTTP/2 プロトコルベース、双方向ストリームをサポート",
+        "Protocol Buffers でシリアライズ",
+        "多言語サポート、マイクロサービス通信に最適"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "gRPC vs REST",
+      "columns": [
+        {
+          "title": "gRPC",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "プロトコル", "description": "HTTP/2" },
+            { "label": "形式", "description": "Protocol Buffers" },
+            { "label": "性能", "description": "高（バイナリ）" },
+            { "label": "ストリーム", "description": "双方向ストリーム対応" }
+          ]
+        },
+        {
+          "title": "REST",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "プロトコル", "description": "HTTP/1.1" },
+            { "label": "形式", "description": "JSON" },
+            { "label": "性能", "description": "低め（テキスト）" },
+            { "label": "ストリーム", "description": "ネイティブ非対応" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Proto ファイル定義",
+      "language": "protobuf",
+      "code": "syntax = \"proto3\";\n\npackage user;\n\nservice UserService {\n  // Unary RPC\n  rpc GetUser(GetUserRequest) returns (User);\n  rpc CreateUser(CreateUserRequest) returns (User);\n  \n  // サーバーストリーム\n  rpc ListUsers(ListUsersRequest) returns (stream User);\n  \n  // クライアントストリーム\n  rpc UploadUsers(stream User) returns (UploadResult);\n  \n  // 双方向ストリーム\n  rpc Chat(stream Message) returns (stream Message);\n}\n\nmessage User {\n  int64 id = 1;\n  string name = 2;\n  string email = 3;\n  repeated string roles = 4;\n}\n\nmessage GetUserRequest {\n  int64 id = 1;\n}\n\nmessage CreateUserRequest {\n  string name = 1;\n  string email = 2;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "通信モード",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Unary RPC",
+          "badge": "Unary",
+          "badgeColor": "blue",
+          "points": [
+            "リクエスト-レスポンスモード",
+            "REST API に類似",
+            "最も一般的なモード"
+          ]
+        },
+        {
+          "title": "サーバーストリーム",
+          "badge": "Server Stream",
+          "badgeColor": "green",
+          "points": [
+            "1回のリクエスト",
+            "複数回のレスポンス",
+            "大量データ返却に最適"
+          ]
+        },
+        {
+          "title": "クライアントストリーム",
+          "badge": "Client Stream",
+          "badgeColor": "amber",
+          "points": [
+            "複数回のリクエスト",
+            "1回のレスポンス",
+            "バッチアップロードに最適"
+          ]
+        },
+        {
+          "title": "双方向ストリーム",
+          "badge": "Bidirectional",
+          "badgeColor": "purple",
+          "points": [
+            "双方向リアルタイム通信",
+            "独立した送受信",
+            "チャット、ゲーム"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Protocol Buffers 型",
+      "highlightFirst": true,
+      "headers": ["型", "デフォルト値", "説明"],
+      "rows": [
+        ["int32/int64", "0", "整数"],
+        ["float/double", "0.0", "浮動小数点"],
+        ["bool", "false", "ブール"],
+        ["string", "\"\"", "文字列"],
+        ["bytes", "空", "バイト配列"],
+        ["repeated", "空リスト", "配列"],
+        ["map", "空 map", "キーバリュー"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "バージョン互換", "description": "新フィールドは新番号を使用、旧フィールドは削除しない" },
+        { "label": "エラーハンドリング", "description": "gRPC ステータスコードと詳細エラー情報を使用" },
+        { "label": "ヘルスチェック", "description": "grpc.health.v1 ヘルスチェックサービスを実装" },
+        { "label": "タイムアウト設定", "description": "常に deadline/timeout を設定" },
+        { "label": "ロードバランシング", "description": "クライアント側ロードバランシングまたはサービスメッシュを使用" }
+      ]
+    }
+  ],
+  "relatedTopics": ["マイクロサービス", "Protocol Buffers", "サービスメッシュ"]
+}

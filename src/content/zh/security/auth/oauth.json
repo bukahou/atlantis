@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "title": "OAuth 2.0",
+    "description": "授权码模式、PKCE 与最佳实践",
+    "order": 1,
+    "tags": ["OAuth", "认证", "授权"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "OAuth 2.0 是授权框架，不是认证协议",
+        "四种授权模式：授权码、隐式、密码、客户端凭证",
+        "PKCE：公共客户端的安全增强",
+        "Access Token + Refresh Token 双令牌机制"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "OAuth 2.0 角色",
+      "layout": "grid",
+      "columns": 4,
+      "items": [
+        {
+          "title": "资源所有者",
+          "badge": "User",
+          "badgeColor": "blue",
+          "points": ["最终用户", "授权访问"]
+        },
+        {
+          "title": "客户端",
+          "badge": "Client",
+          "badgeColor": "green",
+          "points": ["第三方应用", "请求授权"]
+        },
+        {
+          "title": "授权服务器",
+          "badge": "AuthZ",
+          "badgeColor": "purple",
+          "points": ["验证身份", "颁发令牌"]
+        },
+        {
+          "title": "资源服务器",
+          "badge": "API",
+          "badgeColor": "orange",
+          "points": ["保护资源", "验证令牌"]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "授权码流程",
+      "language": "text",
+      "code": "     ┌──────────┐                              ┌──────────────┐\n     │   用户   │                              │  授权服务器  │\n     └────┬─────┘                              └───────┬──────┘\n          │                                            │\n          │  1. 点击登录                               │\n          ▼                                            │\n     ┌──────────┐  2. 重定向到授权页面                 │\n     │  客户端  │─────────────────────────────────────►│\n     └────┬─────┘                                      │\n          │                                            │\n          │◄───────────────────────────────────────────│\n          │  3. 用户同意，返回 authorization_code       │\n          │                                            │\n          │  4. 用 code 换取 token                     │\n          │─────────────────────────────────────────────►\n          │                                            │\n          │◄───────────────────────────────────────────│\n          │  5. 返回 access_token + refresh_token      │\n          │                                            │\n          │  6. 用 access_token 访问资源               │\n          │────────────────────────────────────────────►│\n     ┌────┴─────┐                              ┌───────┴──────┐\n     │ 资源服务器│◄─────────────────────────────│   资源数据   │\n     └──────────┘                              └──────────────┘"
+    },
+    {
+      "type": "codeBlock",
+      "title": "授权码 + PKCE 实现",
+      "language": "typescript",
+      "code": "// 1. 生成 PKCE 参数\nfunction generatePKCE() {\n  // code_verifier: 随机字符串\n  const codeVerifier = base64URLEncode(\n    crypto.getRandomValues(new Uint8Array(32))\n  );\n  \n  // code_challenge: SHA256(code_verifier) 的 base64url\n  const codeChallenge = base64URLEncode(\n    await crypto.subtle.digest('SHA-256', \n      new TextEncoder().encode(codeVerifier)\n    )\n  );\n  \n  return { codeVerifier, codeChallenge };\n}\n\n// 2. 发起授权请求\nconst { codeVerifier, codeChallenge } = generatePKCE();\nsessionStorage.setItem('code_verifier', codeVerifier);\n\nconst authUrl = new URL('https://auth.example.com/authorize');\nauthUrl.searchParams.set('response_type', 'code');\nauthUrl.searchParams.set('client_id', CLIENT_ID);\nauthUrl.searchParams.set('redirect_uri', REDIRECT_URI);\nauthUrl.searchParams.set('scope', 'openid profile email');\nauthUrl.searchParams.set('state', generateState()); // CSRF 防护\nauthUrl.searchParams.set('code_challenge', codeChallenge);\nauthUrl.searchParams.set('code_challenge_method', 'S256');\n\nwindow.location.href = authUrl.toString();\n\n// 3. 回调处理：用 code 换取 token\nasync function handleCallback(code: string) {\n  const codeVerifier = sessionStorage.getItem('code_verifier');\n  \n  const response = await fetch('https://auth.example.com/token', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n    body: new URLSearchParams({\n      grant_type: 'authorization_code',\n      code,\n      redirect_uri: REDIRECT_URI,\n      client_id: CLIENT_ID,\n      code_verifier: codeVerifier,  // PKCE 验证\n    }),\n  });\n  \n  const { access_token, refresh_token } = await response.json();\n}"
+    },
+    {
+      "type": "table",
+      "title": "授权模式选择",
+      "highlightFirst": true,
+      "headers": ["模式", "适用场景", "安全级别", "说明"],
+      "rows": [
+        ["授权码 + PKCE", "SPA/移动应用", "高", "推荐方案"],
+        ["授权码", "服务端 Web 应用", "高", "有后端的传统 Web"],
+        ["客户端凭证", "服务间通信", "中", "无用户参与"],
+        ["设备码", "智能设备", "中", "无浏览器设备"],
+        ["隐式模式", "已废弃", "低", "不应使用"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "安全最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "始终使用 HTTPS", "description": "所有 OAuth 通信必须加密" },
+        { "label": "验证 state 参数", "description": "防止 CSRF 攻击" },
+        { "label": "使用 PKCE", "description": "所有公共客户端必须使用" },
+        { "label": "短期 Access Token", "description": "配合 Refresh Token 使用" },
+        { "label": "Refresh Token 轮换", "description": "每次刷新生成新的 Refresh Token" }
+      ]
+    }
+  ],
+  "relatedTopics": ["OIDC", "JWT", "SSO"]
+}

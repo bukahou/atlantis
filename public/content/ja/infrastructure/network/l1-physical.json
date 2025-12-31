@@ -1,0 +1,341 @@
+{
+  "slug": "l1-physical",
+  "meta": {
+    "title": "L1 物理層",
+    "description": "物理層の基礎：伝送媒体、信号符号化とネットワークトポロジー",
+    "order": 2,
+    "tags": [
+      "物理層",
+      "L1",
+      "伝送媒体",
+      "ネットワークトポロジー"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "物理層はビットストリームの転送を担当",
+        "電気的、機械的、機能的特性を定義",
+        "データ内容を意識せず、転送のみを担当",
+        "伝送媒体、信号、インターフェース規格を含む"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "物理層概要",
+      "content": "物理層は OSI モデルの最下層で、物理媒体上で生のビットストリーム（0 と 1）を転送する役割を担います。ネットワーク機器間の物理的接続方式、電気信号特性、転送速度などを定義します。物理層はデータの意味を理解せず、ビットをあるノードから別のノードに転送することのみを担当します。"
+    },
+    {
+      "type": "cards",
+      "title": "伝送媒体",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "ツイストペアケーブル",
+          "badge": "銅線",
+          "badgeColor": "amber",
+          "points": [
+            "Cat5e: 1Gbps, 100m",
+            "Cat6: 10Gbps, 55m",
+            "Cat6a: 10Gbps, 100m",
+            "低コスト、設置が容易"
+          ]
+        },
+        {
+          "title": "光ファイバ",
+          "badge": "光ケーブル",
+          "badgeColor": "blue",
+          "points": [
+            "シングルモード: 長距離（数十km）",
+            "マルチモード: 短距離（数百m）",
+            "干渉に強い、高帯域",
+            "コストが高い"
+          ]
+        },
+        {
+          "title": "同軸ケーブル",
+          "badge": "従来型",
+          "badgeColor": "gray",
+          "points": [
+            "ケーブルテレビネットワーク",
+            "旧式イーサネット (10BASE2)",
+            "干渉に強い",
+            "データネットワークではほとんど使用されない"
+          ]
+        },
+        {
+          "title": "ワイヤレス",
+          "badge": "無線",
+          "badgeColor": "green",
+          "points": [
+            "Wi-Fi: 2.4GHz/5GHz/6GHz",
+            "Bluetooth: 短距離",
+            "セルラー: 4G/5G",
+            "柔軟だが干渉を受けやすい"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "イーサネット規格",
+      "highlightFirst": true,
+      "headers": [
+        "規格",
+        "速度",
+        "媒体",
+        "最大距離"
+      ],
+      "rows": [
+        [
+          "10BASE-T",
+          "10 Mbps",
+          "Cat3 ツイストペア",
+          "100m"
+        ],
+        [
+          "100BASE-TX",
+          "100 Mbps",
+          "Cat5 ツイストペア",
+          "100m"
+        ],
+        [
+          "1000BASE-T",
+          "1 Gbps",
+          "Cat5e/Cat6",
+          "100m"
+        ],
+        [
+          "10GBASE-T",
+          "10 Gbps",
+          "Cat6a/Cat7",
+          "100m"
+        ],
+        [
+          "1000BASE-SX",
+          "1 Gbps",
+          "マルチモード光ファイバ",
+          "550m"
+        ],
+        [
+          "1000BASE-LX",
+          "1 Gbps",
+          "シングルモード光ファイバ",
+          "10km"
+        ],
+        [
+          "10GBASE-SR",
+          "10 Gbps",
+          "マルチモード光ファイバ",
+          "300m"
+        ],
+        [
+          "10GBASE-LR",
+          "10 Gbps",
+          "シングルモード光ファイバ",
+          "10km"
+        ]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "シングルモード vs マルチモード光ファイバ",
+      "columns": [
+        {
+          "title": "シングルモード (SMF)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "コア径",
+              "description": "9μm、極細"
+            },
+            {
+              "label": "光源",
+              "description": "レーザー (Laser)"
+            },
+            {
+              "label": "距離",
+              "description": "数十km"
+            },
+            {
+              "label": "コスト",
+              "description": "高め"
+            },
+            {
+              "label": "用途",
+              "description": "長距離基幹ネットワーク"
+            }
+          ]
+        },
+        {
+          "title": "マルチモード (MMF)",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            {
+              "label": "コア径",
+              "description": "50/62.5μm"
+            },
+            {
+              "label": "光源",
+              "description": "LED/VCSEL"
+            },
+            {
+              "label": "距離",
+              "description": "数百m"
+            },
+            {
+              "label": "コスト",
+              "description": "低め"
+            },
+            {
+              "label": "用途",
+              "description": "データセンター内部"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ネットワークトポロジー",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "スター型 (Star)",
+          "badge": "主流",
+          "badgeColor": "green",
+          "points": [
+            "中央スイッチが全ノードに接続",
+            "管理と障害分離が容易",
+            "現代 LAN の主流トポロジー"
+          ]
+        },
+        {
+          "title": "バス型 (Bus)",
+          "badge": "従来型",
+          "badgeColor": "gray",
+          "points": [
+            "全ノードが1本のケーブルを共有",
+            "初期のイーサネットで使用",
+            "ほぼ廃止"
+          ]
+        },
+        {
+          "title": "リング型 (Ring)",
+          "badge": "専用",
+          "badgeColor": "amber",
+          "points": [
+            "トークンリング、FDDI",
+            "単方向データ転送",
+            "冗長リングでフォールトトレランス"
+          ]
+        },
+        {
+          "title": "メッシュ型 (Mesh)",
+          "badge": "高可用性",
+          "badgeColor": "blue",
+          "points": [
+            "複数の冗長経路",
+            "高信頼性",
+            "WAN/基幹ネットワークで一般的"
+          ]
+        },
+        {
+          "title": "ツリー型 (Tree)",
+          "badge": "階層",
+          "badgeColor": "purple",
+          "points": [
+            "階層型スター構造",
+            "企業ネットワークで一般的",
+            "コア-ディストリビューション-アクセス"
+          ]
+        },
+        {
+          "title": "ハイブリッド型",
+          "badge": "実際",
+          "badgeColor": "red",
+          "points": [
+            "複数トポロジーの組み合わせ",
+            "実際のネットワークで一般的",
+            "柔軟な拡張"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "物理層機器",
+      "highlightFirst": true,
+      "headers": [
+        "機器",
+        "機能",
+        "特徴"
+      ],
+      "rows": [
+        [
+          "ハブ (Hub)",
+          "信号増幅、ブロードキャスト転送",
+          "廃止、スイッチに置き換え"
+        ],
+        [
+          "リピータ (Repeater)",
+          "信号再生、転送距離延長",
+          "信号減衰を克服"
+        ],
+        [
+          "モデム (Modem)",
+          "デジタル/アナログ信号変換",
+          "DSL、ケーブルインターネット"
+        ],
+        [
+          "光電変換器",
+          "電気信号/光信号変換",
+          "銅線と光ファイバの接続"
+        ],
+        [
+          "NIC (ネットワークカード)",
+          "コンピュータのネットワークインターフェース",
+          "有線/無線"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Linux で物理層情報を確認",
+      "language": "bash",
+      "code": "# ネットワークカード情報を表示\nip link show\nethtool eth0\n\n# リンク状態と速度を確認\nethtool eth0 | grep -E 'Speed|Link'\n\n# ネットワークカード統計（エラー、パケットロス）\nethtool -S eth0\n\n# 光モジュール情報を確認\nethtool -m eth0\n\n# ネットワークカードドライバを確認\nethtool -i eth0"
+    },
+    {
+      "type": "list",
+      "title": "物理層トラブルシューティング",
+      "style": "check",
+      "items": [
+        {
+          "label": "リンクインジケータを確認",
+          "description": "Link LED が点灯しているか"
+        },
+        {
+          "label": "ケーブル接続を確認",
+          "description": "ケーブルがしっかり接続されているか、損傷していないか"
+        },
+        {
+          "label": "ケーブルテスト",
+          "description": "ケーブルテスターで検査"
+        },
+        {
+          "label": "ポート速度を確認",
+          "description": "オートネゴシエーション成功、速度一致"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "OSI モデル",
+    "イーサネット",
+    "データセンター"
+  ]
+}

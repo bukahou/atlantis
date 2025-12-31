@@ -2,24 +2,31 @@
   "items": [
     {
       "slug": "patterns",
-      "title": "微服务架构模式",
-      "description": "微服务设计模式、架构原则与最佳实践",
+      "title": "微服务设计模式",
+      "description": "微服务架构核心模式与实践",
       "href": "/backend/microservices/patterns",
       "order": 1
     },
     {
       "slug": "discovery",
       "title": "服务发现",
-      "description": "微服务服务发现机制、注册中心与负载均衡",
+      "description": "服务注册、发现与负载均衡",
       "href": "/backend/microservices/discovery",
       "order": 2
     },
     {
       "slug": "circuit-breaker",
-      "title": "熔断与降级",
-      "description": "微服务熔断器模式、服务降级与容错机制",
+      "title": "熔断器模式",
+      "description": "服务容错与弹性设计",
       "href": "/backend/microservices/circuit-breaker",
       "order": 3
+    },
+    {
+      "slug": "service-mesh",
+      "title": "服务网格",
+      "description": "Service Mesh 架构、Istio 实践与流量管理",
+      "href": "/backend/microservices/service-mesh",
+      "order": 4
     }
   ]
 }

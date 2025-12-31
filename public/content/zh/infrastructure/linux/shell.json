@@ -1,14 +1,193 @@
 {
   "slug": "shell",
   "meta": {
-    "title": "Shell 脚本基础",
-    "description": "Linux Shell 脚本入门教程，掌握 Bash 脚本编写技巧",
+    "title": "Shell 脚本编程",
+    "description": "Bash 脚本语法、变量、条件判断与循环",
     "order": 1,
     "tags": [
-      "linux",
-      "shell",
-      "bash"
+      "Linux",
+      "Shell",
+      "Bash",
+      "脚本"
     ]
   },
-  "content": "<h1>Shell 脚本基础</h1>\n<h2>概述</h2>\n<p>Shell 是 Linux 系统的命令行解释器，Bash (Bourne Again Shell) 是最常用的 Shell。掌握 Shell 脚本可以大幅提高运维效率。</p>\n<h2>第一个脚本</h2>\n<p>创建一个简单的 Hello World 脚本：</p>\n<pre><code class=\"language-bash\">#!/bin/bash\n# 这是注释\necho \"Hello, World!\"\n</code></pre>\n<p>保存为 <code>hello.sh</code>，然后执行：</p>\n<pre><code class=\"language-bash\">chmod +x hello.sh\n./hello.sh\n</code></pre>\n<h2>变量</h2>\n<h3>定义变量</h3>\n<pre><code class=\"language-bash\"># 字符串变量\nname=\"Atlantis\"\necho $name\n\n# 数字变量\ncount=10\necho $count\n\n# 命令结果赋值\ncurrent_date=$(date +%Y-%m-%d)\necho \"今天是: $current_date\"\n</code></pre>\n<h3>特殊变量</h3>\n<table>\n<thead>\n<tr>\n<th>变量</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>$0</code></td>\n<td>脚本名称</td>\n</tr>\n<tr>\n<td><code>$1-$9</code></td>\n<td>位置参数</td>\n</tr>\n<tr>\n<td><code>$#</code></td>\n<td>参数个数</td>\n</tr>\n<tr>\n<td><code>$@</code></td>\n<td>所有参数</td>\n</tr>\n<tr>\n<td><code>$?</code></td>\n<td>上一条命令的返回值</td>\n</tr>\n<tr>\n<td><code>$$</code></td>\n<td>当前进程 PID</td>\n</tr>\n</tbody>\n</table>\n<h2>条件判断</h2>\n<h3>if 语句</h3>\n<pre><code class=\"language-bash\">#!/bin/bash\n\nif [ -f \"/etc/passwd\" ]; then\n    echo \"文件存在\"\nelif [ -d \"/etc\" ]; then\n    echo \"目录存在\"\nelse\n    echo \"不存在\"\nfi\n</code></pre>\n<h3>常用判断条件</h3>\n<p><strong>文件判断：</strong></p>\n<ul>\n<li><code>-f file</code> 文件存在且为普通文件</li>\n<li><code>-d dir</code> 目录存在</li>\n<li><code>-r file</code> 文件可读</li>\n<li><code>-w file</code> 文件可写</li>\n<li><code>-x file</code> 文件可执行</li>\n</ul>\n<p><strong>字符串判断：</strong></p>\n<ul>\n<li><code>-z str</code> 字符串为空</li>\n<li><code>-n str</code> 字符串非空</li>\n<li><code>str1 = str2</code> 字符串相等</li>\n</ul>\n<p><strong>数值判断：</strong></p>\n<ul>\n<li><code>-eq</code> 等于</li>\n<li><code>-ne</code> 不等于</li>\n<li><code>-gt</code> 大于</li>\n<li><code>-lt</code> 小于</li>\n</ul>\n<h2>循环</h2>\n<h3>for 循环</h3>\n<pre><code class=\"language-bash\"># 遍历列表\nfor item in apple banana orange; do\n    echo \"水果: $item\"\ndone\n\n# 遍历数字范围\nfor i in {1..5}; do\n    echo \"数字: $i\"\ndone\n\n# C 风格 for 循环\nfor ((i=0; i&#x3C;5; i++)); do\n    echo \"索引: $i\"\ndone\n</code></pre>\n<h3>while 循环</h3>\n<pre><code class=\"language-bash\">count=0\nwhile [ $count -lt 5 ]; do\n    echo \"计数: $count\"\n    ((count++))\ndone\n</code></pre>\n<h2>函数</h2>\n<pre><code class=\"language-bash\">#!/bin/bash\n\n# 定义函数\ngreet() {\n    local name=$1  # 局部变量\n    echo \"你好, $name!\"\n}\n\n# 带返回值的函数\nadd() {\n    local a=$1\n    local b=$2\n    echo $((a + b))\n}\n\n# 调用函数\ngreet \"World\"\nresult=$(add 3 5)\necho \"3 + 5 = $result\"\n</code></pre>\n<h2>实用技巧</h2>\n<h3>错误处理</h3>\n<pre><code class=\"language-bash\">#!/bin/bash\nset -e  # 遇到错误立即退出\nset -u  # 使用未定义变量时报错\nset -o pipefail  # 管道中任一命令失败则整体失败\n\n# 或者合并写法\nset -euo pipefail\n</code></pre>\n<h3>日志输出</h3>\n<pre><code class=\"language-bash\">log() {\n    echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $1\"\n}\n\nlog \"脚本开始执行\"\nlog \"处理完成\"\n</code></pre>\n<h3>读取用户输入</h3>\n<pre><code class=\"language-bash\">read -p \"请输入你的名字: \" username\necho \"你好, $username\"\n\n# 带超时的输入\nread -t 10 -p \"请在10秒内输入: \" answer\n</code></pre>\n<h2>总结</h2>\n<p>Shell 脚本是运维工程师的必备技能。通过本教程，你学习了：</p>\n<ol>\n<li>脚本的基本结构</li>\n<li>变量的使用</li>\n<li>条件判断和循环</li>\n<li>函数定义</li>\n<li>实用技巧</li>\n</ol>\n<p>建议多练习，在实际工作中积累经验。</p>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Shell 是用户与操作系统交互的接口",
+        "Bash 是最常用的 Shell 解释器",
+        "脚本可以自动化重复性任务",
+        "支持变量、条件判断、循环等编程结构"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Shell 脚本",
+      "content": "Shell 脚本是一系列命令的集合，保存在文件中按顺序执行。它是系统管理员和开发者自动化日常任务的重要工具。Bash（Bourne Again Shell）是 Linux 系统默认的 Shell，功能强大且广泛使用。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "脚本基础结构",
+      "language": "bash",
+      "code": "#!/bin/bash\n# 这是注释\n\n# 定义变量\nNAME=\"World\"\nCOUNT=5\n\n# 使用变量\necho \"Hello, $NAME!\"\necho \"Count is: ${COUNT}\"\n\n# 命令替换\nCURRENT_DATE=$(date +%Y-%m-%d)\necho \"Today is: $CURRENT_DATE\""
+    },
+    {
+      "type": "cards",
+      "title": "变量类型",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "本地变量",
+          "badge": "基础",
+          "badgeColor": "green",
+          "points": [
+            "VAR=value（无空格）",
+            "$VAR 或 ${VAR} 引用",
+            "仅在当前 Shell 有效"
+          ]
+        },
+        {
+          "title": "环境变量",
+          "badge": "系统",
+          "badgeColor": "blue",
+          "points": [
+            "export VAR=value",
+            "$PATH, $HOME, $USER",
+            "子进程可继承"
+          ]
+        },
+        {
+          "title": "特殊变量",
+          "badge": "内置",
+          "badgeColor": "amber",
+          "points": [
+            "$0 - 脚本名称",
+            "$1-$9 - 位置参数",
+            "$# - 参数个数",
+            "$? - 上条命令退出码"
+          ]
+        },
+        {
+          "title": "数组",
+          "badge": "进阶",
+          "badgeColor": "purple",
+          "points": [
+            "arr=(a b c)",
+            "${arr[0]} - 访问元素",
+            "${arr[@]} - 所有元素",
+            "${#arr[@]} - 数组长度"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "条件判断",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# if-else 结构\nif [ $# -eq 0 ]; then\n    echo \"No arguments provided\"\nelif [ $# -eq 1 ]; then\n    echo \"One argument: $1\"\nelse\n    echo \"Multiple arguments: $@\"\nfi\n\n# 文件测试\nif [ -f \"/etc/passwd\" ]; then\n    echo \"File exists\"\nfi\n\n# 字符串比较\nif [ \"$NAME\" = \"admin\" ]; then\n    echo \"Welcome admin\"\nfi\n\n# 数值比较\nif [ $COUNT -gt 10 ]; then\n    echo \"Count is greater than 10\"\nfi"
+    },
+    {
+      "type": "table",
+      "title": "测试运算符",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "运算符",
+        "说明"
+      ],
+      "rows": [
+        [
+          "文件",
+          "-f file",
+          "是否为普通文件"
+        ],
+        [
+          "文件",
+          "-d dir",
+          "是否为目录"
+        ],
+        [
+          "文件",
+          "-r/-w/-x",
+          "读/写/执行权限"
+        ],
+        [
+          "字符串",
+          "= / !=",
+          "相等/不等"
+        ],
+        [
+          "字符串",
+          "-z / -n",
+          "为空/非空"
+        ],
+        [
+          "数值",
+          "-eq/-ne",
+          "等于/不等于"
+        ],
+        [
+          "数值",
+          "-lt/-gt",
+          "小于/大于"
+        ],
+        [
+          "逻辑",
+          "-a / -o",
+          "与/或"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "循环结构",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# for 循环\nfor i in 1 2 3 4 5; do\n    echo \"Number: $i\"\ndone\n\n# C 风格 for\nfor ((i=0; i<5; i++)); do\n    echo \"Index: $i\"\ndone\n\n# 遍历文件\nfor file in *.txt; do\n    echo \"Processing: $file\"\ndone\n\n# while 循环\ncount=0\nwhile [ $count -lt 5 ]; do\n    echo \"Count: $count\"\n    ((count++))\ndone\n\n# 读取文件\nwhile IFS= read -r line; do\n    echo \"Line: $line\"\ndone < input.txt"
+    },
+    {
+      "type": "codeBlock",
+      "title": "函数定义",
+      "language": "bash",
+      "code": "#!/bin/bash\n\n# 定义函数\ngreet() {\n    local name=$1  # 局部变量\n    echo \"Hello, $name!\"\n}\n\n# 带返回值的函数\nadd() {\n    local result=$(($1 + $2))\n    echo $result\n}\n\n# 调用函数\ngreet \"Alice\"\nsum=$(add 5 3)\necho \"Sum: $sum\"\n\n# 检查函数返回状态\ncheck_file() {\n    [ -f \"$1\" ]\n}\n\nif check_file \"/etc/passwd\"; then\n    echo \"File exists\"\nfi"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 set -e",
+          "description": "遇到错误立即退出，避免继续执行"
+        },
+        {
+          "label": "使用 set -u",
+          "description": "使用未定义变量时报错"
+        },
+        {
+          "label": "引用变量",
+          "description": "使用 \"$VAR\" 防止空格和特殊字符问题"
+        },
+        {
+          "label": "使用函数",
+          "description": "模块化代码，提高可读性和复用性"
+        },
+        {
+          "label": "添加注释",
+          "description": "说明脚本用途和关键逻辑"
+        },
+        {
+          "label": "错误处理",
+          "description": "检查命令返回值，提供有意义的错误信息"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Linux 系统管理",
+    "自动化运维",
+    "CI/CD"
+  ]
 }

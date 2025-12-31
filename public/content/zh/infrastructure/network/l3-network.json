@@ -1,0 +1,391 @@
+{
+  "slug": "l3-network",
+  "meta": {
+    "title": "L3 网络层",
+    "description": "网络层：IP 协议、路由、子网划分与 NAT",
+    "order": 4,
+    "tags": [
+      "网络层",
+      "L3",
+      "IP",
+      "路由",
+      "子网"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "网络层负责跨网络的数据包传输",
+        "使用 IP 地址进行逻辑寻址",
+        "路由器根据路由表转发数据包",
+        "实现网络间的互联互通"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "网络层概述",
+      "content": "网络层是 OSI 模型的第三层，负责在不同网络之间传输数据包。它使用逻辑地址（IP 地址）来标识源和目的主机，并通过路由协议确定数据包的最佳传输路径。网络层的核心设备是路由器。"
+    },
+    {
+      "type": "cards",
+      "title": "L3 核心知识点",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "IP 协议",
+          "badge": "协议",
+          "badgeColor": "blue",
+          "points": [
+            "IPv4 / IPv6",
+            "无连接，尽力传输",
+            "数据包分片与重组"
+          ]
+        },
+        {
+          "title": "路由",
+          "badge": "核心",
+          "badgeColor": "green",
+          "points": [
+            "静态路由 / 动态路由",
+            "路由表与转发",
+            "RIP, OSPF, BGP"
+          ]
+        },
+        {
+          "title": "子网划分",
+          "badge": "技术",
+          "badgeColor": "purple",
+          "points": [
+            "CIDR 表示法",
+            "子网掩码",
+            "地址规划"
+          ]
+        },
+        {
+          "title": "NAT",
+          "badge": "技术",
+          "badgeColor": "amber",
+          "points": [
+            "地址转换",
+            "SNAT / DNAT",
+            "端口映射"
+          ]
+        },
+        {
+          "title": "ICMP",
+          "badge": "协议",
+          "badgeColor": "cyan",
+          "points": [
+            "错误报告",
+            "ping / traceroute",
+            "网络诊断"
+          ]
+        },
+        {
+          "title": "三层交换",
+          "badge": "设备",
+          "badgeColor": "red",
+          "points": [
+            "硬件路由",
+            "VLAN 间路由",
+            "高性能转发"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "IPv4 地址分类",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "范围",
+        "默认掩码",
+        "用途"
+      ],
+      "rows": [
+        [
+          "A 类",
+          "1.0.0.0 - 126.255.255.255",
+          "/8",
+          "大型网络"
+        ],
+        [
+          "B 类",
+          "128.0.0.0 - 191.255.255.255",
+          "/16",
+          "中型网络"
+        ],
+        [
+          "C 类",
+          "192.0.0.0 - 223.255.255.255",
+          "/24",
+          "小型网络"
+        ],
+        [
+          "D 类",
+          "224.0.0.0 - 239.255.255.255",
+          "-",
+          "组播地址"
+        ],
+        [
+          "E 类",
+          "240.0.0.0 - 255.255.255.255",
+          "-",
+          "保留地址"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": "私有 IP 地址范围",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "地址范围",
+        "CIDR",
+        "可用主机数"
+      ],
+      "rows": [
+        [
+          "A 类私有",
+          "10.0.0.0 - 10.255.255.255",
+          "10.0.0.0/8",
+          "16,777,214"
+        ],
+        [
+          "B 类私有",
+          "172.16.0.0 - 172.31.255.255",
+          "172.16.0.0/12",
+          "1,048,574"
+        ],
+        [
+          "C 类私有",
+          "192.168.0.0 - 192.168.255.255",
+          "192.168.0.0/16",
+          "65,534"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "IP 地址与子网计算",
+      "language": "text",
+      "code": "IP 地址: 192.168.1.100\n子网掩码: 255.255.255.0 (/24)\n\n二进制表示:\nIP:   11000000.10101000.00000001.01100100\nMask: 11111111.11111111.11111111.00000000\n\n网络地址: 192.168.1.0   (IP AND Mask)\n广播地址: 192.168.1.255 (网络地址 OR ~Mask)\n可用主机: 192.168.1.1 - 192.168.1.254\n主机数量: 2^8 - 2 = 254\n\nCIDR 表示法:\n/24 = 256 地址 (254 可用)\n/25 = 128 地址 (126 可用)\n/26 = 64 地址 (62 可用)\n/27 = 32 地址 (30 可用)\n/28 = 16 地址 (14 可用)\n/29 = 8 地址 (6 可用)\n/30 = 4 地址 (2 可用，点对点链路)"
+    },
+    {
+      "type": "comparison",
+      "title": "IPv4 vs IPv6",
+      "columns": [
+        {
+          "title": "IPv4",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "地址长度",
+              "description": "32 位 (4 字节)"
+            },
+            {
+              "label": "地址数量",
+              "description": "约 43 亿"
+            },
+            {
+              "label": "表示法",
+              "description": "点分十进制"
+            },
+            {
+              "label": "示例",
+              "description": "192.168.1.1"
+            },
+            {
+              "label": "头部",
+              "description": "20-60 字节"
+            }
+          ]
+        },
+        {
+          "title": "IPv6",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "地址长度",
+              "description": "128 位 (16 字节)"
+            },
+            {
+              "label": "地址数量",
+              "description": "3.4×10³⁸"
+            },
+            {
+              "label": "表示法",
+              "description": "冒分十六进制"
+            },
+            {
+              "label": "示例",
+              "description": "2001:db8::1"
+            },
+            {
+              "label": "头部",
+              "description": "固定 40 字节"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "路由转发过程",
+      "subtitle": "路由器如何转发数据包",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "接收数据包",
+          "description": "从入接口收到",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "解析目的 IP",
+          "description": "读取 IP 头部",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "查路由表",
+          "description": "最长前缀匹配",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "转发",
+          "description": "发送到出接口",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "路由表示例",
+      "language": "bash",
+      "code": "# Linux 查看路由表\nip route show\nroute -n\n\n# 输出示例\ndefault via 192.168.1.1 dev eth0 proto dhcp metric 100\n192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100\n10.0.0.0/8 via 192.168.1.254 dev eth0\n\n# 添加静态路由\nip route add 10.10.0.0/16 via 192.168.1.254\nip route add default via 192.168.1.1\n\n# 删除路由\nip route del 10.10.0.0/16\n\n# 查看到目标的路由\nip route get 8.8.8.8"
+    },
+    {
+      "type": "cards",
+      "title": "动态路由协议",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "RIP",
+          "badge": "距离矢量",
+          "badgeColor": "gray",
+          "points": [
+            "最大跳数 15",
+            "收敛慢",
+            "小型网络使用"
+          ]
+        },
+        {
+          "title": "OSPF",
+          "badge": "链路状态",
+          "badgeColor": "blue",
+          "points": [
+            "SPF 算法",
+            "快速收敛",
+            "企业网络首选"
+          ]
+        },
+        {
+          "title": "BGP",
+          "badge": "路径矢量",
+          "badgeColor": "green",
+          "points": [
+            "AS 间路由",
+            "互联网骨干",
+            "策略路由"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "NAT 配置 (iptables)",
+      "language": "bash",
+      "code": "# 启用 IP 转发\necho 1 > /proc/sys/net/ipv4/ip_forward\n\n# SNAT: 内网访问外网 (源地址转换)\niptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE\n# 或指定 IP\niptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j SNAT --to-source 1.2.3.4\n\n# DNAT: 端口映射 (目的地址转换)\niptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination 192.168.1.10:80\n\n# 查看 NAT 规则\niptables -t nat -L -n -v\n\n# 查看连接跟踪\nconntrack -L"
+    },
+    {
+      "type": "table",
+      "title": "ICMP 消息类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "名称",
+        "用途"
+      ],
+      "rows": [
+        [
+          "0",
+          "Echo Reply",
+          "ping 响应"
+        ],
+        [
+          "3",
+          "Destination Unreachable",
+          "目的不可达"
+        ],
+        [
+          "5",
+          "Redirect",
+          "路由重定向"
+        ],
+        [
+          "8",
+          "Echo Request",
+          "ping 请求"
+        ],
+        [
+          "11",
+          "Time Exceeded",
+          "TTL 超时 (traceroute)"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "网络诊断命令",
+      "language": "bash",
+      "code": "# ping 测试连通性\nping -c 4 8.8.8.8\n\n# traceroute 追踪路由路径\ntraceroute 8.8.8.8\nmtr 8.8.8.8  # 更好的工具\n\n# 查看 ARP 缓存\narp -n\nip neigh show\n\n# 抓包分析\ntcpdump -i eth0 icmp\ntcpdump -i eth0 'host 192.168.1.1 and port 80'"
+    },
+    {
+      "type": "list",
+      "title": "L3 最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "合理规划子网",
+          "description": "预留扩展空间，避免频繁调整"
+        },
+        {
+          "label": "使用 CIDR",
+          "description": "灵活划分地址，减少路由表条目"
+        },
+        {
+          "label": "路由汇总",
+          "description": "减少路由条目，提高转发效率"
+        },
+        {
+          "label": "默认路由",
+          "description": "简化路由配置，指向上游网关"
+        },
+        {
+          "label": "ECMP 负载均衡",
+          "description": "多路径等价路由，提高带宽利用率"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "OSI 模型",
+    "L2 数据链路层",
+    "TCP/IP"
+  ]
+}

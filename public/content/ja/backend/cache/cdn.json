@@ -1,0 +1,208 @@
+{
+  "slug": "cdn",
+  "meta": {
+    "title": "CDN コンテンツ配信ネットワーク",
+    "description": "グローバルコンテンツ配信とエッジ高速化",
+    "order": 2,
+    "tags": [
+      "CDN",
+      "エッジコンピューティング",
+      "キャッシュ",
+      "パフォーマンス最適化"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "コンテンツをグローバルエッジノードにキャッシュ",
+        "ユーザーは最寄りノードにアクセス、遅延を削減",
+        "オリジンサーバーの負荷を分散、可用性を向上",
+        "静的リソースと動的高速化をサポート"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "CDN 概要",
+      "content": "CDN（Content Delivery Network）は分散ネットワークアーキテクチャで、コンテンツを世界各地のエッジノードにキャッシュすることで、ユーザーが最寄りのノードからコンテンツを取得でき、アクセス遅延を大幅に削減します。CDN は静的リソースの配信高速化だけでなく、DDoS 防御、WAF、エッジコンピューティングなどの付加価値サービスも提供します。"
+    },
+    {
+      "type": "flow",
+      "title": "CDN 動作原理",
+      "subtitle": "ユーザーリクエストの処理フロー",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "DNS 解決",
+          "description": "インテリジェントルーティング",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "エッジノード",
+          "description": "近接応答",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "キャッシュヒット?",
+          "description": "判定",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "オリジン/応答",
+          "description": "コンテンツ返却",
+          "color": "bg-amber-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要 CDN プロバイダー",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Cloudflare",
+          "badge": "グローバル",
+          "badgeColor": "orange",
+          "points": [
+            "無料プランあり",
+            "DDoS 防御",
+            "Workers エッジコンピューティング",
+            "全球 300+ ノード"
+          ]
+        },
+        {
+          "title": "AWS CloudFront",
+          "badge": "AWS",
+          "badgeColor": "amber",
+          "points": [
+            "AWS との深い統合",
+            "Lambda@Edge",
+            "リアルタイムログ",
+            "従量課金"
+          ]
+        },
+        {
+          "title": "Fastly",
+          "badge": "高速",
+          "badgeColor": "blue",
+          "points": [
+            "リアルタイムキャッシュ更新",
+            "VCL ベース",
+            "エッジコンピューティング",
+            "ストリーミング対応"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "キャッシュ戦略",
+      "highlightFirst": true,
+      "headers": [
+        "戦略",
+        "説明",
+        "適用シーン"
+      ],
+      "rows": [
+        [
+          "オリジン準拠",
+          "Cache-Control ヘッダーを使用",
+          "動的コンテンツ"
+        ],
+        [
+          "固定 TTL",
+          "統一キャッシュ時間",
+          "静的リソース"
+        ],
+        [
+          "URL バージョニング",
+          "ファイル名にハッシュ含む",
+          "長期キャッシュ"
+        ],
+        [
+          "Query String",
+          "パラメータでキャッシュを区別",
+          "A/B テスト"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "キャッシュ制御ヘッダー例",
+      "language": "http",
+      "code": "# 静的リソース - 長期キャッシュ\nCache-Control: public, max-age=31536000, immutable\n\n# HTML ページ - 検証キャッシュ\nCache-Control: no-cache\nETag: \"abc123\"\n\n# API レスポンス - 短期キャッシュ\nCache-Control: private, max-age=60\n\n# 機密データ - キャッシュなし\nCache-Control: no-store"
+    },
+    {
+      "type": "comparison",
+      "title": "静的高速化 vs 全サイト高速化",
+      "columns": [
+        {
+          "title": "静的高速化",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "コンテンツ",
+              "description": "画像/CSS/JS"
+            },
+            {
+              "label": "キャッシュ",
+              "description": "エッジで完全キャッシュ"
+            },
+            {
+              "label": "コスト",
+              "description": "比較的低い"
+            }
+          ]
+        },
+        {
+          "title": "全サイト高速化",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "コンテンツ",
+              "description": "動的 + 静的"
+            },
+            {
+              "label": "最適化",
+              "description": "プロトコル最適化/ルーティング"
+            },
+            {
+              "label": "コスト",
+              "description": "比較的高い"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "リソースバージョニング",
+          "description": "ファイル名にハッシュを含め、長期キャッシュを実現"
+        },
+        {
+          "label": "ドメイン分離",
+          "description": "静的リソースは独立ドメインを使用"
+        },
+        {
+          "label": "HTTPS 全サイト",
+          "description": "セキュリティと SEO を向上"
+        },
+        {
+          "label": "ヒット率を監視",
+          "description": "キャッシュ効率とオリジン率に注目"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "HTTP キャッシュ",
+    "パフォーマンス最適化",
+    "エッジコンピューティング"
+  ]
+}

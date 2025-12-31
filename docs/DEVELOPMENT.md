@@ -309,7 +309,7 @@ src/
 │   ├── content/            # 内容展示组件
 │   └── ui/                 # 通用 UI 组件
 │
-├── content/                # 知识内容 (Markdown)
+├── content/                # 知识内容 (JSON 格式)
 │   ├── zh/                 # 中文内容
 │   │   ├── infrastructure/
 │   │   ├── container/
@@ -381,41 +381,71 @@ export const ja: Translations = {
 
 ### 4.3 内容文件结构
 
+**注意: 内容已从 Markdown 迁移至 JSON 格式**
+
 ```
 content/
 ├── zh/
 │   └── infrastructure/
 │       └── linux/
-│           ├── _meta.json     # 分类元数据
-│           ├── shell.md       # Shell 脚本教程
-│           └── system.md      # 系统管理教程
+│           ├── _overview.json   # 分类概览
+│           ├── shell.json       # Shell 脚本教程
+│           └── kernel.json      # 内核教程
 └── ja/
     └── infrastructure/
         └── linux/
-            ├── _meta.json
-            ├── shell.md
-            └── system.md
+            ├── _overview.json
+            ├── shell.json
+            └── kernel.json
 ```
 
-### 4.4 Markdown 文件规范
+### 4.4 JSON 文件规范
 
-```markdown
----
-title: Shell 脚本基础
-description: Linux Shell 脚本入门教程
-order: 1
-tags:
-  - linux
-  - shell
-  - bash
----
-
-# Shell 脚本基础
-
-## 概述
-
-Shell 是 Linux 系统的命令行解释器...
+```json
+{
+  "meta": {
+    "title": "Shell スクリプティング",
+    "description": "Bash スクリプト構文、変数、条件分岐とループ",
+    "order": 7,
+    "tags": ["Linux", "Shell", "Bash"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Shell はユーザーと OS の間のインターフェース",
+        "Bash は最も広く使われている Shell インタープリタ"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "Shell スクリプトは一連のコマンドをファイルに保存し..."
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構造",
+      "language": "bash",
+      "code": "#!/bin/bash\necho \"Hello World\""
+    }
+  ],
+  "relatedTopics": ["Linux システム管理", "CI/CD"]
+}
 ```
+
+### 4.5 Section 类型说明
+
+| Type | 用途 | 必需字段 |
+|------|------|----------|
+| `keyPoints` | 核心要点 | `title`, `items[]` |
+| `text` | 文本段落 | `title`, `content` |
+| `cards` | 卡片网格 | `title`, `layout`, `columns`, `items[]` |
+| `comparison` | 对比列 | `title`, `columns[]` |
+| `flow` | 流程图 | `title`, `direction`, `steps[]` |
+| `table` | 表格 | `title`, `headers[]`, `rows[][]` |
+| `list` | 列表 | `title`, `style`, `items[]` |
+| `codeBlock` | 代码块 | `title`, `language`, `code` |
 
 ---
 
@@ -469,20 +499,23 @@ export function ComponentName({ title, children }: ComponentProps) {
 
 ## 6. 内容编写规范
 
-### 6.1 Markdown 文件命名
+### 6.1 JSON 文件命名
 
-- 使用 kebab-case: `tcp-ip.md`, `docker-compose.md`
+- 使用 kebab-case: `tcp-ip.json`, `docker-compose.json`
 - 文件名即 URL slug: `/infrastructure/network/tcp-ip`
+- 分类概览文件统一命名: `_overview.json`
 
-### 6.2 Frontmatter 必填字段
+### 6.2 meta 必填字段
 
-```yaml
----
-title: 文章标题        # 必填
-description: 简短描述  # 必填
-order: 1              # 可选，用于排序
-tags: []              # 可选，标签数组
----
+```json
+{
+  "meta": {
+    "title": "文章标题",        // 必填
+    "description": "简短描述",  // 必填
+    "order": 1,                // 可选，用于排序
+    "tags": ["tag1", "tag2"]   // 可选，标签数组
+  }
+}
 ```
 
 ### 6.3 内容对照要求
@@ -490,13 +523,14 @@ tags: []              # 可选，标签数组
 中日文内容必须保持结构一致：
 
 ```
-content/zh/container/docker/image.md
-content/ja/container/docker/image.md
+content/zh/container/docker/image.json
+content/ja/container/docker/image.json
 ```
 
-- 相同的文件路径
-- 相同的章节结构
+- 相同的文件路径和文件名
+- 相同的 sections 数量和类型
 - 代码示例保持一致（注释可翻译）
+- `slug`、`badge`、`badgeColor`、颜色类名等保持英文不变
 
 ---
 
@@ -569,3 +603,11 @@ npm run start
 # 代码检查
 npm run lint
 ```
+
+---
+
+## 10. AI 开发上下文
+
+详细的开发上下文（包括日语化进度、翻译工作流、Section 类型详解）请参阅项目根目录的 [CLAUDE.md](../CLAUDE.md) 文件。
+
+该文件专为 AI 助手提供上下文信息，方便后续 Chat 继续开发工作。

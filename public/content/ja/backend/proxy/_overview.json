@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "title": "プロキシ・ゲートウェイ",
+    "description": "リバースプロキシ、ロードバランシング、API ゲートウェイ",
+    "icon": "network"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "リバースプロキシはバックエンドを隠し、統一エントリーポイントを提供",
+        "ロードバランサーは複数のバックエンドインスタンスにトラフィックを分散",
+        "API ゲートウェイは認証、レート制限、ルーティングなどの機能を提供",
+        "サービスメッシュプロキシはマイクロサービス通信ガバナンスを実現"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "プロキシゲートウェイは現代の分散システムのコアコンポーネントで、システムに入るトラフィックの管理と制御を担当します。シンプルなリバースプロキシから複雑なサービスメッシュのデータプレーンまで、プロキシゲートウェイはロードバランシング、セキュリティ制御、トラフィック管理において重要な役割を果たします。"
+    },
+    {
+      "type": "comparison",
+      "title": "主要プロキシソリューション比較",
+      "columns": [
+        {
+          "title": "HAProxy",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "ポジション", "description": "高性能 TCP/HTTP ロードバランサー" },
+            { "label": "特徴", "description": "極限のパフォーマンス、本番環境で安定" },
+            { "label": "適用", "description": "大規模トラフィックのロードバランシング" }
+          ]
+        },
+        {
+          "title": "Traefik",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "ポジション", "description": "クラウドネイティブエッジルーター" },
+            { "label": "特徴", "description": "自動サービス検出、動的設定" },
+            { "label": "適用", "description": "Kubernetes、Docker" }
+          ]
+        },
+        {
+          "title": "Envoy",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            { "label": "ポジション", "description": "サービスメッシュデータプレーン" },
+            { "label": "特徴", "description": "優れた可観測性、豊富な L7 機能" },
+            { "label": "適用", "description": "マイクロサービス、サービスメッシュ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "プロキシアーキテクチャ",
+      "subtitle": "プロキシゲートウェイを経由するリクエストの典型的なパス",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "クライアント", "description": "リクエスト発行", "color": "bg-gray-500" },
+        { "label": "プロキシゲートウェイ", "description": "ルーティング/認証/制限", "color": "bg-blue-500" },
+        { "label": "ロードバランサー", "description": "トラフィック分散", "color": "bg-purple-500" },
+        { "label": "バックエンド", "description": "リクエスト処理", "color": "bg-green-500" }
+      ]
+    }
+  ],
+  "relatedTopics": ["ロードバランサー", "サービスメッシュ", "API ゲートウェイ"],
+  "articles": [
+    {
+      "slug": "haproxy",
+      "title": "HAProxy",
+      "description": "高性能 TCP/HTTP ロードバランサー",
+      "priority": "essential"
+    },
+    {
+      "slug": "traefik",
+      "title": "Traefik",
+      "description": "クラウドネイティブエッジルーター",
+      "priority": "recommended"
+    },
+    {
+      "slug": "envoy",
+      "title": "Envoy",
+      "description": "サービスメッシュデータプレーンプロキシ",
+      "priority": "recommended"
+    }
+  ]
+}

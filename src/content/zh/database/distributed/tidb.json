@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "title": "TiDB",
+    "description": "TiDB 分布式 HTAP 数据库架构与实践",
+    "order": 1,
+    "tags": ["TiDB", "分布式", "HTAP", "NewSQL"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "TiDB 是开源分布式 HTAP 数据库",
+        "兼容 MySQL 协议，无缝迁移",
+        "水平扩展，弹性伸缩",
+        "支持 OLTP 和 OLAP 混合负载"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "架构组件",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "TiDB Server", "description": "SQL 层，无状态", "color": "bg-blue-500" },
+        { "label": "PD", "description": "元数据调度", "color": "bg-purple-500" },
+        { "label": "TiKV", "description": "分布式 KV 存储", "color": "bg-green-500" },
+        { "label": "TiFlash", "description": "列存 OLAP", "color": "bg-orange-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心组件详解",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "TiDB Server",
+          "badge": "SQL 层",
+          "badgeColor": "blue",
+          "points": [
+            "解析 SQL 生成执行计划",
+            "无状态，水平扩展",
+            "兼容 MySQL 协议"
+          ]
+        },
+        {
+          "title": "PD (Placement Driver)",
+          "badge": "调度",
+          "badgeColor": "purple",
+          "points": [
+            "存储集群元数据",
+            "Region 调度负载均衡",
+            "分配全局事务 ID"
+          ]
+        },
+        {
+          "title": "TiKV",
+          "badge": "存储",
+          "badgeColor": "green",
+          "points": [
+            "分布式事务 KV 存储",
+            "基于 Raft 的多副本",
+            "MVCC 支持快照隔离"
+          ]
+        },
+        {
+          "title": "TiFlash",
+          "badge": "分析",
+          "badgeColor": "orange",
+          "points": [
+            "列式存储引擎",
+            "实时同步 TiKV 数据",
+            "加速 OLAP 查询"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "TiDB vs MySQL",
+      "columns": [
+        {
+          "title": "TiDB",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "扩展", "description": "水平扩展，自动分片" },
+            { "label": "容量", "description": "PB 级数据" },
+            { "label": "高可用", "description": "Raft 多副本，自动故障转移" },
+            { "label": "HTAP", "description": "OLTP + OLAP 一体化" }
+          ]
+        },
+        {
+          "title": "MySQL",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "扩展", "description": "垂直扩展，手动分库分表" },
+            { "label": "容量", "description": "TB 级数据" },
+            { "label": "高可用", "description": "主从复制，需要中间件" },
+            { "label": "HTAP", "description": "需要独立的数仓" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "TiUP 部署",
+      "language": "bash",
+      "code": "# 安装 TiUP\ncurl --proto '=https' --tlsv1.2 -sSf https://tiup-mirrors.pingcap.com/install.sh | sh\n\n# 本地测试集群\ntiup playground --db 2 --pd 3 --kv 3\n\n# 生产部署\ntiup cluster deploy mytidb v7.5.0 ./topology.yaml --user root -p\n\n# 启动集群\ntiup cluster start mytidb\n\n# 查看状态\ntiup cluster display mytidb"
+    },
+    {
+      "type": "codeBlock",
+      "title": "topology.yaml 示例",
+      "language": "yaml",
+      "code": "global:\n  user: \"tidb\"\n  deploy_dir: \"/tidb-deploy\"\n  data_dir: \"/tidb-data\"\n\npd_servers:\n  - host: 10.0.0.1\n  - host: 10.0.0.2\n  - host: 10.0.0.3\n\ntidb_servers:\n  - host: 10.0.0.4\n  - host: 10.0.0.5\n\ntikv_servers:\n  - host: 10.0.0.6\n  - host: 10.0.0.7\n  - host: 10.0.0.8\n\ntiflash_servers:\n  - host: 10.0.0.9\n\nmonitoring_servers:\n  - host: 10.0.0.10\n\ngrafana_servers:\n  - host: 10.0.0.10"
+    },
+    {
+      "type": "codeBlock",
+      "title": "HTAP 查询示例",
+      "language": "sql",
+      "code": "-- 创建 TiFlash 副本 (启用列存加速)\nALTER TABLE orders SET TIFLASH REPLICA 1;\n\n-- 查看 TiFlash 同步状态\nSELECT * FROM information_schema.tiflash_replica;\n\n-- OLTP 查询 (走 TiKV)\nSELECT * FROM orders WHERE order_id = 12345;\n\n-- OLAP 查询 (自动路由到 TiFlash)\nSELECT \n  DATE(created_at) AS date,\n  COUNT(*) AS order_count,\n  SUM(amount) AS total_amount\nFROM orders\nWHERE created_at >= '2024-01-01'\nGROUP BY DATE(created_at)\nORDER BY date;\n\n-- 强制使用 TiFlash\nSELECT /*+ READ_FROM_STORAGE(TIFLASH[orders]) */ * FROM orders;"
+    },
+    {
+      "type": "table",
+      "title": "关键特性",
+      "highlightFirst": true,
+      "headers": ["特性", "说明", "优势"],
+      "rows": [
+        ["Raft 协议", "多副本一致性", "数据强一致，自动故障转移"],
+        ["Region", "数据分片单位 (96MB)", "自动分裂合并，负载均衡"],
+        ["MVCC", "多版本并发控制", "快照隔离，无锁读"],
+        ["分布式事务", "2PC + Percolator", "跨节点 ACID 事务"],
+        ["Online DDL", "在线表结构变更", "不阻塞业务"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "合理设计主键", "description": "避免自增主键导致写入热点，使用 AUTO_RANDOM" },
+        { "label": "TiFlash 副本", "description": "为分析查询表创建 TiFlash 副本" },
+        { "label": "监控告警", "description": "使用内置 Grafana 监控集群状态" },
+        { "label": "备份恢复", "description": "使用 BR 工具进行全量/增量备份" },
+        { "label": "慢查询优化", "description": "通过 Dashboard 分析慢 SQL" }
+      ]
+    }
+  ],
+  "relatedTopics": ["MySQL", "分布式系统", "Raft", "HTAP"]
+}

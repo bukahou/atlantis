@@ -1,0 +1,204 @@
+{
+  "meta": {
+    "title": "L7 アプリケーション層",
+    "description": "アプリケーション層プロトコル：HTTP、DNS、FTP と主要アプリケーションプロトコル",
+    "order": 6,
+    "tags": ["アプリケーション層", "L7", "HTTP", "DNS"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "アプリケーション層は OSI 最上位層、ユーザーに直接サービス",
+        "アプリケーション間の通信ルールを定義",
+        "HTTP/HTTPS は Web の基盤プロトコル",
+        "DNS はドメイン名から IP への名前解決を実現"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "アプリケーション層概要",
+      "content": "アプリケーション層は OSI モデルの第7層で、ユーザーに最も近い層です。アプリケーションにネットワークサービスを提供し、データの形式と交換ルールを定義します。一般的なアプリケーション層プロトコルには HTTP（Web）、DNS（名前解決）、FTP（ファイル転送）、SMTP（メール）などがあります。"
+    },
+    {
+      "type": "cards",
+      "title": "主要アプリケーション層プロトコル",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "HTTP/HTTPS",
+          "badge": "Web",
+          "badgeColor": "blue",
+          "points": [
+            "ハイパーテキスト転送プロトコル",
+            "リクエスト-レスポンスモデル",
+            "HTTPS = HTTP + TLS"
+          ]
+        },
+        {
+          "title": "DNS",
+          "badge": "名前解決",
+          "badgeColor": "green",
+          "points": [
+            "ドメイン名 → IP アドレス",
+            "分散階層構造",
+            "キャッシュでクエリを高速化"
+          ]
+        },
+        {
+          "title": "FTP/SFTP",
+          "badge": "ファイル",
+          "badgeColor": "amber",
+          "points": [
+            "ファイル転送プロトコル",
+            "アクティブ/パッシブモード",
+            "SFTP は SSH ベース"
+          ]
+        },
+        {
+          "title": "SMTP/POP3/IMAP",
+          "badge": "メール",
+          "badgeColor": "purple",
+          "points": [
+            "SMTP でメール送信",
+            "POP3 でメールダウンロード",
+            "IMAP でメール同期"
+          ]
+        },
+        {
+          "title": "SSH",
+          "badge": "リモート",
+          "badgeColor": "gray",
+          "points": [
+            "セキュアリモートログイン",
+            "暗号化チャネル",
+            "ポートフォワーディング/トンネル"
+          ]
+        },
+        {
+          "title": "WebSocket",
+          "badge": "リアルタイム",
+          "badgeColor": "red",
+          "points": [
+            "全二重通信",
+            "永続接続",
+            "リアルタイムプッシュ"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "HTTP リクエストフロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "DNS 解決", "description": "ドメイン → IP", "color": "bg-green-500" },
+        { "label": "TCP 接続", "description": "3ウェイハンドシェイク", "color": "bg-blue-500" },
+        { "label": "TLS ハンドシェイク", "description": "HTTPS", "color": "bg-purple-500" },
+        { "label": "HTTP リクエスト", "description": "リクエスト送信", "color": "bg-cyan-500" },
+        { "label": "HTTP レスポンス", "description": "データ返却", "color": "bg-amber-500" }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "HTTP バージョン比較",
+      "columns": [
+        {
+          "title": "HTTP/1.1",
+          "color": "from-gray-500 to-gray-600",
+          "items": [
+            { "label": "接続", "description": "Keep-Alive 再利用" },
+            { "label": "転送", "description": "テキスト形式" },
+            { "label": "多重化", "description": "非対応" },
+            { "label": "ヘッダ", "description": "圧縮なし" }
+          ]
+        },
+        {
+          "title": "HTTP/2",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "接続", "description": "単一接続で複数ストリーム" },
+            { "label": "転送", "description": "バイナリフレーム" },
+            { "label": "多重化", "description": "対応" },
+            { "label": "ヘッダ", "description": "HPACK 圧縮" }
+          ]
+        },
+        {
+          "title": "HTTP/3",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "接続", "description": "QUIC (UDP)" },
+            { "label": "転送", "description": "バイナリフレーム" },
+            { "label": "多重化", "description": "HOL ブロッキングなし" },
+            { "label": "ハンドシェイク", "description": "0-RTT" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "HTTP リクエスト/レスポンス",
+      "language": "http",
+      "code": "# リクエスト\nGET /api/users HTTP/1.1\nHost: api.example.com\nAuthorization: Bearer token123\nAccept: application/json\n\n# レスポンス\nHTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: max-age=3600\n\n{\"id\": 1, \"name\": \"John\"}"
+    },
+    {
+      "type": "table",
+      "title": "HTTP ステータスコード",
+      "highlightFirst": true,
+      "headers": ["範囲", "種類", "主なステータスコード"],
+      "rows": [
+        ["1xx", "情報", "100 Continue, 101 Switching"],
+        ["2xx", "成功", "200 OK, 201 Created, 204 No Content"],
+        ["3xx", "リダイレクト", "301 恒久, 302 一時, 304 未変更"],
+        ["4xx", "クライアントエラー", "400 Bad, 401 未認証, 404 Not Found"],
+        ["5xx", "サーバーエラー", "500 内部エラー, 502 Bad Gateway, 503 利用不可"]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "DNS 解決フロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "ローカルキャッシュ", "description": "ブラウザ/システム", "color": "bg-gray-500" },
+        { "label": "ローカル DNS", "description": "ISP 再帰", "color": "bg-blue-500" },
+        { "label": "ルートサーバー", "description": ". (root)", "color": "bg-purple-500" },
+        { "label": "TLD サーバー", "description": ".com/.jp", "color": "bg-cyan-500" },
+        { "label": "権威 DNS", "description": "最終解決", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "DNS レコードタイプ",
+      "highlightFirst": true,
+      "headers": ["タイプ", "用途", "例"],
+      "rows": [
+        ["A", "IPv4 アドレス", "example.com → 1.2.3.4"],
+        ["AAAA", "IPv6 アドレス", "example.com → 2001:db8::1"],
+        ["CNAME", "エイリアス", "www → example.com"],
+        ["MX", "メールサーバー", "@ → mail.example.com"],
+        ["TXT", "テキストレコード", "SPF, DKIM 検証"],
+        ["NS", "ネームサーバー", "@ → ns1.example.com"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "よく使う診断コマンド",
+      "language": "bash",
+      "code": "# DNS クエリ\nnslookup example.com\ndig example.com A\ndig +trace example.com\n\n# HTTP リクエスト\ncurl -v https://example.com\ncurl -I https://example.com  # ヘッダのみ\n\n# ポート接続テスト\ntelnet example.com 80\nnc -zv example.com 443"
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "HTTPS を使用", "description": "TLS 暗号化でデータを保護" },
+        { "label": "HTTP/2 を有効化", "description": "多重化でパフォーマンス向上" },
+        { "label": "適切なキャッシュ", "description": "Cache-Control でリクエストを削減" },
+        { "label": "DNS プリフェッチ", "description": "dns-prefetch で遅延を削減" }
+      ]
+    }
+  ],
+  "relatedTopics": ["L4 トランスポート層", "ロードバランサー", "Web セキュリティ"]
+}

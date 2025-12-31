@@ -6,6 +6,13 @@
       "description": "Git 分支策略与团队协作工作流",
       "href": "/toolchain/git/workflow",
       "order": 1
+    },
+    {
+      "slug": "branching",
+      "title": "分支策略",
+      "description": "Git 分支管理策略与实践",
+      "href": "/toolchain/git/branching",
+      "order": 2
     }
   ]
 }

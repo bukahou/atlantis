@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "title": "ロードバランサー",
+    "description": "L3/L4/L7 ロードバランシング戦略、アルゴリズムと高可用性アーキテクチャ",
+    "order": 7,
+    "tags": ["ロードバランサー", "L3", "L4", "L7", "高可用性"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ロードバランサーはトラフィックを複数のバックエンドサーバーに分散",
+        "OSI 層別：L3/L4/L7 ロードバランシング",
+        "複数のアルゴリズム：ラウンドロビン、重み付け、最小接続、ハッシュ",
+        "ヘルスチェックで健全なノードのみにトラフィックを送信"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "ロードバランサー概要",
+      "content": "ロードバランシングはネットワークトラフィックを複数のサーバーに分散する技術です。動作レイヤーによって L3（ネットワーク層、IP ベース）、L4（トランスポート層、IP+ポートベース）、L7（アプリケーション層、コンテンツベース）に分類されます。高可用性分散システム構築の中核コンポーネントです。"
+    },
+    {
+      "type": "table",
+      "title": "ロードバランシングレイヤー比較",
+      "highlightFirst": true,
+      "headers": ["レイヤー", "判断基準", "技術/機器", "特徴"],
+      "rows": [
+        ["L3 ネットワーク層", "IP アドレス", "DNS ラウンドロビン、ECMP、BGP Anycast", "シンプル高効率、ステートレス"],
+        ["L4 トランスポート層", "IP + ポート", "LVS、IPVS、NLB", "高性能、L4 転送"],
+        ["L7 アプリケーション層", "URL/Header/Cookie", "Nginx、HAProxy、ALB", "インテリジェントルーティング、コンテンツ認識"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "L3 ネットワーク層ロードバランシング",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "DNS ラウンドロビン",
+          "badge": "DNS",
+          "badgeColor": "gray",
+          "points": [
+            "1つのドメインに複数の A レコード",
+            "DNS サーバーがラウンドロビンで返却",
+            "シンプルだがサービス状態を認識しない",
+            "TTL キャッシュに依存"
+          ]
+        },
+        {
+          "title": "ECMP",
+          "badge": "ルーティング",
+          "badgeColor": "blue",
+          "points": [
+            "等価マルチパスルーティング",
+            "ルーターレベルでの分散",
+            "フローベースのハッシュ",
+            "高性能データセンター向け"
+          ]
+        },
+        {
+          "title": "BGP Anycast",
+          "badge": "グローバル",
+          "badgeColor": "green",
+          "points": [
+            "複数ノードで同一 IP",
+            "最寄りにルーティング",
+            "CDN で広く使用",
+            "自然な災害対策"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "L4 vs L7 ロードバランシング",
+      "columns": [
+        {
+          "title": "L4 ロードバランサー",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "動作レイヤー", "description": "トランスポート層 (TCP/UDP)" },
+            { "label": "判断基準", "description": "IP + ポート" },
+            { "label": "性能", "description": "非常に高い、カーネル空間転送" },
+            { "label": "機能", "description": "シンプルな転送" },
+            { "label": "代表", "description": "LVS、IPVS、F5" }
+          ]
+        },
+        {
+          "title": "L7 ロードバランサー",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "動作レイヤー", "description": "アプリケーション層 (HTTP)" },
+            { "label": "判断基準", "description": "URL、Header、Cookie" },
+            { "label": "性能", "description": "比較的低い、ユーザー空間" },
+            { "label": "機能", "description": "コンテンツルーティング、SSL 終端" },
+            { "label": "代表", "description": "Nginx、HAProxy" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ロードバランシングアルゴリズム",
+      "highlightFirst": true,
+      "headers": ["アルゴリズム", "原理", "適用シーン"],
+      "rows": [
+        ["ラウンドロビン", "順番に分散", "サーバー性能が同等の場合"],
+        ["重み付けラウンドロビン", "重み比率で分散", "サーバー性能が異なる場合"],
+        ["最小接続", "接続数が最小のサーバーへ", "長時間接続シーン"],
+        ["IP ハッシュ", "同一 IP を同一サーバーへ", "セッション維持"],
+        ["コンシステントハッシュ", "リング状ハッシュマッピング", "キャッシュサーバー"],
+        ["最速応答", "応答が最速のサーバーへ", "パフォーマンス重視シーン"]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "マルチレイヤーロードバランシングアーキテクチャ",
+      "subtitle": "典型的なエンタープライズアーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "L3 DNS", "description": "Anycast/ラウンドロビン", "color": "bg-gray-500" },
+        { "label": "L4 LB", "description": "LVS/NLB", "color": "bg-blue-500" },
+        { "label": "L7 LB", "description": "Nginx/HAProxy", "color": "bg-purple-500" },
+        { "label": "App Server", "description": "アプリケーション", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要ロードバランシングソリューション",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "LVS/IPVS",
+          "badge": "L4",
+          "badgeColor": "blue",
+          "points": [
+            "Linux カーネルモジュール",
+            "非常に高い性能",
+            "DR/NAT/TUN モード",
+            "オープンソース無料"
+          ]
+        },
+        {
+          "title": "Nginx",
+          "badge": "L7",
+          "badgeColor": "green",
+          "points": [
+            "HTTP リバースプロキシ",
+            "豊富なルーティングルール",
+            "SSL 終端とキャッシュ",
+            "オープンソース無料"
+          ]
+        },
+        {
+          "title": "HAProxy",
+          "badge": "L4/L7",
+          "badgeColor": "purple",
+          "points": [
+            "プロフェッショナルロードバランサー",
+            "高性能高可用性",
+            "詳細な統計情報",
+            "柔軟なヘルスチェック"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "LVS DR モード設定",
+      "language": "bash",
+      "code": "# Director (ロードバランサー)\nipvsadm -A -t 10.0.0.100:80 -s rr\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.1:80 -g\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.2:80 -g\n\n# Real Server (バックエンドサーバー)\n# VIP を lo に設定し、ARP を抑制\nip addr add 10.0.0.100/32 dev lo\necho 1 > /proc/sys/net/ipv4/conf/all/arp_ignore\necho 2 > /proc/sys/net/ipv4/conf/all/arp_announce"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Nginx ロードバランシング設定",
+      "language": "nginx",
+      "code": "upstream backend {\n    # 重み付けラウンドロビン\n    server 10.0.0.1:8080 weight=3;\n    server 10.0.0.2:8080 weight=2;\n    server 10.0.0.3:8080 backup;  # バックアップ\n    \n    # ヘルスチェック (Nginx Plus)\n    # health_check interval=5s;\n    \n    keepalive 32;\n}\n\nserver {\n    listen 80;\n    \n    location / {\n        proxy_pass http://backend;\n        proxy_http_version 1.1;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "ヘルスチェック",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "アクティブヘルスチェック",
+          "badge": "Active",
+          "badgeColor": "green",
+          "points": [
+            "定期的にプローブリクエストを送信",
+            "TCP ポートチェック",
+            "HTTP ステータスコードチェック",
+            "カスタムヘルスエンドポイント"
+          ]
+        },
+        {
+          "title": "パッシブヘルスチェック",
+          "badge": "Passive",
+          "badgeColor": "amber",
+          "points": [
+            "実際のリクエストを監視",
+            "連続失敗で異常とマーク",
+            "レスポンスタイムアウト検出",
+            "追加オーバーヘッドなし"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "高可用性設計のポイント",
+      "style": "check",
+      "items": [
+        { "label": "ロードバランサーの冗長化", "description": "Keepalived で主従またはクラスター構成" },
+        { "label": "マルチレイヤーロードバランシング", "description": "L3 + L4 + L7 の組み合わせ" },
+        { "label": "適切なヘルスチェック", "description": "チェック間隔と閾値の適切な設定" },
+        { "label": "グレースフルデグラデーション", "description": "バックアップサーバーと縮退戦略の設定" },
+        { "label": "セッション維持", "description": "ビジネス要件に応じた適切な方式を選択" }
+      ]
+    }
+  ],
+  "relatedTopics": ["L4 トランスポート層", "L7 アプリケーション層", "高可用性アーキテクチャ"]
+}

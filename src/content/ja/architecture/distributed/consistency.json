@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "title": "整合性モデル",
+    "description": "強整合性、弱整合性、結果整合性",
+    "order": 2,
+    "tags": ["分散システム", "整合性", "レプリケーション"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "整合性は読み書き操作に対するシステムの保証を定義",
+        "強整合性：すべての読み取りが最新の書き込みを返す",
+        "結果整合性：システムは最終的に整合状態に収束",
+        "異なる整合性モデルは性能と複雑さのトレードオフがある"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "整合性レベル",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "強整合性",
+          "badge": "Strong",
+          "badgeColor": "blue",
+          "points": [
+            "線形化可能性",
+            "最新値を読み取り",
+            "性能オーバーヘッド大"
+          ]
+        },
+        {
+          "title": "弱整合性",
+          "badge": "Weak",
+          "badgeColor": "yellow",
+          "points": [
+            "即座の可視性を保証しない",
+            "セッション整合性",
+            "単調読み取り/書き込み"
+          ]
+        },
+        {
+          "title": "結果整合性",
+          "badge": "Eventual",
+          "badgeColor": "green",
+          "points": [
+            "最終的に収束",
+            "高可用性",
+            "競合解決が必要"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "同期レプリケーション vs 非同期レプリケーション",
+      "columns": [
+        {
+          "title": "同期レプリケーション",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "メカニズム", "description": "すべてのレプリカの確認を待機" },
+            { "label": "整合性", "description": "強整合" },
+            { "label": "遅延", "description": "最も遅いノードに依存" },
+            { "label": "可用性", "description": "任意のノード障害が書き込みに影響" }
+          ]
+        },
+        {
+          "title": "非同期レプリケーション",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "メカニズム", "description": "プライマリノードの確認で返却" },
+            { "label": "整合性", "description": "結果整合" },
+            { "label": "遅延", "description": "低遅延" },
+            { "label": "可用性", "description": "高いが、データ損失の可能性" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Quorumメカニズム",
+      "language": "text",
+      "code": "Quorum公式：W + R > N\n\nN = レプリカ総数\nW = 書き込み時に確認が必要なレプリカ数\nR = 読み取り時に問い合わせるレプリカ数\n\n例（N=3）：\n- W=3, R=1: 強整合書き込み、任意のノードから読み取り\n- W=1, R=3: 高速書き込み、全ノードに問い合わせ\n- W=2, R=2: 読み書きバランス、1ノード障害を許容\n\n読み書き分離シナリオ：\n- 書き込み操作：W=2（多数派確認）\n- 読み取り操作：R=1（低遅延）+ 非同期修復\n\nトレードオフ：\n- Wが大きいほど、書き込み遅延は高く、整合性は強い\n- Rが大きいほど、読み取り遅延は高く、データは新鮮"
+    },
+    {
+      "type": "table",
+      "title": "整合性モデル比較",
+      "highlightFirst": true,
+      "headers": ["モデル", "保証内容", "代表システム", "適用場面"],
+      "rows": [
+        ["線形化可能性", "リアルタイム最新値", "Spanner", "金融取引"],
+        ["順序整合性", "操作順序の一貫性", "ZooKeeper", "設定管理"],
+        ["因果整合性", "因果関係の保証", "COPS", "SNSアプリ"],
+        ["結果整合性", "最終的な収束", "DynamoDB", "ショッピングカート、キャッシュ"],
+        ["Read Your Writes", "自分の書き込みを読める", "多くのシステム", "UX最適化"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "バージョンベクトルによる競合解決",
+      "language": "go",
+      "code": "// バージョンベクトル\ntype VectorClock map[string]int64\n\n// バージョン比較\nfunc (vc VectorClock) Compare(other VectorClock) int {\n    // 戻り値: -1 (小さい), 0 (並行), 1 (大きい)\n    greater, less := false, false\n    for node := range union(vc, other) {\n        if vc[node] > other[node] {\n            greater = true\n        } else if vc[node] < other[node] {\n            less = true\n        }\n    }\n    if greater && !less { return 1 }\n    if less && !greater { return -1 }\n    return 0 // 並行競合、ビジネスロジックで解決が必要\n}\n\n// マージ戦略\n// - LWW (Last Write Wins): タイムスタンプ最大が勝利\n// - ビジネスマージ: ショッピングカートのマージなど\n// - 手動解決: ドキュメント編集の競合など"
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "ビジネスに基づいて選択", "description": "金融は強整合、SNSは結果整合" },
+        { "label": "Quorumを柔軟に設定", "description": "読み書き比率に応じてWとRを調整" },
+        { "label": "バージョン制御", "description": "バージョンベクトルまたは論理クロックを使用" },
+        { "label": "競合解決戦略", "description": "事前に競合解決ルールを定義" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CAP定理", "分散トランザクション", "レプリケーション"]
+}

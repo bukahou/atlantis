@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "title": "Microsoft Azure",
+    "description": "Azure 云服务与企业级解决方案",
+    "order": 3,
+    "tags": ["Azure", "云计算", "企业"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Azure 是微软的公有云平台",
+        "与 Microsoft 生态深度集成",
+        "混合云解决方案领先",
+        "企业级安全合规"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Azure 概述",
+      "content": "Microsoft Azure 凭借与 Windows、Office 365、Active Directory 的深度集成，成为企业数字化转型的首选。Azure 提供全面的混合云方案，支持本地数据中心与云端的无缝衔接。"
+    },
+    {
+      "type": "cards",
+      "title": "核心服务",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "计算服务",
+          "badge": "Compute",
+          "badgeColor": "blue",
+          "points": [
+            "Virtual Machines",
+            "AKS - Kubernetes",
+            "Azure Functions",
+            "App Service"
+          ]
+        },
+        {
+          "title": "存储服务",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "Blob Storage - 对象存储",
+            "Managed Disks - 块存储",
+            "Azure Files - 文件共享",
+            "Archive Storage"
+          ]
+        },
+        {
+          "title": "数据库服务",
+          "badge": "Database",
+          "badgeColor": "amber",
+          "points": [
+            "Azure SQL Database",
+            "Cosmos DB - 多模型",
+            "Azure Cache for Redis",
+            "Azure Database for PostgreSQL"
+          ]
+        },
+        {
+          "title": "身份与安全",
+          "badge": "Identity",
+          "badgeColor": "purple",
+          "points": [
+            "Azure AD - 身份管理",
+            "Key Vault - 密钥管理",
+            "Security Center",
+            "Sentinel - SIEM"
+          ]
+        },
+        {
+          "title": "DevOps",
+          "badge": "DevOps",
+          "badgeColor": "cyan",
+          "points": [
+            "Azure DevOps",
+            "Azure Pipelines",
+            "ARM Templates",
+            "Azure Monitor"
+          ]
+        },
+        {
+          "title": "混合云",
+          "badge": "Hybrid",
+          "badgeColor": "red",
+          "points": [
+            "Azure Arc",
+            "Azure Stack",
+            "ExpressRoute",
+            "VPN Gateway"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "计算服务对比",
+      "columns": [
+        {
+          "title": "Virtual Machines",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "类型", "description": "IaaS" },
+            { "label": "控制", "description": "完全控制 OS" },
+            { "label": "适用", "description": "传统应用迁移" }
+          ]
+        },
+        {
+          "title": "App Service",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "类型", "description": "PaaS" },
+            { "label": "控制", "description": "托管平台" },
+            { "label": "适用", "description": "Web 应用、API" }
+          ]
+        },
+        {
+          "title": "Azure Functions",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "类型", "description": "FaaS" },
+            { "label": "控制", "description": "函数级别" },
+            { "label": "适用", "description": "事件驱动、微服务" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "Azure DevOps 流水线",
+      "subtitle": "CI/CD 自动化流程",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "代码", "description": "Azure Repos", "color": "bg-gray-500" },
+        { "label": "构建", "description": "Pipelines", "color": "bg-blue-500" },
+        { "label": "测试", "description": "Test Plans", "color": "bg-purple-500" },
+        { "label": "制品", "description": "Artifacts", "color": "bg-cyan-500" },
+        { "label": "部署", "description": "Release", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Azure AD 版本对比",
+      "highlightFirst": true,
+      "headers": ["版本", "特性", "适用场景"],
+      "rows": [
+        ["Free", "基础 SSO、MFA", "小型组织"],
+        ["P1", "条件访问、自助密码", "中型企业"],
+        ["P2", "身份保护、PIM", "大型企业、合规需求"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "Azure 最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 Azure AD", "description": "统一身份管理，实现 SSO" },
+        { "label": "资源组织", "description": "使用管理组、订阅、资源组层级管理" },
+        { "label": "成本管理", "description": "使用 Azure Cost Management 监控支出" },
+        { "label": "基础设施即代码", "description": "使用 ARM Templates 或 Bicep" },
+        { "label": "混合连接", "description": "使用 ExpressRoute 建立专线连接" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Azure DevOps", "Active Directory", "Terraform"]
+}

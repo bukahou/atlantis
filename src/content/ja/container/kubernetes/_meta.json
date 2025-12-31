@@ -1,0 +1,6 @@
+{
+  "title": "Kubernetes",
+  "description": "Kubernetes コンテナオーケストレーションプラットフォーム",
+  "icon": "layers",
+  "order": 2
+}

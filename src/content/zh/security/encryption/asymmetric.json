@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "title": "非对称加密",
+    "description": "RSA、椭圆曲线与数字签名",
+    "order": 2,
+    "tags": ["加密", "RSA", "ECC", "签名"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "非对称加密：公钥加密，私钥解密",
+        "数字签名：私钥签名，公钥验证",
+        "用途：密钥交换、数字签名、身份认证",
+        "常用算法：RSA、ECDSA、Ed25519"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "RSA vs 椭圆曲线",
+      "columns": [
+        {
+          "title": "RSA",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "安全性", "description": "2048+ 位" },
+            { "label": "性能", "description": "较慢" },
+            { "label": "密钥大小", "description": "较大" },
+            { "label": "应用", "description": "传统系统、TLS" }
+          ]
+        },
+        {
+          "title": "ECC (椭圆曲线)",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "安全性", "description": "256 位 ≈ RSA 3072" },
+            { "label": "性能", "description": "快" },
+            { "label": "密钥大小", "description": "小" },
+            { "label": "应用", "description": "移动、IoT、现代系统" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "RSA 加密与解密",
+      "language": "go",
+      "code": "import (\n    \"crypto/rand\"\n    \"crypto/rsa\"\n    \"crypto/sha256\"\n)\n\n// 生成 RSA 密钥对\nfunc GenerateRSAKeyPair() (*rsa.PrivateKey, error) {\n    return rsa.GenerateKey(rand.Reader, 2048)\n}\n\n// RSA-OAEP 加密\nfunc EncryptRSA(publicKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {\n    return rsa.EncryptOAEP(\n        sha256.New(),\n        rand.Reader,\n        publicKey,\n        plaintext,\n        nil,\n    )\n}\n\n// 解密\nfunc DecryptRSA(privateKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {\n    return rsa.DecryptOAEP(\n        sha256.New(),\n        rand.Reader,\n        privateKey,\n        ciphertext,\n        nil,\n    )\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Ed25519 数字签名",
+      "language": "go",
+      "code": "import (\n    \"crypto/ed25519\"\n    \"crypto/rand\"\n)\n\n// 生成密钥对\nfunc GenerateEd25519KeyPair() (ed25519.PublicKey, ed25519.PrivateKey, error) {\n    return ed25519.GenerateKey(rand.Reader)\n}\n\n// 签名\nfunc Sign(privateKey ed25519.PrivateKey, message []byte) []byte {\n    return ed25519.Sign(privateKey, message)\n}\n\n// 验证签名\nfunc Verify(publicKey ed25519.PublicKey, message, signature []byte) bool {\n    return ed25519.Verify(publicKey, message, signature)\n}\n\n// 实际应用：签名 JWT\nfunc SignJWT(claims map[string]any, privateKey ed25519.PrivateKey) string {\n    header := base64URL(json(`{\"alg\":\"EdDSA\",\"typ\":\"JWT\"}`))\n    payload := base64URL(json(claims))\n    \n    signingInput := header + \".\" + payload\n    signature := Sign(privateKey, []byte(signingInput))\n    \n    return signingInput + \".\" + base64URL(signature)\n}"
+    },
+    {
+      "type": "table",
+      "title": "算法选择指南",
+      "highlightFirst": true,
+      "headers": ["用途", "推荐算法", "密钥长度"],
+      "rows": [
+        ["加密小数据", "RSA-OAEP", "2048+"],
+        ["数字签名", "Ed25519", "256位曲线"],
+        ["TLS 密钥交换", "X25519", "256位曲线"],
+        ["证书签名", "ECDSA P-256", "256位曲线"],
+        ["遗留系统兼容", "RSA-2048", "2048位"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "安全实践",
+      "style": "check",
+      "items": [
+        { "label": "私钥安全存储", "description": "使用 HSM 或加密存储" },
+        { "label": "证书有效期", "description": "TLS 证书不超过 1 年" },
+        { "label": "密钥轮换", "description": "定期更换密钥对" },
+        { "label": "优先现代算法", "description": "Ed25519 > ECDSA > RSA" }
+      ]
+    }
+  ],
+  "relatedTopics": ["对称加密", "TLS", "证书"]
+}

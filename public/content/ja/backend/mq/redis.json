@@ -1,0 +1,178 @@
+{
+  "slug": "redis",
+  "meta": {
+    "title": "Redis メッセージキュー",
+    "description": "Redis で実装する軽量メッセージキュー",
+    "order": 3,
+    "tags": [
+      "Redis",
+      "メッセージキュー",
+      "Streams"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Redis は複数のキュー実装方式を提供",
+        "List でシンプルなキューを実装",
+        "Pub/Sub で発行購読を実装",
+        "Stream で永続化メッセージキューを実装"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Redis キューソリューション",
+      "columns": [
+        {
+          "title": "List",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "特徴",
+              "description": "シンプル FIFO キュー"
+            },
+            {
+              "label": "コマンド",
+              "description": "LPUSH/BRPOP"
+            },
+            {
+              "label": "適用",
+              "description": "シンプルタスクキュー"
+            }
+          ]
+        },
+        {
+          "title": "Pub/Sub",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "特徴",
+              "description": "リアルタイムブロードキャスト"
+            },
+            {
+              "label": "コマンド",
+              "description": "PUBLISH/SUBSCRIBE"
+            },
+            {
+              "label": "適用",
+              "description": "リアルタイム通知"
+            }
+          ]
+        },
+        {
+          "title": "Stream",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "特徴",
+              "description": "永続化、コンシューマーグループ"
+            },
+            {
+              "label": "コマンド",
+              "description": "XADD/XREAD"
+            },
+            {
+              "label": "適用",
+              "description": "信頼性の高いメッセージキュー"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Redis Stream 例",
+      "language": "bash",
+      "code": "# メッセージ生成\nXADD mystream * field1 value1 field2 value2\n\n# メッセージ消費（ブロッキング読み取り）\nXREAD BLOCK 5000 STREAMS mystream $\n\n# コンシューマーグループ作成\nXGROUP CREATE mystream mygroup $ MKSTREAM\n\n# コンシューマーグループ読み取り\nXREADGROUP GROUP mygroup consumer1 STREAMS mystream >\n\n# メッセージ確認\nXACK mystream mygroup 1526569495631-0\n\n# ペンディングメッセージ確認\nXPENDING mystream mygroup"
+    },
+    {
+      "type": "cards",
+      "title": "Stream 特性",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "コンシューマーグループ",
+          "badge": "Group",
+          "badgeColor": "blue",
+          "points": [
+            "Kafka Consumer Group に類似",
+            "グループ内負荷分散",
+            "メッセージ確認メカニズム"
+          ]
+        },
+        {
+          "title": "永続化",
+          "badge": "Persistence",
+          "badgeColor": "green",
+          "points": [
+            "メッセージ永続化ストレージ",
+            "AOF/RDB をサポート",
+            "電源断でもロスなし"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ソリューション比較",
+      "highlightFirst": true,
+      "headers": [
+        "ソリューション",
+        "永続化",
+        "消費確認",
+        "コンシューマーグループ"
+      ],
+      "rows": [
+        [
+          "List",
+          "オプション",
+          "なし",
+          "なし"
+        ],
+        [
+          "Pub/Sub",
+          "なし",
+          "なし",
+          "なし"
+        ],
+        [
+          "Stream",
+          "あり",
+          "あり",
+          "あり"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "使用シナリオ",
+      "style": "check",
+      "items": [
+        {
+          "label": "軽量タスクキュー",
+          "description": "List でシンプルなタスク分配を実装"
+        },
+        {
+          "label": "リアルタイム通知",
+          "description": "Pub/Sub でブロードキャスト通知を実装"
+        },
+        {
+          "label": "メッセージキュー",
+          "description": "Stream で信頼性の高いメッセージキューを実装"
+        },
+        {
+          "label": "遅延キュー",
+          "description": "Sorted Set で遅延タスクを実装"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Redis",
+    "メッセージキュー",
+    "キャッシュ"
+  ]
+}

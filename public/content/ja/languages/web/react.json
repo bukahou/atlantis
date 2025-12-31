@@ -1,0 +1,241 @@
+{
+  "slug": "react",
+  "meta": {
+    "title": "React",
+    "description": "React コンポーネント開発とモダンフロントエンド実践",
+    "order": 4,
+    "tags": [
+      "React",
+      "JavaScript",
+      "コンポーネント",
+      "Hooks"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "React は宣言的 UI コンポーネントライブラリ",
+        "Virtual DOM で効率的にビューを更新",
+        "Hooks は関数コンポーネントの状態とライフサイクル",
+        "単方向データフロー、状態駆動ビュー"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コア Hooks",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "useState",
+          "badge": "状態",
+          "badgeColor": "blue",
+          "points": [
+            "コンポーネント内部状態",
+            "再レンダリングをトリガー",
+            "イミュータブル更新"
+          ]
+        },
+        {
+          "title": "useEffect",
+          "badge": "副作用",
+          "badgeColor": "green",
+          "points": [
+            "データ取得",
+            "購読/タイマー",
+            "DOM 操作"
+          ]
+        },
+        {
+          "title": "useContext",
+          "badge": "コンテキスト",
+          "badgeColor": "purple",
+          "points": [
+            "クロスコンポーネント値渡し",
+            "Props ドリリング回避",
+            "テーマ/国際化"
+          ]
+        },
+        {
+          "title": "useRef",
+          "badge": "参照",
+          "badgeColor": "amber",
+          "points": [
+            "DOM 参照",
+            "ミュータブル値保存",
+            "レンダリング非トリガー"
+          ]
+        },
+        {
+          "title": "useMemo",
+          "badge": "値キャッシュ",
+          "badgeColor": "cyan",
+          "points": [
+            "計算結果をキャッシュ",
+            "依存変化時のみ再計算",
+            "パフォーマンス最適化"
+          ]
+        },
+        {
+          "title": "useCallback",
+          "badge": "関数キャッシュ",
+          "badgeColor": "red",
+          "points": [
+            "関数参照をキャッシュ",
+            "memo と併用",
+            "子コンポーネント再レンダリング回避"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "関数コンポーネント基礎",
+      "language": "tsx",
+      "code": "import { useState, useEffect } from 'react';\n\ninterface User {\n  id: number;\n  name: string;\n}\n\nfunction UserProfile({ userId }: { userId: number }) {\n  const [user, setUser] = useState<User | null>(null);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    setLoading(true);\n    fetch(`/api/users/${userId}`)\n      .then(res => res.json())\n      .then(data => {\n        setUser(data);\n        setLoading(false);\n      });\n  }, [userId]); // 依存配列\n\n  if (loading) return <div>Loading...</div>;\n  if (!user) return <div>User not found</div>;\n\n  return (\n    <div>\n      <h1>{user.name}</h1>\n    </div>\n  );\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "カスタム Hook",
+      "language": "tsx",
+      "code": "// useFetch カスタム Hook\nfunction useFetch<T>(url: string) {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<Error | null>(null);\n\n  useEffect(() => {\n    const controller = new AbortController();\n    \n    setLoading(true);\n    fetch(url, { signal: controller.signal })\n      .then(res => res.json())\n      .then(setData)\n      .catch(setError)\n      .finally(() => setLoading(false));\n\n    return () => controller.abort(); // クリーンアップ\n  }, [url]);\n\n  return { data, loading, error };\n}\n\n// 使用\nfunction UserList() {\n  const { data: users, loading } = useFetch<User[]>('/api/users');\n  \n  if (loading) return <Spinner />;\n  return <ul>{users?.map(u => <li key={u.id}>{u.name}</li>)}</ul>;\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "状態管理方式",
+      "columns": [
+        {
+          "title": "Context + useReducer",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "適用",
+              "description": "中小規模アプリ"
+            },
+            {
+              "label": "特徴",
+              "description": "ビルトイン、依存なし"
+            },
+            {
+              "label": "複雑度",
+              "description": "シンプル"
+            }
+          ]
+        },
+        {
+          "title": "Zustand",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "適用",
+              "description": "中大規模アプリ"
+            },
+            {
+              "label": "特徴",
+              "description": "軽量、シンプル API"
+            },
+            {
+              "label": "複雑度",
+              "description": "低い"
+            }
+          ]
+        },
+        {
+          "title": "Redux Toolkit",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "適用",
+              "description": "大規模複雑アプリ"
+            },
+            {
+              "label": "特徴",
+              "description": "豊富なエコシステム"
+            },
+            {
+              "label": "複雑度",
+              "description": "やや高い"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "React エコシステム",
+      "highlightFirst": true,
+      "headers": [
+        "カテゴリ",
+        "推奨",
+        "用途"
+      ],
+      "rows": [
+        [
+          "ルーティング",
+          "React Router / TanStack Router",
+          "SPA ルーティング"
+        ],
+        [
+          "状態",
+          "Zustand / Jotai",
+          "グローバル状態"
+        ],
+        [
+          "データ取得",
+          "TanStack Query",
+          "サーバー状態"
+        ],
+        [
+          "フォーム",
+          "React Hook Form",
+          "フォーム検証"
+        ],
+        [
+          "スタイル",
+          "Tailwind CSS / CSS Modules",
+          "コンポーネントスタイル"
+        ],
+        [
+          "フレームワーク",
+          "Next.js / Remix",
+          "フルスタック/SSR"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "コンポーネント単一責任",
+          "description": "各コンポーネントは一つのことだけ"
+        },
+        {
+          "label": "状態を下げる",
+          "description": "必要な最も近いコンポーネントに状態配置"
+        },
+        {
+          "label": "適切な分割",
+          "description": "カスタム Hook でロジック再利用"
+        },
+        {
+          "label": "早期最適化回避",
+          "description": "まず計測してから最適化"
+        },
+        {
+          "label": "Key は安定かつユニーク",
+          "description": "リストで安定したユニーク key を使用"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "TypeScript",
+    "Next.js",
+    "状態管理",
+    "コンポーネント設計"
+  ]
+}

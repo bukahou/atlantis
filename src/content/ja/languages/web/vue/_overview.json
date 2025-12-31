@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "title": "Vue",
+    "description": "Vue 3 フレームワークのコアコンセプト、Composition API とエコシステム",
+    "icon": "layout"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "重要ポイント",
+      "items": [
+        "リアクティブシステムと Proxy",
+        "Composition API コンポジション開発",
+        "単一ファイルコンポーネント SFC",
+        "Pinia 状態管理"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "Vue はプログレッシブ JavaScript フレームワークで、学びやすく使いやすい点と優れた開発体験で知られています。Vue 3 は Composition API などの重要な改善をもたらしました。"
+    },
+    {
+      "type": "comparison",
+      "title": "Options API vs Composition API",
+      "columns": [
+        {
+          "title": "Options API",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "構成方法", "description": "オプション別分類 (data, methods)" },
+            { "label": "学習曲線", "description": "より直感的" },
+            { "label": "コード再利用", "description": "Mixins（制限あり）" },
+            { "label": "TypeScript", "description": "サポートが弱い" }
+          ]
+        },
+        {
+          "title": "Composition API",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "構成方法", "description": "論理機能別に構成" },
+            { "label": "学習曲線", "description": "リアクティブの理解が必要" },
+            { "label": "コード再利用", "description": "Composables 関数" },
+            { "label": "TypeScript", "description": "ネイティブサポート" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コア API",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ref / reactive",
+          "badge": "リアクティブ",
+          "badgeColor": "green",
+          "points": [
+            "ref でプリミティブをラップ",
+            "reactive でオブジェクトをラップ",
+            "自動依存追跡"
+          ]
+        },
+        {
+          "title": "computed / watch",
+          "badge": "リアクティブ",
+          "badgeColor": "green",
+          "points": [
+            "computed 算出プロパティ",
+            "watch 変更監視",
+            "watchEffect 自動収集"
+          ]
+        },
+        {
+          "title": "ライフサイクル",
+          "badge": "コンポーネント",
+          "badgeColor": "blue",
+          "points": [
+            "onMounted マウント後",
+            "onUpdated 更新後",
+            "onUnmounted アンマウント前"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "エコシステム",
+      "highlightFirst": true,
+      "headers": ["カテゴリ", "推奨方式", "説明"],
+      "rows": [
+        ["状態管理", "Pinia", "公式推奨、Vuex を代替"],
+        ["ルーティング", "Vue Router", "公式ルーティングライブラリ"],
+        ["UI コンポーネント", "Element Plus / Naive UI", "人気コンポーネントライブラリ"],
+        ["ビルドツール", "Vite", "次世代ビルドツール"],
+        ["SSR フレームワーク", "Nuxt 3", "Vue フルスタックフレームワーク"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "Composition API 使用", "description": "より良いロジック再利用と TypeScript サポート" },
+        { "label": "Composables カプセル化", "description": "再利用可能なコンポジション関数を抽出" },
+        { "label": "Pinia 状態管理", "description": "モジュール化された状態管理方式" },
+        { "label": "Vite ビルド", "description": "超高速の開発体験" }
+      ]
+    }
+  ],
+  "relatedTopics": ["TypeScript", "Nuxt", "Pinia"],
+  "articles": [
+    {
+      "slug": "composition",
+      "title": "Composition API",
+      "description": "Composition API のコアコンセプトと使用パターン",
+      "priority": "recommended"
+    },
+    {
+      "slug": "pinia",
+      "title": "Pinia 状態管理",
+      "description": "Pinia のコアコンセプトとベストプラクティス",
+      "priority": "essential"
+    }
+  ]
+}

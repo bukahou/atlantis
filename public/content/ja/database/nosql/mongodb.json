@@ -5,11 +5,221 @@
     "description": "MongoDB ドキュメントデータベース、クエリ操作と集約パイプライン",
     "order": 1,
     "tags": [
-      "database",
-      "mongodb",
-      "nosql",
-      "document"
+      "MongoDB",
+      "NoSQL",
+      "ドキュメントデータベース"
     ]
   },
-  "content": "<h1>MongoDB</h1>\n<h2>MongoDB 概要</h2>\n<p>MongoDB はドキュメント指向の NoSQL データベースで、柔軟なスキーマと強力なクエリ機能で知られています。</p>\n<pre><code>MongoDB 特性\n├── ドキュメントモデル - BSON 形式\n├── 柔軟なスキーマ - 固定 Schema なし\n├── 高性能 - メモリマッピング\n├── 水平スケール - シャーディングクラスター\n├── 豊富なクエリ - 集約フレームワーク\n└── 高可用性 - レプリカセット\n</code></pre>\n<h2>基本操作</h2>\n<h3>CRUD 操作</h3>\n<pre><code class=\"language-javascript\">// ドキュメント挿入\ndb.users.insertOne({\n  name: \"Alice\",\n  email: \"alice@example.com\",\n  age: 28,\n  tags: [\"developer\", \"golang\"],\n  profile: {\n    city: \"Tokyo\",\n    country: \"Japan\"\n  }\n});\n\n// バルク挿入\ndb.users.insertMany([\n  { name: \"Bob\", age: 30 },\n  { name: \"Charlie\", age: 25 }\n]);\n\n// クエリ\ndb.users.find({ age: { $gt: 25 } });\ndb.users.findOne({ email: \"alice@example.com\" });\n\n// 更新\ndb.users.updateOne(\n  { email: \"alice@example.com\" },\n  { $set: { age: 29 }, $push: { tags: \"kubernetes\" } }\n);\n\n// 削除\ndb.users.deleteOne({ email: \"alice@example.com\" });\ndb.users.deleteMany({ age: { $lt: 20 } });\n</code></pre>\n<h3>クエリ演算子</h3>\n<pre><code class=\"language-javascript\">// 比較演算子\n{ age: { $eq: 25 } }   // 等しい\n{ age: { $ne: 25 } }   // 等しくない\n{ age: { $gt: 25 } }   // より大きい\n{ age: { $gte: 25 } }  // 以上\n{ age: { $lt: 25 } }   // より小さい\n{ age: { $lte: 25 } }  // 以下\n{ age: { $in: [25, 30] } }  // リスト内\n\n// 論理演算子\n{ $and: [{ age: { $gt: 20 } }, { age: { $lt: 30 } }] }\n{ $or: [{ status: \"active\" }, { role: \"admin\" }] }\n{ $not: { age: { $gt: 25 } } }\n\n// 要素演算子\n{ tags: { $exists: true } }\n{ age: { $type: \"int\" } }\n\n// 配列演算子\n{ tags: { $all: [\"developer\", \"golang\"] } }\n{ tags: { $size: 3 } }\n{ tags: { $elemMatch: { $eq: \"golang\" } } }\n</code></pre>\n<h2>インデックス</h2>\n<h3>インデックスタイプ</h3>\n<pre><code class=\"language-javascript\">// 単一フィールドインデックス\ndb.users.createIndex({ email: 1 });\n\n// 複合インデックス\ndb.users.createIndex({ name: 1, age: -1 });\n\n// ユニークインデックス\ndb.users.createIndex({ email: 1 }, { unique: true });\n\n// テキストインデックス\ndb.articles.createIndex({ title: \"text\", content: \"text\" });\n\n// 地理空間インデックス\ndb.places.createIndex({ location: \"2dsphere\" });\n\n// TTL インデックス (自動期限切れ)\ndb.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 });\n\n// スパースインデックス\ndb.users.createIndex({ nickname: 1 }, { sparse: true });\n</code></pre>\n<h3>クエリ分析</h3>\n<pre><code class=\"language-javascript\">// 実行計画\ndb.users.find({ email: \"test@example.com\" }).explain(\"executionStats\");\n\n// インデックス統計\ndb.users.aggregate([{ $indexStats: {} }]);\n</code></pre>\n<h2>集約パイプライン</h2>\n<h3>パイプラインステージ</h3>\n<pre><code class=\"language-javascript\">// 集約例\ndb.orders.aggregate([\n  // マッチ\n  { $match: { status: \"completed\" } },\n\n  // グループ\n  { $group: {\n      _id: \"$userId\",\n      totalAmount: { $sum: \"$amount\" },\n      orderCount: { $sum: 1 },\n      avgAmount: { $avg: \"$amount\" }\n  }},\n\n  // ソート\n  { $sort: { totalAmount: -1 } },\n\n  // リミット\n  { $limit: 10 },\n\n  // プロジェクション\n  { $project: {\n      userId: \"$_id\",\n      totalAmount: 1,\n      orderCount: 1,\n      _id: 0\n  }}\n]);\n</code></pre>\n<h3>高度な集約</h3>\n<pre><code class=\"language-javascript\">// Lookup 関連付け\ndb.orders.aggregate([\n  { $lookup: {\n      from: \"users\",\n      localField: \"userId\",\n      foreignField: \"_id\",\n      as: \"user\"\n  }},\n  { $unwind: \"$user\" }\n]);\n\n// ウィンドウ関数\ndb.sales.aggregate([\n  { $setWindowFields: {\n      partitionBy: \"$region\",\n      sortBy: { date: 1 },\n      output: {\n        runningTotal: {\n          $sum: \"$amount\",\n          window: { documents: [\"unbounded\", \"current\"] }\n        }\n      }\n  }}\n]);\n\n// ファセット検索\ndb.products.aggregate([\n  { $facet: {\n      byCategory: [{ $group: { _id: \"$category\", count: { $sum: 1 } }}],\n      byPrice: [{ $bucket: { groupBy: \"$price\", boundaries: [0, 100, 500, 1000] }}],\n      total: [{ $count: \"count\" }]\n  }}\n]);\n</code></pre>\n<h2>Go クライアント</h2>\n<pre><code class=\"language-go\">import \"go.mongodb.org/mongo-driver/mongo\"\n\n// 接続\nclient, _ := mongo.Connect(ctx, options.Client().ApplyURI(\"mongodb://localhost:27017\"))\ncollection := client.Database(\"mydb\").Collection(\"users\")\n\n// 挿入\nresult, _ := collection.InsertOne(ctx, bson.M{\n    \"name\": \"Alice\",\n    \"age\":  28,\n})\n\n// クエリ\nvar user User\ncollection.FindOne(ctx, bson.M{\"name\": \"Alice\"}).Decode(&#x26;user)\n\n// 複数クエリ\ncursor, _ := collection.Find(ctx, bson.M{\"age\": bson.M{\"$gt\": 25}})\nvar users []User\ncursor.All(ctx, &#x26;users)\n\n// 更新\ncollection.UpdateOne(ctx,\n    bson.M{\"name\": \"Alice\"},\n    bson.M{\"$set\": bson.M{\"age\": 29}},\n)\n\n// 集約\npipeline := mongo.Pipeline{\n    {{\"$match\", bson.M{\"status\": \"active\"}}},\n    {{\"$group\", bson.M{\"_id\": \"$category\", \"count\": bson.M{\"$sum\": 1}}}},\n}\ncursor, _ := collection.Aggregate(ctx, pipeline)\n</code></pre>\n<h2>レプリカセットとシャーディング</h2>\n<h3>レプリカセット</h3>\n<pre><code class=\"language-yaml\"># レプリカセット設定\nレプリカセットメンバー:\n  - Primary: プライマリノード、書き込み処理\n  - Secondary: セカンダリノード、データ複製\n  - Arbiter: アービターノード、データなし\n\n読み取りプリファレンス:\n  - primary: プライマリのみ\n  - primaryPreferred: プライマリ優先\n  - secondary: セカンダリのみ\n  - secondaryPreferred: セカンダリ優先\n  - nearest: 最寄りノード\n</code></pre>\n<h3>シャーディング</h3>\n<pre><code class=\"language-yaml\"># シャードクラスターコンポーネント\n├── mongos: ルーティングサービス\n├── config server: 設定サービス\n└── shard: データシャード\n\n# シャードキー戦略\n├── 範囲シャーディング: 範囲で分割\n├── ハッシュシャーディング: 均等分布\n└── ゾーンシャーディング: 地理的位置で\n</code></pre>\n<h2>まとめ</h2>\n<p>MongoDB のポイント：</p>\n<ol>\n<li><strong>ドキュメントモデル</strong> - 柔軟な Schema、BSON 形式</li>\n<li><strong>クエリ</strong> - 豊富な演算子、集約パイプライン</li>\n<li><strong>インデックス</strong> - 多種インデックス、TTL サポート</li>\n<li><strong>スケール</strong> - レプリカセット高可用性、シャーディング水平スケール</li>\n<li><strong>パフォーマンス</strong> - メモリマッピング、読み書き分離</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "MongoDB はドキュメント指向の NoSQL データベース",
+        "BSON 形式で保存、柔軟な Schema",
+        "強力な集約フレームワーク",
+        "レプリカセットで高可用性、シャーディングで水平スケーリング"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "CRUD 操作",
+      "language": "javascript",
+      "code": "// ドキュメントの挿入\ndb.users.insertOne({\n  name: \"Alice\",\n  email: \"alice@example.com\",\n  tags: [\"developer\", \"golang\"]\n});\n\n// クエリ\ndb.users.find({ age: { $gt: 25 } });\ndb.users.findOne({ email: \"alice@example.com\" });\n\n// 更新\ndb.users.updateOne(\n  { email: \"alice@example.com\" },\n  { $set: { age: 29 }, $push: { tags: \"k8s\" } }\n);\n\n// 削除\ndb.users.deleteOne({ email: \"alice@example.com\" });"
+    },
+    {
+      "type": "cards",
+      "title": "クエリ演算子",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "比較演算子",
+          "badge": "Compare",
+          "badgeColor": "blue",
+          "points": [
+            "$eq, $ne 等しい/等しくない",
+            "$gt, $gte より大きい",
+            "$lt, $lte より小さい",
+            "$in, $nin リストマッチング"
+          ]
+        },
+        {
+          "title": "論理演算子",
+          "badge": "Logic",
+          "badgeColor": "green",
+          "points": [
+            "$and AND条件",
+            "$or OR条件",
+            "$not NOT条件",
+            "$nor いずれも満たさない"
+          ]
+        },
+        {
+          "title": "配列演算子",
+          "badge": "Array",
+          "badgeColor": "purple",
+          "points": [
+            "$all すべてを含む",
+            "$size 配列の長さ",
+            "$elemMatch 要素マッチング"
+          ]
+        },
+        {
+          "title": "要素演算子",
+          "badge": "Element",
+          "badgeColor": "amber",
+          "points": [
+            "$exists フィールドの存在",
+            "$type 型マッチング"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "インデックスの種類",
+      "highlightFirst": true,
+      "headers": [
+        "インデックスタイプ",
+        "作成方法",
+        "用途"
+      ],
+      "rows": [
+        [
+          "単一フィールド",
+          "{ email: 1 }",
+          "通常クエリ"
+        ],
+        [
+          "複合",
+          "{ name: 1, age: -1 }",
+          "複数フィールドクエリ"
+        ],
+        [
+          "ユニーク",
+          "{ unique: true }",
+          "重複制約"
+        ],
+        [
+          "テキスト",
+          "{ type: \"text\" }",
+          "全文検索"
+        ],
+        [
+          "TTL",
+          "{ expireAfterSeconds }",
+          "自動有効期限"
+        ],
+        [
+          "地理空間",
+          "{ type: \"2dsphere\" }",
+          "位置クエリ"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "集約パイプライン",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "$match",
+          "description": "ドキュメントのフィルタリング",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "$group",
+          "description": "グループ集約",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "$sort",
+          "description": "ソート",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "$project",
+          "description": "投影",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "集約の例",
+      "language": "javascript",
+      "code": "db.orders.aggregate([\n  { $match: { status: \"completed\" } },\n  { $group: {\n      _id: \"$userId\",\n      totalAmount: { $sum: \"$amount\" },\n      orderCount: { $sum: 1 }\n  }},\n  { $sort: { totalAmount: -1 } },\n  { $limit: 10 }\n]);\n\n// Lookup 関連クエリ\ndb.orders.aggregate([\n  { $lookup: {\n      from: \"users\",\n      localField: \"userId\",\n      foreignField: \"_id\",\n      as: \"user\"\n  }},\n  { $unwind: \"$user\" }\n]);"
+    },
+    {
+      "type": "comparison",
+      "title": "高可用性アーキテクチャ",
+      "columns": [
+        {
+          "title": "レプリカセット",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "構成",
+              "description": "Primary + Secondary + Arbiter"
+            },
+            {
+              "label": "特徴",
+              "description": "自動フェイルオーバー"
+            },
+            {
+              "label": "読み取り",
+              "description": "読み取り優先設定可能"
+            }
+          ]
+        },
+        {
+          "title": "シャードクラスタ",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "構成",
+              "description": "mongos + config + shard"
+            },
+            {
+              "label": "特徴",
+              "description": "水平スケーリング"
+            },
+            {
+              "label": "戦略",
+              "description": "範囲/ハッシュ/ゾーンシャーディング"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "適切なモデリング",
+          "description": "埋め込み vs 参照、深いネストを避ける"
+        },
+        {
+          "label": "インデックス最適化",
+          "description": "カバリングインデックス、フルテーブルスキャンを避ける"
+        },
+        {
+          "label": "一括操作",
+          "description": "insertMany/bulkWrite"
+        },
+        {
+          "label": "コネクションプール",
+          "description": "接続の再利用、適切なサイズの設定"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Redis",
+    "Elasticsearch",
+    "集約クエリ"
+  ]
 }

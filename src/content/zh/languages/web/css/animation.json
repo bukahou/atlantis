@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "CSS 动画",
+    "description": "过渡、关键帧动画与性能优化",
+    "order": 3,
+    "tags": ["CSS", "动画", "性能"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "transition 实现状态过渡动画",
+        "animation + @keyframes 实现复杂动画",
+        "transform 和 opacity 性能最优",
+        "will-change 提示浏览器优化"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Transition vs Animation",
+      "columns": [
+        {
+          "title": "Transition",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "触发", "description": "状态变化触发" },
+            { "label": "控制", "description": "起始和结束状态" },
+            { "label": "场景", "description": "hover、focus 等交互" }
+          ]
+        },
+        {
+          "title": "Animation",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "触发", "description": "自动或手动" },
+            { "label": "控制", "description": "多个关键帧" },
+            { "label": "场景", "description": "加载动画、复杂序列" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Transition 示例",
+      "language": "css",
+      "code": "/* 基础过渡 */\n.button {\n  background: #3b82f6;\n  transform: scale(1);\n  transition: all 0.3s ease;\n}\n\n.button:hover {\n  background: #2563eb;\n  transform: scale(1.05);\n}\n\n/* 多属性过渡 */\n.card {\n  opacity: 1;\n  transform: translateY(0);\n  transition: \n    opacity 0.3s ease,\n    transform 0.3s ease;\n}\n\n.card:hover {\n  opacity: 0.9;\n  transform: translateY(-4px);\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Keyframes 动画",
+      "language": "css",
+      "code": "/* 定义关键帧 */\n@keyframes fadeIn {\n  from {\n    opacity: 0;\n    transform: translateY(20px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}\n\n@keyframes pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.5; }\n}\n\n/* 应用动画 */\n.fade-in {\n  animation: fadeIn 0.5s ease-out forwards;\n}\n\n.spinner {\n  animation: spin 1s linear infinite;\n}\n\n.pulse {\n  animation: pulse 2s ease-in-out infinite;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "性能优化",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "高性能属性",
+          "badge": "推荐",
+          "badgeColor": "green",
+          "points": [
+            "transform - GPU 加速",
+            "opacity - 合成层",
+            "filter - 硬件加速"
+          ]
+        },
+        {
+          "title": "避免的属性",
+          "badge": "注意",
+          "badgeColor": "red",
+          "points": [
+            "width/height - 触发布局",
+            "margin/padding - 触发布局",
+            "top/left - 触发布局"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "缓动函数",
+      "highlightFirst": true,
+      "headers": ["函数", "效果", "适用场景"],
+      "rows": [
+        ["ease", "快-慢-快", "通用默认"],
+        ["ease-in", "慢-快", "退出动画"],
+        ["ease-out", "快-慢", "进入动画"],
+        ["ease-in-out", "慢-快-慢", "强调动画"],
+        ["linear", "匀速", "旋转、进度条"],
+        ["cubic-bezier()", "自定义", "精确控制"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 transform", "description": "优先用 transform 代替位置属性" },
+        { "label": "减少动画属性", "description": "只动画必要的属性" },
+        { "label": "使用 will-change", "description": "提前告知浏览器即将变化的属性" },
+        { "label": "尊重用户偏好", "description": "prefers-reduced-motion 媒体查询" },
+        { "label": "60fps 目标", "description": "动画帧时间控制在 16ms 内" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CSS 性能", "Web 动画 API", "交互设计"]
+}

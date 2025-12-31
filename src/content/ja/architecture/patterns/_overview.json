@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "title": "デザインパターン",
+    "description": "生成パターン、構造パターン、振る舞いパターン詳解",
+    "icon": "shapes"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "生成パターン：オブジェクト生成メカニズム、柔軟性向上",
+        "構造パターン：オブジェクト組み合わせ、より大きな構造形成",
+        "振る舞いパターン：オブジェクト間の責務分担と通信"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "デザインパターンはソフトウェア開発における一般的な問題への典型的な解決策です。GoF がまとめた 23 のパターンは生成、構造、振る舞いの 3 カテゴリに分類され、より柔軟で再利用可能なコードの作成を支援します。"
+    },
+    {
+      "type": "cards",
+      "title": "パターン分類",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "生成パターン",
+          "badge": "5種",
+          "badgeColor": "blue",
+          "points": [
+            "Singleton",
+            "Factory Method",
+            "Abstract Factory",
+            "Builder",
+            "Prototype"
+          ]
+        },
+        {
+          "title": "構造パターン",
+          "badge": "7種",
+          "badgeColor": "green",
+          "points": [
+            "Adapter",
+            "Decorator",
+            "Proxy",
+            "Facade",
+            "Composite"
+          ]
+        },
+        {
+          "title": "振る舞いパターン",
+          "badge": "11種",
+          "badgeColor": "purple",
+          "points": [
+            "Strategy",
+            "Observer",
+            "Chain of Responsibility",
+            "Template Method",
+            "State"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["オブジェクト指向", "リファクタリング", "SOLID"],
+  "articles": [
+    {
+      "slug": "creational",
+      "title": "生成パターン",
+      "description": "Singleton、Factory、Builder などオブジェクト生成パターン",
+      "priority": "essential"
+    },
+    {
+      "slug": "structural",
+      "title": "構造パターン",
+      "description": "Adapter、Decorator、Proxy など構造組み合わせパターン",
+      "priority": "recommended"
+    },
+    {
+      "slug": "behavioral",
+      "title": "振る舞いパターン",
+      "description": "Strategy、Observer、Chain など振る舞い相互作用パターン",
+      "priority": "recommended"
+    }
+  ]
+}

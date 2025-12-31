@@ -1,0 +1,150 @@
+{
+  "slug": "varnish",
+  "meta": {
+    "title": "Varnish Cache",
+    "description": "高性能 HTTP 加速缓存代理",
+    "order": 1,
+    "tags": [
+      "Varnish",
+      "缓存",
+      "HTTP",
+      "性能优化"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "专为 HTTP 加速设计的反向代理",
+        "VCL 配置语言灵活强大",
+        "内存缓存，毫秒级响应",
+        "支持缓存失效、清除、预热"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Varnish 简介",
+      "content": "Varnish 是一款高性能的 HTTP 加速器和反向代理，专门设计用于缓存 HTTP 响应。它使用 VCL（Varnish Configuration Language）来定义缓存策略，可以根据请求头、URL、Cookie 等条件灵活控制缓存行为。Varnish 将缓存存储在内存中，能够以极低的延迟响应请求。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "VCL 基础配置",
+      "language": "vcl",
+      "code": "vcl 4.1;\n\nbackend default {\n    .host = \"127.0.0.1\";\n    .port = \"8080\";\n    .connect_timeout = 5s;\n    .first_byte_timeout = 30s;\n    .between_bytes_timeout = 10s;\n}\n\nsub vcl_recv {\n    # 移除不影响缓存的 Cookie\n    if (req.http.Cookie) {\n        set req.http.Cookie = regsuball(req.http.Cookie, \"(^|;\\s*)(_ga|_gid|_gat)[^;]*\", \"\");\n    }\n    \n    # 静态资源始终缓存\n    if (req.url ~ \"\\.(css|js|png|jpg|jpeg|gif|ico|woff2?)$\") {\n        unset req.http.Cookie;\n        return (hash);\n    }\n    \n    # POST 请求不缓存\n    if (req.method != \"GET\" && req.method != \"HEAD\") {\n        return (pass);\n    }\n}\n\nsub vcl_backend_response {\n    # 设置默认 TTL\n    if (beresp.ttl <= 0s) {\n        set beresp.ttl = 1h;\n        set beresp.uncacheable = true;\n    }\n    \n    # 静态资源缓存更长时间\n    if (bereq.url ~ \"\\.(css|js|png|jpg|jpeg|gif|ico)$\") {\n        set beresp.ttl = 7d;\n    }\n}\n\nsub vcl_deliver {\n    # 添加缓存状态头\n    if (obj.hits > 0) {\n        set resp.http.X-Cache = \"HIT\";\n        set resp.http.X-Cache-Hits = obj.hits;\n    } else {\n        set resp.http.X-Cache = \"MISS\";\n    }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "VCL 子程序",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "vcl_recv",
+          "badge": "请求",
+          "badgeColor": "blue",
+          "points": [
+            "接收客户端请求",
+            "决定是否查找缓存",
+            "修改请求头"
+          ]
+        },
+        {
+          "title": "vcl_hash",
+          "badge": "缓存键",
+          "badgeColor": "green",
+          "points": [
+            "定义缓存键",
+            "基于 URL/Host",
+            "可自定义"
+          ]
+        },
+        {
+          "title": "vcl_backend_response",
+          "badge": "响应",
+          "badgeColor": "purple",
+          "points": [
+            "处理后端响应",
+            "设置 TTL",
+            "决定是否缓存"
+          ]
+        },
+        {
+          "title": "vcl_deliver",
+          "badge": "交付",
+          "badgeColor": "amber",
+          "points": [
+            "发送给客户端前",
+            "添加/删除头",
+            "调试信息"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "常用命令",
+      "highlightFirst": true,
+      "headers": [
+        "命令",
+        "说明",
+        "示例"
+      ],
+      "rows": [
+        [
+          "varnishadm",
+          "管理接口",
+          "varnishadm ban req.url ~ /api/"
+        ],
+        [
+          "varnishlog",
+          "实时日志",
+          "varnishlog -g request"
+        ],
+        [
+          "varnishstat",
+          "统计信息",
+          "varnishstat -1"
+        ],
+        [
+          "varnishhist",
+          "延迟直方图",
+          "varnishhist"
+        ],
+        [
+          "varnishtop",
+          "热门请求",
+          "varnishtop -i ReqURL"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "设置合理 TTL",
+          "description": "根据内容更新频率设置缓存时间"
+        },
+        {
+          "label": "清理无用 Cookie",
+          "description": "避免因 Cookie 导致缓存失效"
+        },
+        {
+          "label": "区分静态/动态",
+          "description": "静态资源更长 TTL，动态内容按需缓存"
+        },
+        {
+          "label": "监控命中率",
+          "description": "目标 90%+ 命中率"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "HTTP 缓存",
+    "Nginx",
+    "CDN"
+  ]
+}

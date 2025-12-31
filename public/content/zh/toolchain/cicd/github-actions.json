@@ -5,11 +5,137 @@
     "description": "GitHub Actions CI/CD 工作流、自动化构建与部署",
     "order": 1,
     "tags": [
-      "toolchain",
-      "cicd",
-      "github-actions",
-      "automation"
+      "GitHub Actions",
+      "CI/CD",
+      "自动化"
     ]
   },
-  "content": "<h1>GitHub Actions</h1>\n<h2>GitHub Actions 概述</h2>\n<p>GitHub Actions 是 GitHub 提供的 CI/CD 平台，可以自动化构建、测试和部署工作流。</p>\n<pre><code>核心概念\n├── Workflow - 工作流 (YAML 文件)\n├── Job - 作业 (运行在 Runner 上)\n├── Step - 步骤 (单个命令或 Action)\n├── Action - 可复用的操作单元\n├── Runner - 执行环境 (托管或自托管)\n└── Event - 触发事件 (push, PR, etc.)\n</code></pre>\n<h2>工作流配置</h2>\n<h3>基础工作流</h3>\n<pre><code class=\"language-yaml\"># .github/workflows/ci.yml\nname: CI\n\non:\n  push:\n    branches: [main, develop]\n  pull_request:\n    branches: [main]\n\nenv:\n  GO_VERSION: '1.21'\n  NODE_VERSION: '20'\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n\n      - name: Setup Go\n        uses: actions/setup-go@v5\n        with:\n          go-version: ${{ env.GO_VERSION }}\n\n      - name: Run tests\n        run: |\n          go test -v ./...\n          go test -race -coverprofile=coverage.out ./...\n\n      - name: Upload coverage\n        uses: codecov/codecov-action@v4\n        with:\n          files: coverage.out\n</code></pre>\n<h3>矩阵构建</h3>\n<pre><code class=\"language-yaml\">jobs:\n  test:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, macos-latest, windows-latest]\n        go-version: ['1.20', '1.21', '1.22']\n        exclude:\n          - os: windows-latest\n            go-version: '1.20'\n\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Setup Go ${{ matrix.go-version }}\n        uses: actions/setup-go@v5\n        with:\n          go-version: ${{ matrix.go-version }}\n\n      - name: Test\n        run: go test ./...\n</code></pre>\n<h2>常用触发器</h2>\n<pre><code class=\"language-yaml\">on:\n  # Push 事件\n  push:\n    branches:\n      - main\n      - 'release/**'\n    tags:\n      - 'v*'\n    paths:\n      - 'src/**'\n      - '!**.md'\n\n  # PR 事件\n  pull_request:\n    types: [opened, synchronize, reopened]\n\n  # 定时触发\n  schedule:\n    - cron: '0 0 * * *'  # 每天 UTC 0点\n\n  # 手动触发\n  workflow_dispatch:\n    inputs:\n      environment:\n        description: 'Deployment environment'\n        required: true\n        default: 'staging'\n        type: choice\n        options:\n          - staging\n          - production\n\n  # 其他工作流完成\n  workflow_run:\n    workflows: [\"Build\"]\n    types: [completed]\n</code></pre>\n<h2>作业配置</h2>\n<h3>作业依赖</h3>\n<pre><code class=\"language-yaml\">jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo \"Building...\"\n\n  test:\n    needs: build\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo \"Testing...\"\n\n  deploy:\n    needs: [build, test]\n    runs-on: ubuntu-latest\n    if: github.ref == 'refs/heads/main'\n    steps:\n      - run: echo \"Deploying...\"\n</code></pre>\n<h3>环境和密钥</h3>\n<pre><code class=\"language-yaml\">jobs:\n  deploy:\n    runs-on: ubuntu-latest\n    environment:\n      name: production\n      url: https://example.com\n\n    steps:\n      - name: Deploy\n        env:\n          API_KEY: ${{ secrets.API_KEY }}\n          DATABASE_URL: ${{ secrets.DATABASE_URL }}\n        run: |\n          echo \"Deploying with API key\"\n</code></pre>\n<h2>缓存和工件</h2>\n<h3>依赖缓存</h3>\n<pre><code class=\"language-yaml\">steps:\n  - uses: actions/checkout@v4\n\n  - name: Setup Go\n    uses: actions/setup-go@v5\n    with:\n      go-version: '1.21'\n      cache: true\n\n  # 或手动配置缓存\n  - name: Cache Go modules\n    uses: actions/cache@v4\n    with:\n      path: |\n        ~/.cache/go-build\n        ~/go/pkg/mod\n      key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}\n      restore-keys: |\n        ${{ runner.os }}-go-\n\n  - run: go build ./...\n</code></pre>\n<h3>工件上传下载</h3>\n<pre><code class=\"language-yaml\">jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Build\n        run: go build -o app ./...\n\n      - name: Upload artifact\n        uses: actions/upload-artifact@v4\n        with:\n          name: app-binary\n          path: app\n          retention-days: 5\n\n  deploy:\n    needs: build\n    runs-on: ubuntu-latest\n    steps:\n      - name: Download artifact\n        uses: actions/download-artifact@v4\n        with:\n          name: app-binary\n\n      - name: Deploy\n        run: ./app\n</code></pre>\n<h2>Docker 构建</h2>\n<pre><code class=\"language-yaml\">name: Docker Build\n\non:\n  push:\n    tags: ['v*']\n\njobs:\n  docker:\n    runs-on: ubuntu-latest\n\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Docker Buildx\n        uses: docker/setup-buildx-action@v3\n\n      - name: Login to DockerHub\n        uses: docker/login-action@v3\n        with:\n          username: ${{ secrets.DOCKER_USERNAME }}\n          password: ${{ secrets.DOCKER_PASSWORD }}\n\n      - name: Extract metadata\n        id: meta\n        uses: docker/metadata-action@v5\n        with:\n          images: myuser/myapp\n          tags: |\n            type=semver,pattern={{version}}\n            type=semver,pattern={{major}}.{{minor}}\n            type=sha\n\n      - name: Build and push\n        uses: docker/build-push-action@v5\n        with:\n          context: .\n          push: true\n          tags: ${{ steps.meta.outputs.tags }}\n          labels: ${{ steps.meta.outputs.labels }}\n          cache-from: type=gha\n          cache-to: type=gha,mode=max\n</code></pre>\n<h2>发布流程</h2>\n<pre><code class=\"language-yaml\">name: Release\n\non:\n  push:\n    tags: ['v*']\n\njobs:\n  release:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Setup Go\n        uses: actions/setup-go@v5\n        with:\n          go-version: '1.21'\n\n      - name: Build binaries\n        run: |\n          GOOS=linux GOARCH=amd64 go build -o app-linux-amd64\n          GOOS=darwin GOARCH=amd64 go build -o app-darwin-amd64\n          GOOS=windows GOARCH=amd64 go build -o app-windows-amd64.exe\n\n      - name: Create Release\n        uses: softprops/action-gh-release@v1\n        with:\n          files: |\n            app-linux-amd64\n            app-darwin-amd64\n            app-windows-amd64.exe\n          generate_release_notes: true\n</code></pre>\n<h2>可复用工作流</h2>\n<pre><code class=\"language-yaml\"># .github/workflows/reusable-deploy.yml\nname: Reusable Deploy\n\non:\n  workflow_call:\n    inputs:\n      environment:\n        required: true\n        type: string\n    secrets:\n      deploy_key:\n        required: true\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    environment: ${{ inputs.environment }}\n    steps:\n      - run: echo \"Deploying to ${{ inputs.environment }}\"\n\n# 调用\njobs:\n  call-deploy:\n    uses: ./.github/workflows/reusable-deploy.yml\n    with:\n      environment: production\n    secrets:\n      deploy_key: ${{ secrets.DEPLOY_KEY }}\n</code></pre>\n<h2>总结</h2>\n<p>GitHub Actions 要点：</p>\n<ol>\n<li><strong>工作流</strong> - YAML 配置，事件触发</li>\n<li><strong>矩阵构建</strong> - 多环境并行测试</li>\n<li><strong>缓存</strong> - 加速构建，复用依赖</li>\n<li><strong>密钥管理</strong> - 安全存储敏感信息</li>\n<li><strong>可复用</strong> - 工作流模板化</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "GitHub Actions 是 GitHub 提供的 CI/CD 平台",
+        "Workflow -> Job -> Step 层级结构",
+        "事件驱动：push/PR/schedule/手动触发",
+        "矩阵构建支持多环境并行测试"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心组件",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Workflow",
+          "badge": "工作流",
+          "badgeColor": "blue",
+          "points": [
+            "YAML 配置文件",
+            ".github/workflows/",
+            "事件触发"
+          ]
+        },
+        {
+          "title": "Job",
+          "badge": "作业",
+          "badgeColor": "green",
+          "points": [
+            "运行在 Runner",
+            "可定义依赖",
+            "并行/顺序执行"
+          ]
+        },
+        {
+          "title": "Step",
+          "badge": "步骤",
+          "badgeColor": "purple",
+          "points": [
+            "单个命令/Action",
+            "顺序执行",
+            "共享环境"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础工作流",
+      "language": "yaml",
+      "code": "name: CI\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-go@v5\n        with:\n          go-version: '1.21'\n      - run: go test -v ./..."
+    },
+    {
+      "type": "codeBlock",
+      "title": "矩阵构建",
+      "language": "yaml",
+      "code": "jobs:\n  test:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, macos-latest]\n        go-version: ['1.20', '1.21']\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-go@v5\n        with:\n          go-version: ${{ matrix.go-version }}\n      - run: go test ./..."
+    },
+    {
+      "type": "table",
+      "title": "常用触发器",
+      "highlightFirst": true,
+      "headers": [
+        "事件",
+        "配置",
+        "用途"
+      ],
+      "rows": [
+        [
+          "push",
+          "branches: [main]",
+          "代码推送"
+        ],
+        [
+          "pull_request",
+          "types: [opened]",
+          "PR 事件"
+        ],
+        [
+          "schedule",
+          "cron: '0 0 * * *'",
+          "定时触发"
+        ],
+        [
+          "workflow_dispatch",
+          "inputs: {...}",
+          "手动触发"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker 构建发布",
+      "language": "yaml",
+      "code": "- uses: docker/setup-buildx-action@v3\n\n- uses: docker/login-action@v3\n  with:\n    username: ${{ secrets.DOCKER_USERNAME }}\n    password: ${{ secrets.DOCKER_PASSWORD }}\n\n- uses: docker/build-push-action@v5\n  with:\n    context: .\n    push: true\n    tags: user/app:latest\n    cache-from: type=gha\n    cache-to: type=gha,mode=max"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用缓存",
+          "description": "actions/cache 加速构建"
+        },
+        {
+          "label": "密钥管理",
+          "description": "secrets 存储敏感信息"
+        },
+        {
+          "label": "可复用工作流",
+          "description": "workflow_call 模板化"
+        },
+        {
+          "label": "矩阵构建",
+          "description": "多环境并行测试"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Jenkins",
+    "Docker",
+    "Git"
+  ]
 }

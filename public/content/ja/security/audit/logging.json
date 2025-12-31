@@ -1,0 +1,106 @@
+{
+  "slug": "logging",
+  "meta": {
+    "title": "監査ログ",
+    "description": "ログ設計、収集と分析",
+    "order": 1,
+    "tags": [
+      "監査",
+      "ログ",
+      "セキュリティ"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "監査ログはセキュリティ関連の操作とイベントを記録",
+        "6W：Who、What、When、Where、Why、How",
+        "改ざん不可：書き込み後に変更や削除ができない",
+        "保存期間：コンプライアンス要件に基づく（通常6ヶ月〜7年）"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "監査ログフォーマット",
+      "language": "json",
+      "code": "{\n  \"timestamp\": \"2024-01-15T10:30:45.123Z\",\n  \"event_id\": \"evt_abc123\",\n  \"event_type\": \"user.login\",\n  \"severity\": \"info\",\n  \"actor\": {\n    \"user_id\": \"user_123\",\n    \"username\": \"john@example.com\",\n    \"ip_address\": \"192.168.1.100\",\n    \"user_agent\": \"Mozilla/5.0...\"\n  },\n  \"action\": {\n    \"type\": \"authentication\",\n    \"method\": \"password\",\n    \"result\": \"success\"\n  },\n  \"resource\": {\n    \"type\": \"session\",\n    \"id\": \"sess_xyz789\"\n  },\n  \"context\": {\n    \"request_id\": \"req_def456\",\n    \"session_id\": \"sess_xyz789\",\n    \"geo_location\": \"Tokyo, JP\"\n  },\n  \"metadata\": {\n    \"mfa_used\": true,\n    \"risk_score\": 0.1\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "監査ログ実装",
+      "language": "typescript",
+      "code": "interface AuditEvent {\n  eventType: string;\n  actor: Actor;\n  action: Action;\n  resource?: Resource;\n  result: 'success' | 'failure';\n  metadata?: Record<string, any>;\n}\n\nclass AuditLogger {\n  constructor(\n    private transport: AuditTransport,\n    private context: RequestContext\n  ) {}\n\n  async log(event: AuditEvent): Promise<void> {\n    const auditLog = {\n      timestamp: new Date().toISOString(),\n      eventId: generateId(),\n      ...event,\n      actor: {\n        ...event.actor,\n        ipAddress: this.context.ip,\n        userAgent: this.context.userAgent,\n      },\n      context: {\n        requestId: this.context.requestId,\n        traceId: this.context.traceId,\n      },\n    };\n\n    // 非同期書き込み、ビジネスをブロックしない\n    await this.transport.send(auditLog);\n  }\n}\n\n// デコレーターで自動記録\n@AuditLog('user.delete', { captureArgs: true })\nasync deleteUser(userId: string): Promise<void> {\n  // ビジネスロジック\n}\n\n// 機密操作の強制監査\nasync function transferMoney(from: string, to: string, amount: number) {\n  await auditLogger.log({\n    eventType: 'transaction.transfer',\n    actor: { userId: getCurrentUser().id },\n    action: { type: 'transfer', method: 'api' },\n    resource: { type: 'account', id: from },\n    result: 'success',\n    metadata: { toAccount: to, amount, currency: 'JPY' },\n  });\n  \n  // 送金実行\n}"
+    },
+    {
+      "type": "table",
+      "title": "監査必須イベント",
+      "highlightFirst": true,
+      "headers": [
+        "カテゴリ",
+        "イベント",
+        "説明"
+      ],
+      "rows": [
+        [
+          "認証",
+          "ログイン/ログアウト/MFA",
+          "すべての本人確認"
+        ],
+        [
+          "認可",
+          "権限変更/ロール割り当て",
+          "アクセス制御の変更"
+        ],
+        [
+          "データ",
+          "機密データアクセス/エクスポート",
+          "プライバシーデータ操作"
+        ],
+        [
+          "設定",
+          "セキュリティ設定変更",
+          "システム設定の変更"
+        ],
+        [
+          "異常",
+          "ログイン失敗/権限外アクセス",
+          "不審な行動"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "構造化ログ",
+          "description": "JSON形式で解析と検索を容易に"
+        },
+        {
+          "label": "機密データを記録しない",
+          "description": "パスワード、トークンなどはマスク処理"
+        },
+        {
+          "label": "非同期書き込み",
+          "description": "ビジネス性能に影響しない"
+        },
+        {
+          "label": "集中ストレージ",
+          "description": "専用ログシステムに送信（ELK、Loki）"
+        },
+        {
+          "label": "改ざん不可",
+          "description": "WORMストレージまたはブロックチェーンを使用"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "SIEM",
+    "ログ分析",
+    "コンプライアンス"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "title": "Rust 言語基礎",
+    "description": "Rust の所有権システム、メモリ安全性とシステムプログラミング",
+    "order": 2,
+    "tags": ["Rust", "メモリ安全", "システムプログラミング"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Rust は安全性、並行性、パフォーマンスを重視したシステム言語",
+        "所有権システムがコンパイル時にメモリ安全を保証",
+        "ゼロコスト抽象、ランタイムオーバーヘッドなし",
+        "ガベージコレクションなし、予測可能なパフォーマンス"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "所有権ルール",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "単一の所有者",
+          "badge": "ルール1",
+          "badgeColor": "blue",
+          "points": [
+            "各値には1つの所有者がある",
+            "同時に1つのみ",
+            "スコープを抜けると解放"
+          ]
+        },
+        {
+          "title": "ムーブセマンティクス",
+          "badge": "ルール2",
+          "badgeColor": "green",
+          "points": [
+            "代入で所有権が移動",
+            "元の変数は無効に",
+            "Clone でディープコピー"
+          ]
+        },
+        {
+          "title": "借用",
+          "badge": "ルール3",
+          "badgeColor": "purple",
+          "points": [
+            "& 不変借用",
+            "&mut 可変借用",
+            "同時に存在不可"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "所有権の例",
+      "language": "rust",
+      "code": "fn main() {\n    let s1 = String::from(\"hello\");\n    let s2 = s1;  // s1 が s2 にムーブ\n    // println!(\"{}\", s1);  // エラー! s1 は無効\n    \n    // 借用 (所有権を移さない)\n    let s3 = String::from(\"world\");\n    let len = calculate_length(&s3);  // 借用\n    println!(\"{} len: {}\", s3, len);  // s3 はまだ有効\n}\n\nfn calculate_length(s: &String) -> usize {\n    s.len()\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "参照ルール",
+      "columns": [
+        {
+          "title": "不変参照 &T",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "数量", "description": "複数可能" },
+            { "label": "読み書き", "description": "読み取り専用" },
+            { "label": "ライフタイム", "description": "借用チェック" }
+          ]
+        },
+        {
+          "title": "可変参照 &mut T",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "数量", "description": "1つのみ" },
+            { "label": "読み書き", "description": "読み書き可能" },
+            { "label": "ライフタイム", "description": "排他的アクセス" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "構造体と Trait",
+      "language": "rust",
+      "code": "#[derive(Debug, Clone)]\nstruct User {\n    name: String,\n    age: u32,\n}\n\nimpl User {\n    fn new(name: String) -> Self {\n        Self { name, age: 0 }\n    }\n}\n\n// Trait で振る舞いを定義\ntrait Summary {\n    fn summarize(&self) -> String;\n}\n\nimpl Summary for User {\n    fn summarize(&self) -> String {\n        format!(\"{}, age {}\", self.name, self.age)\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "エラーハンドリング",
+      "language": "rust",
+      "code": "use std::fs::File;\nuse std::io::{self, Read};\n\nfn read_file(path: &str) -> Result<String, io::Error> {\n    let mut file = File::open(path)?;  // ? でエラーを伝播\n    let mut content = String::new();\n    file.read_to_string(&mut content)?;\n    Ok(content)\n}\n\n// 使用例\nmatch read_file(\"hello.txt\") {\n    Ok(content) => println!(\"{}\", content),\n    Err(e) => eprintln!(\"Error: {}\", e),\n}"
+    },
+    {
+      "type": "table",
+      "title": "よく使う Crate",
+      "highlightFirst": true,
+      "headers": ["Crate", "用途", "機能"],
+      "rows": [
+        ["serde", "シリアライゼーション", "JSON/YAML/TOML"],
+        ["tokio", "非同期ランタイム", "async/await"],
+        ["reqwest", "HTTP クライアント", "非同期リクエスト"],
+        ["anyhow", "エラーハンドリング", "エラー型の簡略化"],
+        ["clap", "CLI パース", "コマンドライン引数"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "重要ポイント",
+      "style": "check",
+      "items": [
+        { "label": "所有権システム", "description": "コンパイル時のメモリ安全保証" },
+        { "label": "借用チェッカー", "description": "データ競合を防止" },
+        { "label": "パターンマッチング", "description": "強力な match 式" },
+        { "label": "Cargo", "description": "優れたパッケージ管理とビルドツール" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Go", "C++", "システムプログラミング"]
+}

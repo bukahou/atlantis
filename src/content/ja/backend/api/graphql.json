@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "title": "GraphQL",
+    "description": "GraphQL クエリ言語と Schema 設計",
+    "order": 2,
+    "tags": ["API", "GraphQL", "バックエンド"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "GraphQL は API クエリ言語",
+        "クライアントが必要なデータを正確に指定",
+        "単一エンドポイント、型システム",
+        "オーバーフェッチとアンダーフェッチを回避"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "GraphQL vs REST",
+      "columns": [
+        {
+          "title": "GraphQL",
+          "color": "from-pink-500 to-purple-500",
+          "items": [
+            { "label": "エンドポイント", "description": "単一エンドポイント /graphql" },
+            { "label": "データ取得", "description": "クライアントがフィールド指定" },
+            { "label": "バージョン", "description": "Schema 進化" },
+            { "label": "キャッシュ", "description": "追加処理が必要" }
+          ]
+        },
+        {
+          "title": "REST",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "エンドポイント", "description": "複数エンドポイント" },
+            { "label": "データ取得", "description": "サーバーが決定" },
+            { "label": "バージョン", "description": "URL バージョン番号" },
+            { "label": "キャッシュ", "description": "HTTP キャッシュ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Schema 定義",
+      "language": "graphql",
+      "code": "type User {\n  id: ID!\n  name: String!\n  email: String!\n  posts: [Post!]!\n  createdAt: DateTime!\n}\n\ntype Post {\n  id: ID!\n  title: String!\n  content: String!\n  author: User!\n}\n\ntype Query {\n  user(id: ID!): User\n  users(limit: Int, offset: Int): [User!]!\n  post(id: ID!): Post\n}\n\ntype Mutation {\n  createUser(input: CreateUserInput!): User!\n  updateUser(id: ID!, input: UpdateUserInput!): User!\n  deleteUser(id: ID!): Boolean!\n}\n\ninput CreateUserInput {\n  name: String!\n  email: String!\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "クエリ例",
+      "language": "graphql",
+      "code": "# ユーザーと投稿を取得\nquery GetUser($id: ID!) {\n  user(id: $id) {\n    id\n    name\n    email\n    posts {\n      id\n      title\n    }\n  }\n}\n\n# ユーザー作成\nmutation CreateUser($input: CreateUserInput!) {\n  createUser(input: $input) {\n    id\n    name\n    email\n  }\n}\n\n# フラグメント再利用\nfragment UserFields on User {\n  id\n  name\n  email\n}\n\nquery {\n  user(id: \"1\") {\n    ...UserFields\n  }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "コア機能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "型システム",
+          "badge": "Schema",
+          "badgeColor": "purple",
+          "points": [
+            "強い型定義",
+            "自動ドキュメント生成",
+            "エディタ補完"
+          ]
+        },
+        {
+          "title": "Resolver",
+          "badge": "実行",
+          "badgeColor": "blue",
+          "points": [
+            "フィールドレベルデータ取得",
+            "DataLoader バッチロード",
+            "N+1 問題解決"
+          ]
+        },
+        {
+          "title": "サブスクリプション",
+          "badge": "リアルタイム",
+          "badgeColor": "green",
+          "points": [
+            "WebSocket プッシュ",
+            "リアルタイムデータ更新",
+            "Subscription 型"
+          ]
+        },
+        {
+          "title": "ツールエコシステム",
+          "badge": "ツール",
+          "badgeColor": "amber",
+          "points": [
+            "Apollo Client/Server",
+            "GraphQL Playground",
+            "Code Generator"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "DataLoader 使用", "description": "バッチロードで N+1 クエリ問題を回避" },
+        { "label": "クエリ複雑度制限", "description": "悪意のある深いネストクエリを防止" },
+        { "label": "永続化クエリ", "description": "本番環境で事前定義クエリを使用" },
+        { "label": "エラーハンドリング", "description": "部分データとエラー情報を返す" }
+      ]
+    }
+  ],
+  "relatedTopics": ["REST API", "Apollo", "リアルタイムアプリ"]
+}

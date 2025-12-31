@@ -1,0 +1,146 @@
+{
+  "slug": "haproxy",
+  "meta": {
+    "title": "HAProxy",
+    "description": "高性能 TCP/HTTP 负载均衡器",
+    "order": 1,
+    "tags": [
+      "HAProxy",
+      "负载均衡",
+      "代理",
+      "高可用"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "业界领先的 TCP/HTTP 负载均衡性能",
+        "支持 L4 和 L7 负载均衡",
+        "丰富的健康检查和故障转移机制",
+        "详细的统计信息和监控接口"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "HAProxy 简介",
+      "content": "HAProxy（High Availability Proxy）是一款高性能的开源负载均衡器和代理服务器。它以极高的性能和稳定性著称，被 GitHub、Twitter、Stack Overflow 等大型网站广泛使用。HAProxy 支持 TCP（L4）和 HTTP（L7）两种模式的负载均衡，并提供丰富的健康检查、会话保持、流量控制等功能。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础配置",
+      "language": "haproxy",
+      "code": "global\n    log /dev/log local0\n    maxconn 4096\n    user haproxy\n    group haproxy\n    daemon\n    \ndefaults\n    mode http\n    log global\n    option httplog\n    option dontlognull\n    timeout connect 5000ms\n    timeout client  50000ms\n    timeout server  50000ms\n    \nfrontend http_front\n    bind *:80\n    default_backend http_back\n    \nbackend http_back\n    balance roundrobin\n    option httpchk GET /health\n    server server1 192.168.1.10:8080 check\n    server server2 192.168.1.11:8080 check\n    server server3 192.168.1.12:8080 check backup"
+    },
+    {
+      "type": "cards",
+      "title": "负载均衡算法",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "roundrobin",
+          "badge": "默认",
+          "badgeColor": "green",
+          "points": [
+            "轮询分发请求",
+            "支持权重配置",
+            "适合无状态服务"
+          ]
+        },
+        {
+          "title": "leastconn",
+          "badge": "推荐",
+          "badgeColor": "blue",
+          "points": [
+            "最少连接优先",
+            "适合长连接场景",
+            "动态负载均衡"
+          ]
+        },
+        {
+          "title": "source",
+          "badge": "会话",
+          "badgeColor": "purple",
+          "points": [
+            "源 IP 哈希",
+            "会话保持",
+            "有状态服务"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "HTTPS 终端配置",
+      "language": "haproxy",
+      "code": "frontend https_front\n    bind *:443 ssl crt /etc/haproxy/certs/combined.pem\n    \n    # ACL 路由\n    acl is_api path_beg /api\n    acl is_static path_beg /static\n    \n    use_backend api_back if is_api\n    use_backend static_back if is_static\n    default_backend web_back\n    \n    # 安全头\n    http-response set-header Strict-Transport-Security max-age=31536000\n    \nbackend api_back\n    balance leastconn\n    option httpchk GET /api/health\n    http-check expect status 200\n    server api1 10.0.0.1:8080 check inter 3000 fall 3 rise 2\n    server api2 10.0.0.2:8080 check inter 3000 fall 3 rise 2\n    \nbackend web_back\n    balance roundrobin\n    cookie SERVERID insert indirect nocache\n    server web1 10.0.0.10:80 check cookie s1\n    server web2 10.0.0.11:80 check cookie s2"
+    },
+    {
+      "type": "table",
+      "title": "健康检查选项",
+      "highlightFirst": true,
+      "headers": [
+        "选项",
+        "说明",
+        "示例"
+      ],
+      "rows": [
+        [
+          "check",
+          "启用健康检查",
+          "server s1 10.0.0.1:80 check"
+        ],
+        [
+          "inter",
+          "检查间隔",
+          "inter 3000 (3秒)"
+        ],
+        [
+          "fall",
+          "失败阈值",
+          "fall 3 (3次失败标记down)"
+        ],
+        [
+          "rise",
+          "恢复阈值",
+          "rise 2 (2次成功标记up)"
+        ],
+        [
+          "httpchk",
+          "HTTP 检查",
+          "option httpchk GET /health"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "启用统计页面",
+          "description": "stats enable 提供实时监控"
+        },
+        {
+          "label": "合理设置超时",
+          "description": "根据业务特点调整 timeout 值"
+        },
+        {
+          "label": "使用健康检查",
+          "description": "及时发现故障节点"
+        },
+        {
+          "label": "配置日志",
+          "description": "便于问题排查和分析"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Nginx",
+    "负载均衡",
+    "高可用"
+  ]
+}

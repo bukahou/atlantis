@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "title": "RBAC",
+    "description": "ロールベースアクセス制御モデル",
+    "order": 3,
+    "tags": ["RBAC", "権限", "アクセス制御"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "RBAC：ユーザー → ロール → 権限 のマッピング関係",
+        "ロールは権限の集合、権限管理を簡素化",
+        "ロール継承と相互排他をサポート",
+        "RBAC0/1/2/3：異なる複雑さのモデル"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "RBACモデル",
+      "language": "text",
+      "code": "RBAC0 (基本モデル)\n┌──────────┐     ┌──────────┐     ┌──────────┐\n│  ユーザー │────►│   ロール  │────►│   権限   │\n└──────────┘     └──────────┘     └──────────┘\n   User            Role           Permission\n\nRBAC1 (ロール継承)\n┌──────────┐\n│  管理者  │\n└────┬─────┘\n     │ 継承\n┌────▼─────┐\n│ 一般ユーザー│\n└──────────┘\n\nRBAC2 (制約)\n- 相互排他ロール：同時に持てない（例：出納係と監査役）\n- カーディナリティ制約：ロールの最大ユーザー数\n- 前提条件：ロールAを持っていないとロールBを割り当てられない"
+    },
+    {
+      "type": "codeBlock",
+      "title": "データベース設計",
+      "language": "sql",
+      "code": "-- ユーザーテーブル\nCREATE TABLE users (\n    id BIGINT PRIMARY KEY,\n    username VARCHAR(50) UNIQUE NOT NULL,\n    email VARCHAR(100) UNIQUE NOT NULL\n);\n\n-- ロールテーブル\nCREATE TABLE roles (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(50) UNIQUE NOT NULL,\n    description TEXT,\n    parent_id BIGINT REFERENCES roles(id)  -- ロール継承\n);\n\n-- 権限テーブル\nCREATE TABLE permissions (\n    id BIGINT PRIMARY KEY,\n    resource VARCHAR(100) NOT NULL,  -- リソース：article, user, order\n    action VARCHAR(50) NOT NULL,     -- 操作：create, read, update, delete\n    UNIQUE(resource, action)\n);\n\n-- ユーザー-ロール関連\nCREATE TABLE user_roles (\n    user_id BIGINT REFERENCES users(id),\n    role_id BIGINT REFERENCES roles(id),\n    PRIMARY KEY (user_id, role_id)\n);\n\n-- ロール-権限関連\nCREATE TABLE role_permissions (\n    role_id BIGINT REFERENCES roles(id),\n    permission_id BIGINT REFERENCES permissions(id),\n    PRIMARY KEY (role_id, permission_id)\n);"
+    },
+    {
+      "type": "codeBlock",
+      "title": "権限チェック実装",
+      "language": "typescript",
+      "code": "// 権限サービス\nclass PermissionService {\n  constructor(\n    private userRepository: UserRepository,\n    private cache: Cache\n  ) {}\n  \n  // ユーザーのすべての権限を取得（ロール継承を含む）\n  async getUserPermissions(userId: string): Promise<Set<string>> {\n    const cacheKey = `user:${userId}:permissions`;\n    const cached = await this.cache.get(cacheKey);\n    if (cached) return new Set(JSON.parse(cached));\n    \n    const permissions = await this.userRepository.getUserPermissions(userId);\n    const permSet = new Set(permissions.map(p => `${p.resource}:${p.action}`));\n    \n    await this.cache.set(cacheKey, JSON.stringify([...permSet]), 300);\n    return permSet;\n  }\n  \n  // 権限チェック\n  async hasPermission(\n    userId: string,\n    resource: string,\n    action: string\n  ): Promise<boolean> {\n    const permissions = await this.getUserPermissions(userId);\n    return permissions.has(`${resource}:${action}`);\n  }\n}\n\n// デコレーター方式\nfunction RequirePermission(resource: string, action: string) {\n  return function(target: any, key: string, descriptor: PropertyDescriptor) {\n    const original = descriptor.value;\n    descriptor.value = async function(...args: any[]) {\n      const userId = this.context.userId;\n      const hasPermission = await permissionService.hasPermission(\n        userId, resource, action\n      );\n      if (!hasPermission) {\n        throw new ForbiddenError(`No permission: ${resource}:${action}`);\n      }\n      return original.apply(this, args);\n    };\n  };\n}\n\n// 使用例\nclass ArticleController {\n  @RequirePermission('article', 'delete')\n  async deleteArticle(id: string) {\n    // 権限があれば実行可能\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "一般的な権限モデル比較",
+      "highlightFirst": true,
+      "headers": ["モデル", "特徴", "適用場面"],
+      "rows": [
+        ["ACL", "直接的なユーザー-リソース権限", "ファイルシステム、シンプルなシステム"],
+        ["RBAC", "ユーザー-ロール-権限", "企業アプリケーション（主流）"],
+        ["ABAC", "属性ベースの動的ルール", "複雑な条件付きアクセス制御"],
+        ["ReBAC", "関係ベースの権限", "SNSアプリ、コラボレーションシステム"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "最小権限の原則", "description": "必要な権限のみを割り当てる" },
+        { "label": "権限キャッシュ", "description": "リクエスト毎のDB問い合わせを避ける" },
+        { "label": "権限監査", "description": "権限変更とアクセスログを記録" },
+        { "label": "定期的なレビュー", "description": "ユーザーのロール割り当てを定期的に見直す" }
+      ]
+    }
+  ],
+  "relatedTopics": ["ABAC", "ACL", "最小権限"]
+}

@@ -5,11 +5,184 @@
     "description": "Rust の所有権システム、メモリ安全性とシステムプログラミング",
     "order": 2,
     "tags": [
-      "rust",
-      "compiled",
-      "memory-safety",
-      "systems"
+      "Rust",
+      "メモリ安全",
+      "システムプログラミング"
     ]
   },
-  "content": "<h1>Rust 言語基礎</h1>\n<h2>Rust 概要</h2>\n<p>Rust は安全性、並行性、パフォーマンスに焦点を当てたシステムプログラミング言語で、所有権システムによりコンパイル時にメモリ安全性を保証し、ガベージコレクションを必要としません。</p>\n<pre><code>Rust の特徴\n├── メモリ安全 - null ポインタなし、データ競合なし\n├── ゼロコスト抽象化 - 高レベル機能にランタイムオーバーヘッドなし\n├── 所有権システム - コンパイル時メモリ管理\n├── GC なし - 予測可能なパフォーマンス\n└── クロスプラットフォーム - システムレベルから WebAssembly まで\n</code></pre>\n<h2>基本構文</h2>\n<h3>変数と型</h3>\n<pre><code class=\"language-rust\">fn main() {\n    // 不変変数 (デフォルト)\n    let x = 5;\n    // x = 6;  // エラー！\n\n    // 可変変数\n    let mut y = 5;\n    y = 6;  // OK\n\n    // 型アノテーション\n    let z: i32 = 10;\n\n    // 定数 (型アノテーション必須)\n    const MAX_POINTS: u32 = 100_000;\n\n    // シャドーイング\n    let x = x + 1;\n    let x = x * 2;\n\n    // 基本型\n    let i: i8 = 127;           // i8, i16, i32, i64, i128\n    let u: u32 = 255;          // u8, u16, u32, u64, u128\n    let f: f64 = 3.14;         // f32, f64\n    let b: bool = true;\n    let c: char = '中';        // Unicode 文字\n\n    // タプル\n    let tup: (i32, f64, u8) = (500, 6.4, 1);\n    let (x, y, z) = tup;       // 分割代入\n    let first = tup.0;         // インデックスアクセス\n\n    // 配列 (固定長)\n    let arr: [i32; 5] = [1, 2, 3, 4, 5];\n}\n</code></pre>\n<h3>関数</h3>\n<pre><code class=\"language-rust\">// 基本関数\nfn add(a: i32, b: i32) -> i32 {\n    a + b  // 式として返り値、セミコロンなし\n}\n\n// 戻り値なし\nfn print_value(x: i32) {\n    println!(\"Value: {}\", x);\n}\n\n// 複数戻り値 (タプル)\nfn swap(a: i32, b: i32) -> (i32, i32) {\n    (b, a)\n}\n</code></pre>\n<h3>制御フロー</h3>\n<pre><code class=\"language-rust\">// if 式\nlet number = 6;\nlet result = if number % 2 == 0 { \"even\" } else { \"odd\" };\n\n// loop\nlet result = loop {\n    counter += 1;\n    if counter == 10 {\n        break counter * 2;  // 値を返せる\n    }\n};\n\n// for\nfor i in 0..5 {\n    println!(\"{}\", i);\n}\n\n// match (パターンマッチング)\nmatch number {\n    1 => println!(\"one\"),\n    2 | 3 | 5 => println!(\"prime\"),\n    _ => println!(\"other\"),\n}\n</code></pre>\n<h2>所有権システム</h2>\n<h3>所有権ルール</h3>\n<pre><code class=\"language-rust\">// ルール：\n// 1. 各値には所有者がいる\n// 2. 同時に所有者は一人だけ\n// 3. 所有者がスコープを抜けると値は破棄される\n\nfn main() {\n    let s1 = String::from(\"hello\");\n    let s2 = s1;  // s1 は s2 にムーブ、s1 は無効\n    // println!(\"{}\", s1);  // エラー！\n\n    // クローン (ディープコピー)\n    let s3 = s2.clone();\n    println!(\"{} {}\", s2, s3);  // OK\n}\n</code></pre>\n<h3>参照と借用</h3>\n<pre><code class=\"language-rust\">// 不変参照\nfn calculate_length(s: &#x26;String) -> usize {\n    s.len()\n}\n\nfn main() {\n    let s = String::from(\"hello\");\n    let len = calculate_length(&#x26;s);  // 借用\n    println!(\"{} has length {}\", s, len);\n}\n\n// 可変参照\nfn append_world(s: &#x26;mut String) {\n    s.push_str(\", world\");\n}\n\n// 参照ルール：\n// 1. 任意の数の不変参照 OR\n// 2. 一つの可変参照\n// (同時には不可)\n</code></pre>\n<h3>ライフタイム</h3>\n<pre><code class=\"language-rust\">// ライフタイムアノテーション\nfn longest&#x3C;'a>(x: &#x26;'a str, y: &#x26;'a str) -> &#x26;'a str {\n    if x.len() > y.len() { x } else { y }\n}\n\n// 構造体のライフタイム\nstruct Excerpt&#x3C;'a> {\n    part: &#x26;'a str,\n}\n</code></pre>\n<h2>構造体と列挙型</h2>\n<h3>構造体</h3>\n<pre><code class=\"language-rust\">struct User {\n    username: String,\n    email: String,\n    active: bool,\n}\n\n// メソッド\nimpl User {\n    fn new(email: String, username: String) -> Self {\n        Self {\n            email,\n            username,\n            active: true,\n        }\n    }\n\n    fn is_active(&#x26;self) -> bool {\n        self.active\n    }\n}\n</code></pre>\n<h3>列挙型</h3>\n<pre><code class=\"language-rust\">enum Message {\n    Quit,\n    Move { x: i32, y: i32 },\n    Write(String),\n}\n\n// Option&#x3C;T> - null の代わり\nlet some_number = Some(5);\nlet no_number: Option&#x3C;i32> = None;\n\n// Result&#x3C;T, E> - エラー処理\nlet result: Result&#x3C;i32, String> = Ok(42);\n</code></pre>\n<h2>Trait (トレイト)</h2>\n<pre><code class=\"language-rust\">// trait 定義\ntrait Summary {\n    fn summarize(&#x26;self) -> String;\n\n    // デフォルト実装\n    fn read_more(&#x26;self) -> String {\n        String::from(\"(Read more...)\")\n    }\n}\n\n// trait 実装\nimpl Summary for Article {\n    fn summarize(&#x26;self) -> String {\n        format!(\"{}\", self.title)\n    }\n}\n\n// trait 境界\nfn notify&#x3C;T: Summary>(item: &#x26;T) {\n    println!(\"{}\", item.summarize());\n}\n\n// 派生 trait\n#[derive(Debug, Clone, PartialEq)]\nstruct Point {\n    x: i32,\n    y: i32,\n}\n</code></pre>\n<h2>エラー処理</h2>\n<pre><code class=\"language-rust\">use std::fs::File;\nuse std::io::{self, Read};\n\n// Result 処理\nfn read_file(path: &#x26;str) -> Result&#x3C;String, io::Error> {\n    let mut file = File::open(path)?;  // ? でエラー伝播\n    let mut content = String::new();\n    file.read_to_string(&#x26;mut content)?;\n    Ok(content)\n}\n\n// match 処理\nmatch result {\n    Ok(content) => println!(\"{}\", content),\n    Err(e) => println!(\"Error: {}\", e),\n}\n</code></pre>\n<h2>並行処理</h2>\n<pre><code class=\"language-rust\">use std::thread;\nuse std::sync::{Arc, Mutex};\n\n// スレッド\nlet handle = thread::spawn(|| {\n    println!(\"Hello from thread\");\n});\nhandle.join().unwrap();\n\n// Mutex\nlet counter = Arc::new(Mutex::new(0));\nlet counter_clone = Arc::clone(&#x26;counter);\n\nthread::spawn(move || {\n    let mut num = counter_clone.lock().unwrap();\n    *num += 1;\n});\n</code></pre>\n<h2>非同期プログラミング</h2>\n<pre><code class=\"language-rust\">use tokio;\n\nasync fn fetch_data() -> String {\n    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;\n    String::from(\"data\")\n}\n\n#[tokio::main]\nasync fn main() {\n    let result = fetch_data().await;\n    println!(\"{}\", result);\n}\n</code></pre>\n<h2>まとめ</h2>\n<p>Rust のポイント：</p>\n<ol>\n<li><strong>所有権システム</strong> - コンパイル時メモリ安全保証</li>\n<li><strong>借用チェッカー</strong> - データ競合防止</li>\n<li><strong>ゼロコスト抽象化</strong> - 高レベル機能にオーバーヘッドなし</li>\n<li><strong>強力な型システム</strong> - 豊富な型表現</li>\n<li><strong>モダンなツールチェーン</strong> - Cargo パッケージマネージャー</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Rust は安全性、並行性、パフォーマンスを重視したシステム言語",
+        "所有権システムがコンパイル時にメモリ安全を保証",
+        "ゼロコスト抽象、ランタイムオーバーヘッドなし",
+        "ガベージコレクションなし、予測可能なパフォーマンス"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "所有権ルール",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "単一の所有者",
+          "badge": "ルール1",
+          "badgeColor": "blue",
+          "points": [
+            "各値には1つの所有者がある",
+            "同時に1つのみ",
+            "スコープを抜けると解放"
+          ]
+        },
+        {
+          "title": "ムーブセマンティクス",
+          "badge": "ルール2",
+          "badgeColor": "green",
+          "points": [
+            "代入で所有権が移動",
+            "元の変数は無効に",
+            "Clone でディープコピー"
+          ]
+        },
+        {
+          "title": "借用",
+          "badge": "ルール3",
+          "badgeColor": "purple",
+          "points": [
+            "& 不変借用",
+            "&mut 可変借用",
+            "同時に存在不可"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "所有権の例",
+      "language": "rust",
+      "code": "fn main() {\n    let s1 = String::from(\"hello\");\n    let s2 = s1;  // s1 が s2 にムーブ\n    // println!(\"{}\", s1);  // エラー! s1 は無効\n    \n    // 借用 (所有権を移さない)\n    let s3 = String::from(\"world\");\n    let len = calculate_length(&s3);  // 借用\n    println!(\"{} len: {}\", s3, len);  // s3 はまだ有効\n}\n\nfn calculate_length(s: &String) -> usize {\n    s.len()\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "参照ルール",
+      "columns": [
+        {
+          "title": "不変参照 &T",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "数量",
+              "description": "複数可能"
+            },
+            {
+              "label": "読み書き",
+              "description": "読み取り専用"
+            },
+            {
+              "label": "ライフタイム",
+              "description": "借用チェック"
+            }
+          ]
+        },
+        {
+          "title": "可変参照 &mut T",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "数量",
+              "description": "1つのみ"
+            },
+            {
+              "label": "読み書き",
+              "description": "読み書き可能"
+            },
+            {
+              "label": "ライフタイム",
+              "description": "排他的アクセス"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "構造体と Trait",
+      "language": "rust",
+      "code": "#[derive(Debug, Clone)]\nstruct User {\n    name: String,\n    age: u32,\n}\n\nimpl User {\n    fn new(name: String) -> Self {\n        Self { name, age: 0 }\n    }\n}\n\n// Trait で振る舞いを定義\ntrait Summary {\n    fn summarize(&self) -> String;\n}\n\nimpl Summary for User {\n    fn summarize(&self) -> String {\n        format!(\"{}, age {}\", self.name, self.age)\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "エラーハンドリング",
+      "language": "rust",
+      "code": "use std::fs::File;\nuse std::io::{self, Read};\n\nfn read_file(path: &str) -> Result<String, io::Error> {\n    let mut file = File::open(path)?;  // ? でエラーを伝播\n    let mut content = String::new();\n    file.read_to_string(&mut content)?;\n    Ok(content)\n}\n\n// 使用例\nmatch read_file(\"hello.txt\") {\n    Ok(content) => println!(\"{}\", content),\n    Err(e) => eprintln!(\"Error: {}\", e),\n}"
+    },
+    {
+      "type": "table",
+      "title": "よく使う Crate",
+      "highlightFirst": true,
+      "headers": [
+        "Crate",
+        "用途",
+        "機能"
+      ],
+      "rows": [
+        [
+          "serde",
+          "シリアライゼーション",
+          "JSON/YAML/TOML"
+        ],
+        [
+          "tokio",
+          "非同期ランタイム",
+          "async/await"
+        ],
+        [
+          "reqwest",
+          "HTTP クライアント",
+          "非同期リクエスト"
+        ],
+        [
+          "anyhow",
+          "エラーハンドリング",
+          "エラー型の簡略化"
+        ],
+        [
+          "clap",
+          "CLI パース",
+          "コマンドライン引数"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "重要ポイント",
+      "style": "check",
+      "items": [
+        {
+          "label": "所有権システム",
+          "description": "コンパイル時のメモリ安全保証"
+        },
+        {
+          "label": "借用チェッカー",
+          "description": "データ競合を防止"
+        },
+        {
+          "label": "パターンマッチング",
+          "description": "強力な match 式"
+        },
+        {
+          "label": "Cargo",
+          "description": "優れたパッケージ管理とビルドツール"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Go",
+    "C++",
+    "システムプログラミング"
+  ]
 }

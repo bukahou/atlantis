@@ -1,0 +1,270 @@
+{
+  "slug": "service-mesh",
+  "meta": {
+    "title": "サービスメッシュ",
+    "description": "Service Mesh アーキテクチャ、Istio 実践とトラフィック管理",
+    "order": 4,
+    "tags": [
+      "Service Mesh",
+      "Istio",
+      "マイクロサービス",
+      "Sidecar"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "サービスメッシュはサービス間通信を処理するインフラ層",
+        "Sidecar プロキシがすべてのネットワークトラフィックをインターセプト",
+        "ネットワーク機能をアプリコードからデカップリング",
+        "統一されたトラフィック管理、セキュリティ、オブザーバビリティ"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "サービスメッシュアーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "コントロールプレーン",
+          "description": "ポリシー設定配布",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "データプレーン",
+          "description": "Sidecar プロキシ",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "サービス A",
+          "description": "ビジネスコンテナ",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "サービス B",
+          "description": "ビジネスコンテナ",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "主要サービスメッシュ比較",
+      "columns": [
+        {
+          "title": "Istio",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "プロキシ",
+              "description": "Envoy"
+            },
+            {
+              "label": "特徴",
+              "description": "フル機能、エンタープライズ級"
+            },
+            {
+              "label": "複雑度",
+              "description": "高め"
+            },
+            {
+              "label": "リソース",
+              "description": "高め"
+            }
+          ]
+        },
+        {
+          "title": "Linkerd",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "プロキシ",
+              "description": "linkerd2-proxy (Rust)"
+            },
+            {
+              "label": "特徴",
+              "description": "軽量、シンプル"
+            },
+            {
+              "label": "複雑度",
+              "description": "低め"
+            },
+            {
+              "label": "リソース",
+              "description": "低め"
+            }
+          ]
+        },
+        {
+          "title": "Cilium",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            {
+              "label": "プロキシ",
+              "description": "eBPF (Sidecar なし)"
+            },
+            {
+              "label": "特徴",
+              "description": "高性能"
+            },
+            {
+              "label": "複雑度",
+              "description": "中程度"
+            },
+            {
+              "label": "リソース",
+              "description": "低"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コア機能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "トラフィック管理",
+          "badge": "Traffic",
+          "badgeColor": "blue",
+          "points": [
+            "インテリジェントルーティング",
+            "カナリアリリース",
+            "A/B テスト",
+            "トラフィックミラーリング"
+          ]
+        },
+        {
+          "title": "セキュリティ",
+          "badge": "Security",
+          "badgeColor": "green",
+          "points": [
+            "mTLS 相互認証",
+            "サービスアイデンティティ",
+            "アクセス制御ポリシー",
+            "証明書自動ローテーション"
+          ]
+        },
+        {
+          "title": "オブザーバビリティ",
+          "badge": "Observability",
+          "badgeColor": "purple",
+          "points": [
+            "分散トレーシング",
+            "サービストポロジーマップ",
+            "ゴールデンシグナル監視",
+            "アクセスログ"
+          ]
+        },
+        {
+          "title": "レジリエンス",
+          "badge": "Resilience",
+          "badgeColor": "amber",
+          "points": [
+            "タイムアウト制御",
+            "リトライ戦略",
+            "サーキットブレーカー",
+            "レート制限"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Istio VirtualService トラフィックルーティング",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: VirtualService\nmetadata:\n  name: reviews\nspec:\n  hosts:\n    - reviews\n  http:\n    # カナリアリリース：10% トラフィックを v2 へ\n    - match:\n        - headers:\n            end-user:\n              exact: jason\n      route:\n        - destination:\n            host: reviews\n            subset: v2\n    - route:\n        - destination:\n            host: reviews\n            subset: v1\n          weight: 90\n        - destination:\n            host: reviews\n            subset: v2\n          weight: 10"
+    },
+    {
+      "type": "codeBlock",
+      "title": "DestinationRule ロードバランシングとサーキットブレーカー",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: DestinationRule\nmetadata:\n  name: reviews\nspec:\n  host: reviews\n  trafficPolicy:\n    loadBalancer:\n      simple: ROUND_ROBIN\n    connectionPool:\n      tcp:\n        maxConnections: 100\n      http:\n        h2UpgradePolicy: UPGRADE\n        http1MaxPendingRequests: 100\n        http2MaxRequests: 1000\n    outlierDetection:\n      consecutive5xxErrors: 5\n      interval: 30s\n      baseEjectionTime: 30s\n      maxEjectionPercent: 50\n  subsets:\n    - name: v1\n      labels:\n        version: v1\n    - name: v2\n      labels:\n        version: v2"
+    },
+    {
+      "type": "codeBlock",
+      "title": "PeerAuthentication mTLS 設定",
+      "language": "yaml",
+      "code": "# ネームスペースレベルで mTLS を強制\napiVersion: security.istio.io/v1beta1\nkind: PeerAuthentication\nmetadata:\n  name: default\n  namespace: production\nspec:\n  mtls:\n    mode: STRICT\n\n---\n# 認可ポリシー\napiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: frontend-to-backend\n  namespace: production\nspec:\n  selector:\n    matchLabels:\n      app: backend\n  action: ALLOW\n  rules:\n    - from:\n        - source:\n            principals:\n              - cluster.local/ns/production/sa/frontend\n      to:\n        - operation:\n            methods: [\"GET\", \"POST\"]\n            paths: [\"/api/*\"]"
+    },
+    {
+      "type": "codeBlock",
+      "title": "フォールトインジェクションテスト",
+      "language": "yaml",
+      "code": "apiVersion: networking.istio.io/v1beta1\nkind: VirtualService\nmetadata:\n  name: ratings\nspec:\n  hosts:\n    - ratings\n  http:\n    - fault:\n        # 遅延注入\n        delay:\n          percentage:\n            value: 10\n          fixedDelay: 5s\n        # エラー注入\n        abort:\n          percentage:\n            value: 5\n          httpStatus: 500\n      route:\n        - destination:\n            host: ratings"
+    },
+    {
+      "type": "table",
+      "title": "Istio コンポーネント",
+      "highlightFirst": true,
+      "headers": [
+        "コンポーネント",
+        "機能",
+        "説明"
+      ],
+      "rows": [
+        [
+          "istiod",
+          "コントロールプレーン",
+          "設定配布、証明書管理"
+        ],
+        [
+          "Envoy",
+          "データプレーンプロキシ",
+          "Sidecar トラフィックインターセプト"
+        ],
+        [
+          "Ingress Gateway",
+          "入口ゲートウェイ",
+          "クラスタ入口トラフィック管理"
+        ],
+        [
+          "Egress Gateway",
+          "出口ゲートウェイ",
+          "外部アクセス制御"
+        ],
+        [
+          "Kiali",
+          "可視化",
+          "サービストポロジーと監視"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "段階的導入",
+          "description": "まず非本番環境で検証"
+        },
+        {
+          "label": "リソース計画",
+          "description": "Sidecar はリソース消費を増加させる"
+        },
+        {
+          "label": "ネームスペース分離",
+          "description": "環境/チーム別に分割"
+        },
+        {
+          "label": "監視優先",
+          "description": "デプロイ前にオブザーバビリティを確保"
+        },
+        {
+          "label": "厳格な mTLS",
+          "description": "本番環境で相互認証を強制"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Kubernetes",
+    "マイクロサービスアーキテクチャ",
+    "Envoy"
+  ]
+}

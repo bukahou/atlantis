@@ -1,0 +1,322 @@
+{
+  "slug": "kernel",
+  "meta": {
+    "title": "Linux 内核",
+    "description": "Linux 内核架构：用户空间、内核空间与硬件交互",
+    "order": 1,
+    "tags": [
+      "Linux",
+      "内核",
+      "Kernel",
+      "系统调用"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "内核是操作系统的核心，管理硬件资源",
+        "用户空间与内核空间严格隔离",
+        "系统调用是用户程序访问内核的唯一接口",
+        "内核负责进程调度、内存管理、设备驱动"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Linux 内核概述",
+      "content": "Linux 内核是一个单体内核（Monolithic Kernel），所有核心功能运行在同一个地址空间。它负责管理 CPU、内存、存储、网络等硬件资源，并为用户程序提供抽象接口。内核将系统分为用户空间和内核空间，通过系统调用实现两者的安全通信。"
+    },
+    {
+      "type": "flow",
+      "title": "Linux 系统架构",
+      "subtitle": "从用户程序到硬件的层次结构",
+      "direction": "vertical",
+      "steps": [
+        {
+          "label": "用户应用程序",
+          "description": "User Applications",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "C 库 (glibc)",
+          "description": "系统调用封装",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "系统调用接口",
+          "description": "System Call Interface",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Linux 内核",
+          "description": "进程/内存/文件/网络/驱动",
+          "color": "bg-orange-500"
+        },
+        {
+          "label": "硬件抽象层",
+          "description": "Hardware Abstraction",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "硬件",
+          "description": "CPU/内存/磁盘/网卡",
+          "color": "bg-gray-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "用户空间 vs 内核空间",
+      "columns": [
+        {
+          "title": "用户空间 (User Space)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "权限",
+              "description": "Ring 3，受限权限"
+            },
+            {
+              "label": "内存",
+              "description": "独立虚拟地址空间"
+            },
+            {
+              "label": "运行内容",
+              "description": "应用程序、Shell"
+            },
+            {
+              "label": "错误影响",
+              "description": "仅影响该进程"
+            },
+            {
+              "label": "访问硬件",
+              "description": "必须通过系统调用"
+            }
+          ]
+        },
+        {
+          "title": "内核空间 (Kernel Space)",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            {
+              "label": "权限",
+              "description": "Ring 0，最高权限"
+            },
+            {
+              "label": "内存",
+              "description": "共享内核地址空间"
+            },
+            {
+              "label": "运行内容",
+              "description": "内核代码、驱动"
+            },
+            {
+              "label": "错误影响",
+              "description": "系统崩溃 (Panic)"
+            },
+            {
+              "label": "访问硬件",
+              "description": "直接访问"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "内核核心子系统",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "进程管理",
+          "badge": "Scheduler",
+          "badgeColor": "blue",
+          "points": [
+            "进程/线程创建销毁",
+            "CPU 调度算法 (CFS)",
+            "进程间通信 (IPC)",
+            "信号处理"
+          ]
+        },
+        {
+          "title": "内存管理",
+          "badge": "MM",
+          "badgeColor": "green",
+          "points": [
+            "虚拟内存管理",
+            "页面分配与回收",
+            "内存映射 (mmap)",
+            "OOM Killer"
+          ]
+        },
+        {
+          "title": "文件系统",
+          "badge": "VFS",
+          "badgeColor": "amber",
+          "points": [
+            "虚拟文件系统抽象",
+            "ext4/xfs/btrfs",
+            "文件缓存 (Page Cache)",
+            "inode 管理"
+          ]
+        },
+        {
+          "title": "网络子系统",
+          "badge": "Netfilter",
+          "badgeColor": "purple",
+          "points": [
+            "协议栈实现",
+            "Socket 接口",
+            "iptables/nftables",
+            "网络设备驱动"
+          ]
+        },
+        {
+          "title": "设备驱动",
+          "badge": "Drivers",
+          "badgeColor": "red",
+          "points": [
+            "字符/块/网络设备",
+            "设备树 (Device Tree)",
+            "udev 动态管理",
+            "内核模块加载"
+          ]
+        },
+        {
+          "title": "安全模块",
+          "badge": "LSM",
+          "badgeColor": "gray",
+          "points": [
+            "SELinux/AppArmor",
+            "Capabilities",
+            "Namespaces",
+            "Cgroups"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "系统调用流程",
+      "language": "text",
+      "code": "用户程序调用 read():\n\n1. 用户空间\n   ┌─────────────────────────────────┐\n   │  应用程序: read(fd, buf, size) │\n   │              ↓                 │\n   │  glibc: 封装系统调用号和参数    │\n   │              ↓                 │\n   │  syscall 指令 (x86_64)         │\n   └──────────────┬──────────────────┘\n                  │ 切换到 Ring 0\n   ┌──────────────▼──────────────────┐\n2. 内核空间                          │\n   │  系统调用入口                   │\n   │              ↓                 │\n   │  sys_read() 内核函数            │\n   │              ↓                 │\n   │  VFS 层 → 文件系统 → 块设备     │\n   │              ↓                 │\n   │  返回结果，切换回 Ring 3        │\n   └─────────────────────────────────┘"
+    },
+    {
+      "type": "table",
+      "title": "常用系统调用",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "系统调用",
+        "功能"
+      ],
+      "rows": [
+        [
+          "进程",
+          "fork, exec, exit, wait",
+          "创建/执行/退出进程"
+        ],
+        [
+          "文件",
+          "open, read, write, close",
+          "文件操作"
+        ],
+        [
+          "内存",
+          "mmap, brk, mprotect",
+          "内存管理"
+        ],
+        [
+          "网络",
+          "socket, bind, connect, send",
+          "网络通信"
+        ],
+        [
+          "信号",
+          "kill, signal, sigaction",
+          "信号处理"
+        ],
+        [
+          "时间",
+          "time, gettimeofday, nanosleep",
+          "时间操作"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "内核信息查看",
+      "language": "bash",
+      "code": "# 内核版本\nuname -r\ncat /proc/version\n\n# 内核配置\ncat /boot/config-$(uname -r) | grep CONFIG_\nzcat /proc/config.gz  # 如果启用\n\n# 内核模块\nlsmod                 # 已加载模块\nmodinfo <module>      # 模块信息\nmodprobe <module>     # 加载模块\nrmmod <module>        # 卸载模块\n\n# 内核参数\nsysctl -a             # 所有参数\nsysctl vm.swappiness  # 单个参数\nsysctl -w vm.swappiness=10  # 临时修改\n\n# 内核日志\ndmesg | tail -50\njournalctl -k"
+    },
+    {
+      "type": "table",
+      "title": "重要的 /proc 文件",
+      "highlightFirst": true,
+      "headers": [
+        "路径",
+        "内容"
+      ],
+      "rows": [
+        [
+          "/proc/cpuinfo",
+          "CPU 信息"
+        ],
+        [
+          "/proc/meminfo",
+          "内存信息"
+        ],
+        [
+          "/proc/interrupts",
+          "中断统计"
+        ],
+        [
+          "/proc/sys/",
+          "内核参数 (sysctl)"
+        ],
+        [
+          "/proc/<pid>/",
+          "进程信息"
+        ],
+        [
+          "/proc/loadavg",
+          "系统负载"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "内核调优要点",
+      "style": "check",
+      "items": [
+        {
+          "label": "vm.swappiness",
+          "description": "控制 swap 使用倾向 (0-100)"
+        },
+        {
+          "label": "vm.dirty_ratio",
+          "description": "脏页比例阈值"
+        },
+        {
+          "label": "net.core.somaxconn",
+          "description": "Socket 监听队列大小"
+        },
+        {
+          "label": "fs.file-max",
+          "description": "系统最大文件描述符"
+        },
+        {
+          "label": "kernel.pid_max",
+          "description": "最大进程 ID"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "进程管理",
+    "内存管理",
+    "系统调用"
+  ]
+}

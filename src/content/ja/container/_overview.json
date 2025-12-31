@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "title": "コンテナ化",
+    "description": "コンテナ技術の基礎：VM vs コンテナ、イメージの仕組みとオーケストレーション",
+    "icon": "box"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "コンテナは軽量なプロセス分離技術",
+        "Namespace でリソース分離、cgroups でリソース制限を実現",
+        "コンテナイメージはレイヤー構造で、ベースレイヤーを共有",
+        "Kubernetes はコンテナオーケストレーションの事実上の標準"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "仮想マシン vs コンテナ",
+      "columns": [
+        {
+          "title": "仮想マシン (VM)",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "仮想化レイヤー", "description": "Hypervisor によるハードウェア仮想化" },
+            { "label": "システム", "description": "完全な Guest OS" },
+            { "label": "起動時間", "description": "分単位" },
+            { "label": "リソース消費", "description": "GB レベル" },
+            { "label": "分離性", "description": "強い分離 (ハードウェアレベル)" }
+          ]
+        },
+        {
+          "title": "コンテナ (Container)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "仮想化レイヤー", "description": "ホストカーネルを共有" },
+            { "label": "システム", "description": "アプリと依存関係のみ" },
+            { "label": "起動時間", "description": "秒/ミリ秒単位" },
+            { "label": "リソース消費", "description": "MB レベル" },
+            { "label": "分離性", "description": "プロセスレベルの分離" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "コンテナアーキテクチャ",
+      "direction": "vertical",
+      "steps": [
+        { "label": "コンテナアプリ", "description": "App + Libraries", "color": "bg-blue-500" },
+        { "label": "コンテナランタイム", "description": "containerd / CRI-O", "color": "bg-cyan-500" },
+        { "label": "Linux カーネル", "description": "Namespace + cgroups", "color": "bg-purple-500" },
+        { "label": "ホストマシン", "description": "Host OS", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Linux コンテナのコア技術",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Namespace (名前空間)",
+          "badge": "分離",
+          "badgeColor": "blue",
+          "points": [
+            "PID: プロセス ID の分離",
+            "NET: ネットワークスタックの分離",
+            "MNT: ファイルシステムマウントの分離",
+            "UTS: ホスト名の分離",
+            "IPC: プロセス間通信の分離",
+            "USER: ユーザー/グループ ID の分離"
+          ]
+        },
+        {
+          "title": "cgroups (コントロールグループ)",
+          "badge": "制限",
+          "badgeColor": "green",
+          "points": [
+            "CPU: CPU 使用の制限",
+            "Memory: メモリ使用の制限",
+            "I/O: ディスク読み書きの制限",
+            "Network: ネットワーク帯域の制限",
+            "リソース統計とモニタリング"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "コンテナイメージのレイヤー構造",
+      "direction": "vertical",
+      "steps": [
+        { "label": "書き込み可能レイヤー", "description": "Container Layer (読み書き可)", "color": "bg-red-500" },
+        { "label": "アプリレイヤー", "description": "App Code + Configs", "color": "bg-blue-500" },
+        { "label": "依存レイヤー", "description": "Libraries + Packages", "color": "bg-cyan-500" },
+        { "label": "ベースイメージ", "description": "Base OS (読み取り専用)", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ベースイメージの選択",
+      "highlightFirst": true,
+      "headers": ["イメージ", "サイズ", "特徴", "適用シーン"],
+      "rows": [
+        ["alpine", "~5MB", "musl libc、最小化", "本番環境、軽量アプリ"],
+        ["debian/ubuntu", "~100MB", "完全な glibc、良好な互換性", "開発デバッグ、複雑な依存"],
+        ["distroless", "~20MB", "シェルなし、パッケージマネージャなし", "セキュリティ重視の本番環境"],
+        ["scratch", "0MB", "空のイメージ", "Go/Rust 静的コンパイル"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コンテナエコシステム",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Docker",
+          "badge": "ランタイム",
+          "badgeColor": "blue",
+          "points": [
+            "コンテナ技術の事実上の標準",
+            "完全なビルド/実行ツールチェーン",
+            "開発とシングルマシンデプロイに最適"
+          ]
+        },
+        {
+          "title": "Kubernetes",
+          "badge": "オーケストレーション",
+          "badgeColor": "green",
+          "points": [
+            "コンテナオーケストレーションプラットフォーム",
+            "自動化されたデプロイ/スケーリング",
+            "本番グレードのクラスター管理に最適"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker", "Kubernetes", "マイクロサービス", "CI/CD"]
+}

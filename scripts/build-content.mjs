@@ -46,8 +46,17 @@ async function buildContent() {
           return f.endsWith(".md") && !f.startsWith("_");
         });
 
-        // Skip empty directories
-        if (files.length === 0) continue;
+        // Check if JSON overview exists (new format)
+        const jsonOverviewPath = path.join(subcategoryDir, "_overview.json");
+        const hasJsonOverview = fs.existsSync(jsonOverviewPath);
+
+        // Check for JSON article files
+        const allJsonFiles = fs.readdirSync(subcategoryDir).filter((f) => {
+          return f.endsWith(".json") && !f.startsWith("_");
+        });
+
+        // Skip if no content (no md files, no json files, and no json overview)
+        if (files.length === 0 && allJsonFiles.length === 0 && !hasJsonOverview) continue;
 
         const articles = [];
         const articleOutputDir = path.join(
@@ -58,35 +67,82 @@ async function buildContent() {
         );
         fs.mkdirSync(articleOutputDir, { recursive: true });
 
-        // Process overview file if exists
-        const overviewPath = path.join(subcategoryDir, "_overview.md");
-        if (fs.existsSync(overviewPath)) {
-          const overviewContent = fs.readFileSync(overviewPath, "utf-8");
-          const { data, content } = matter(overviewContent);
-          const htmlContent = await processMarkdown(content);
-
-          const overview = {
-            meta: {
-              title: data.title || subcategory,
-              description: data.description || "",
-              keyPoints: data.keyPoints || [],
-              relatedTopics: data.relatedTopics || [],
-            },
-            content: htmlContent,
-          };
-
+        // Process overview - prefer JSON format, fallback to markdown
+        if (hasJsonOverview) {
+          // Copy JSON overview directly
+          const jsonContent = fs.readFileSync(jsonOverviewPath, "utf-8");
           fs.writeFileSync(
             path.join(articleOutputDir, "_overview.json"),
-            JSON.stringify(overview, null, 2)
+            jsonContent
+          );
+        } else {
+          // Fallback: Process markdown overview
+          const mdOverviewPath = path.join(subcategoryDir, "_overview.md");
+          if (fs.existsSync(mdOverviewPath)) {
+            const overviewContent = fs.readFileSync(mdOverviewPath, "utf-8");
+            const { data, content } = matter(overviewContent);
+            const htmlContent = await processMarkdown(content);
+
+            const overview = {
+              meta: {
+                title: data.title || subcategory,
+                description: data.description || "",
+                keyPoints: data.keyPoints || [],
+                relatedTopics: data.relatedTopics || [],
+              },
+              content: htmlContent,
+            };
+
+            fs.writeFileSync(
+              path.join(articleOutputDir, "_overview.json"),
+              JSON.stringify(overview, null, 2)
+            );
+          }
+        }
+
+        // Use the JSON files we already collected
+        const jsonFiles = allJsonFiles;
+
+        // Process JSON article files first
+        for (const file of jsonFiles) {
+          const filePath = path.join(subcategoryDir, file);
+          const fileContent = fs.readFileSync(filePath, "utf-8");
+          const jsonData = JSON.parse(fileContent);
+          const slug = file.replace(/\.json$/, "");
+
+          // JSON article format: { meta, sections, relatedTopics }
+          const article = {
+            slug,
+            meta: {
+              title: jsonData.meta?.title || slug,
+              description: jsonData.meta?.description || "",
+              order: jsonData.meta?.order || 999,
+              tags: jsonData.meta?.tags || [],
+            },
+            sections: jsonData.sections || [],
+            relatedTopics: jsonData.relatedTopics || [],
+          };
+
+          articles.push(article);
+
+          // Save individual article
+          fs.writeFileSync(
+            path.join(articleOutputDir, `${slug}.json`),
+            JSON.stringify(article, null, 2)
           );
         }
 
+        // Process markdown article files (skip if JSON version exists)
         for (const file of files) {
+          const slug = file.replace(/\.md$/, "");
+
+          // Skip if JSON version already processed
+          if (jsonFiles.includes(`${slug}.json`)) continue;
+
           const filePath = path.join(subcategoryDir, file);
           const fileContent = fs.readFileSync(filePath, "utf-8");
           const { data, content } = matter(fileContent);
           const htmlContent = await processMarkdown(content);
-          const slug = file.replace(/\.md$/, "");
 
           const article = {
             slug,
@@ -108,24 +164,29 @@ async function buildContent() {
           );
         }
 
-        // Save navigation index
-        const navItems = articles
-          .map((a) => ({
-            slug: a.slug,
-            title: a.meta.title,
-            description: a.meta.description,
-            href: `/${category}/${subcategory}/${a.slug}`,
-            order: a.meta.order,
-          }))
-          .sort((a, b) => a.order - b.order);
+        // Save navigation index (only if there are articles)
+        if (articles.length > 0) {
+          const navItems = articles
+            .map((a) => ({
+              slug: a.slug,
+              title: a.meta.title,
+              description: a.meta.description,
+              href: `/${category}/${subcategory}/${a.slug}`,
+              order: a.meta.order,
+            }))
+            .sort((a, b) => a.order - b.order);
 
-        fs.writeFileSync(
-          path.join(articleOutputDir, "_index.json"),
-          JSON.stringify({ items: navItems }, null, 2)
-        );
+          fs.writeFileSync(
+            path.join(articleOutputDir, "_index.json"),
+            JSON.stringify({ items: navItems }, null, 2)
+          );
+        }
 
+        const overviewType = hasJsonOverview ? "JSON" : "MD";
+        const jsonCount = jsonFiles.length;
+        const mdCount = files.filter(f => !jsonFiles.includes(f.replace(/\.md$/, ".json"))).length;
         console.log(
-          `  Built: ${locale}/${category}/${subcategory} (${files.length} files)`
+          `  Built: ${locale}/${category}/${subcategory} (${jsonCount} JSON + ${mdCount} MD articles, ${overviewType} overview)`
         );
       }
     }

@@ -1,11 +1,18 @@
 {
   "items": [
     {
-      "slug": "typescript",
-      "title": "TypeScript 语言基础",
-      "description": "TypeScript 类型系统、高级类型与前端开发最佳实践",
-      "href": "/languages/web/typescript",
+      "slug": "html",
+      "title": "HTML",
+      "description": "HTML5 语义化标签与现代 Web 开发",
+      "href": "/languages/web/html",
       "order": 1
+    },
+    {
+      "slug": "css",
+      "title": "CSS",
+      "description": "CSS3 样式与现代布局技术",
+      "href": "/languages/web/css",
+      "order": 2
     },
     {
       "slug": "javascript",
@@ -13,6 +20,20 @@
       "description": "JavaScript 核心语法、ES6+ 特性与异步编程",
       "href": "/languages/web/javascript",
       "order": 2
+    },
+    {
+      "slug": "react",
+      "title": "React",
+      "description": "React 组件化开发与现代前端实践",
+      "href": "/languages/web/react",
+      "order": 4
+    },
+    {
+      "slug": "vue",
+      "title": "Vue",
+      "description": "Vue 3 组合式 API 与现代开发实践",
+      "href": "/languages/web/vue",
+      "order": 5
     }
   ]
 }

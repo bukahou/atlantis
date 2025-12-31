@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "title": "Google Cloud Platform",
+    "description": "GCP 核心服务与 Kubernetes 生态",
+    "order": 2,
+    "tags": ["GCP", "云计算", "Kubernetes"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "GCP 是 Google 的公有云平台",
+        "Kubernetes 的发源地，容器化最佳",
+        "强大的数据分析和 AI/ML 能力",
+        "全球私有网络，低延迟"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "GCP 概述",
+      "content": "Google Cloud Platform 以其领先的容器和 Kubernetes 技术著称。GKE 是业界最成熟的托管 Kubernetes 服务，同时 BigQuery、TensorFlow 等产品在数据分析和 AI 领域具有强大优势。"
+    },
+    {
+      "type": "cards",
+      "title": "核心服务",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "计算服务",
+          "badge": "Compute",
+          "badgeColor": "blue",
+          "points": [
+            "Compute Engine - VM",
+            "GKE - Kubernetes",
+            "Cloud Run - 无服务器容器",
+            "Cloud Functions"
+          ]
+        },
+        {
+          "title": "存储服务",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "Cloud Storage - 对象存储",
+            "Persistent Disk - 块存储",
+            "Filestore - 文件存储",
+            "Archive Storage"
+          ]
+        },
+        {
+          "title": "数据库服务",
+          "badge": "Database",
+          "badgeColor": "amber",
+          "points": [
+            "Cloud SQL - 托管数据库",
+            "Cloud Spanner - 全球分布式",
+            "Firestore - 文档数据库",
+            "Bigtable - 宽列存储"
+          ]
+        },
+        {
+          "title": "数据分析",
+          "badge": "Analytics",
+          "badgeColor": "purple",
+          "points": [
+            "BigQuery - 数据仓库",
+            "Dataflow - 流处理",
+            "Pub/Sub - 消息队列",
+            "Dataproc - Hadoop/Spark"
+          ]
+        },
+        {
+          "title": "AI/ML",
+          "badge": "AI",
+          "badgeColor": "red",
+          "points": [
+            "Vertex AI - ML 平台",
+            "Vision AI - 图像识别",
+            "Natural Language - NLP",
+            "Translation API"
+          ]
+        },
+        {
+          "title": "网络服务",
+          "badge": "Network",
+          "badgeColor": "cyan",
+          "points": [
+            "VPC - 虚拟网络",
+            "Cloud CDN",
+            "Cloud Load Balancing",
+            "Cloud DNS"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "GKE 模式对比",
+      "columns": [
+        {
+          "title": "GKE Standard",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "节点管理", "description": "用户管理节点池" },
+            { "label": "灵活性", "description": "完全控制节点配置" },
+            { "label": "计费", "description": "按节点付费" },
+            { "label": "适用", "description": "自定义需求高" }
+          ]
+        },
+        {
+          "title": "GKE Autopilot",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "节点管理", "description": "Google 托管" },
+            { "label": "灵活性", "description": "预设最佳实践" },
+            { "label": "计费", "description": "按 Pod 资源付费" },
+            { "label": "适用", "description": "快速上手、降低运维" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "数据处理流水线",
+      "subtitle": "GCP 数据分析架构",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "数据采集", "description": "Pub/Sub", "color": "bg-blue-500" },
+        { "label": "流处理", "description": "Dataflow", "color": "bg-purple-500" },
+        { "label": "存储", "description": "BigQuery", "color": "bg-cyan-500" },
+        { "label": "分析", "description": "Looker", "color": "bg-green-500" },
+        { "label": "ML", "description": "Vertex AI", "color": "bg-yellow-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Cloud Storage 类别",
+      "highlightFirst": true,
+      "headers": ["类别", "访问频率", "最低存储", "适用场景"],
+      "rows": [
+        ["Standard", "频繁", "无", "热数据"],
+        ["Nearline", "每月 <1次", "30天", "备份"],
+        ["Coldline", "每季度 <1次", "90天", "归档"],
+        ["Archive", "每年 <1次", "365天", "合规存档"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "GCP 最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用服务账号", "description": "为应用配置专用服务账号和最小权限" },
+        { "label": "启用 Cloud Armor", "description": "保护应用免受 DDoS 和 Web 攻击" },
+        { "label": "资源标签", "description": "使用标签组织资源，便于成本分析" },
+        { "label": "使用托管服务", "description": "优先使用 GKE Autopilot、Cloud Run 等托管服务" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Kubernetes", "BigQuery", "Terraform"]
+}

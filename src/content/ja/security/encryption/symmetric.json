@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "title": "対称暗号",
+    "description": "AES、ChaCha20と暗号化モード",
+    "order": 1,
+    "tags": ["暗号化", "AES", "対称暗号"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "対称暗号：暗号化と復号に同じ鍵を使用",
+        "利点：高速で大量データの暗号化に適している",
+        "課題：鍵の配布と管理",
+        "よく使うアルゴリズム：AES-256-GCM、ChaCha20-Poly1305"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "よく使うアルゴリズム",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "AES",
+          "badge": "標準",
+          "badgeColor": "blue",
+          "points": [
+            "NIST標準",
+            "128/192/256ビット鍵",
+            "ハードウェアアクセラレーション対応"
+          ]
+        },
+        {
+          "title": "ChaCha20",
+          "badge": "モダン",
+          "badgeColor": "green",
+          "points": [
+            "ソフトウェア性能に優れる",
+            "モバイルデバイスフレンドリー",
+            "TLS 1.3サポート"
+          ]
+        },
+        {
+          "title": "Camellia",
+          "badge": "国際標準",
+          "badgeColor": "purple",
+          "points": [
+            "日本発の暗号",
+            "128/192/256ビット鍵",
+            "AESと同等の安全性"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "AES-256-GCM 暗号化",
+      "language": "go",
+      "code": "import (\n    \"crypto/aes\"\n    \"crypto/cipher\"\n    \"crypto/rand\"\n)\n\n// AES-256-GCM 暗号化\nfunc EncryptAESGCM(key, plaintext []byte) ([]byte, error) {\n    block, err := aes.NewCipher(key) // keyは32バイト(256ビット)必須\n    if err != nil {\n        return nil, err\n    }\n    \n    aesGCM, err := cipher.NewGCM(block)\n    if err != nil {\n        return nil, err\n    }\n    \n    // ランダムnonce生成（12バイト）\n    nonce := make([]byte, aesGCM.NonceSize())\n    if _, err := rand.Read(nonce); err != nil {\n        return nil, err\n    }\n    \n    // 暗号化（GCMは認証付き）\n    ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)\n    return ciphertext, nil // nonce + ciphertext + tag\n}\n\n// 復号\nfunc DecryptAESGCM(key, ciphertext []byte) ([]byte, error) {\n    block, _ := aes.NewCipher(key)\n    aesGCM, _ := cipher.NewGCM(block)\n    \n    nonceSize := aesGCM.NonceSize()\n    nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]\n    \n    return aesGCM.Open(nil, nonce, ciphertext, nil)\n}"
+    },
+    {
+      "type": "table",
+      "title": "暗号化モード比較",
+      "highlightFirst": true,
+      "headers": ["モード", "認証", "並列化", "推奨度"],
+      "rows": [
+        ["GCM", "あり (AEAD)", "暗号化並列", "推奨"],
+        ["CTR", "なし", "完全並列", "HMACとの併用が必要"],
+        ["CBC", "なし", "暗号化は直列", "レガシーシステム"],
+        ["ECB", "なし", "完全並列", "使用禁止"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "鍵導出",
+      "language": "typescript",
+      "code": "import { scrypt, randomBytes } from 'crypto';\n\n// パスワードから暗号化鍵を導出\nasync function deriveKey(password: string, salt: Buffer): Promise<Buffer> {\n  return new Promise((resolve, reject) => {\n    scrypt(password, salt, 32, { N: 2 ** 17, r: 8, p: 1 }, (err, key) => {\n      if (err) reject(err);\n      else resolve(key);\n    });\n  });\n}\n\n// データ暗号化（鍵導出付き）\nasync function encryptWithPassword(password: string, data: Buffer) {\n  const salt = randomBytes(16);\n  const key = await deriveKey(password, salt);\n  const encrypted = await encryptAESGCM(key, data);\n  \n  // salt + encrypted を返す\n  return Buffer.concat([salt, encrypted]);\n}"
+    },
+    {
+      "type": "list",
+      "title": "セキュリティプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "AEADモードを使用", "description": "AES-GCMまたはChaCha20-Poly1305を優先" },
+        { "label": "十分な鍵長", "description": "AESは最低256ビット" },
+        { "label": "Nonce再利用禁止", "description": "毎回ランダムまたはインクリメントのNonceを使用" },
+        { "label": "安全な鍵保管", "description": "KMSまたはHSMで鍵を管理" }
+      ]
+    }
+  ],
+  "relatedTopics": ["非対称暗号", "鍵管理", "TLS"]
+}

@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "title": "CAP定理",
+    "description": "分散システムの不可能三角形",
+    "order": 1,
+    "tags": ["分散システム", "CAP", "整合性"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "C (Consistency)：すべてのノードが同じデータを参照",
+        "A (Availability)：すべてのリクエストに応答を返す",
+        "P (Partition Tolerance)：ネットワーク分断時もシステムが稼働",
+        "CAP定理：3つのうち最大2つしか同時に満たせない"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "CAP定理とは",
+      "content": "CAP定理は2000年にEric Brewerによって提唱され、分散システムにおいて整合性、可用性、分断耐性の3つを同時に満たすことは不可能であることを示しています。ネットワーク分断は分散システムでは避けられないため、実際にはCとAの間でトレードオフを行います。"
+    },
+    {
+      "type": "comparison",
+      "title": "CP vs AP システム",
+      "columns": [
+        {
+          "title": "CPシステム",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "特徴", "description": "整合性を保証、可用性を犠牲" },
+            { "label": "用途", "description": "金融取引、在庫システム" },
+            { "label": "代表例", "description": "ZooKeeper、etcd、HBase" }
+          ]
+        },
+        {
+          "title": "APシステム",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "特徴", "description": "可用性を保証、一時的な不整合を許容" },
+            { "label": "用途", "description": "SNS、ECサイト閲覧" },
+            { "label": "代表例", "description": "Cassandra、DynamoDB、CouchDB" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "3つの要素の詳細",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "整合性 C",
+          "badge": "Consistency",
+          "badgeColor": "blue",
+          "points": [
+            "線形化可能性",
+            "順序整合性",
+            "因果整合性"
+          ]
+        },
+        {
+          "title": "可用性 A",
+          "badge": "Availability",
+          "badgeColor": "green",
+          "points": [
+            "すべてのリクエストに応答",
+            "エラーでない応答",
+            "合理的な時間内"
+          ]
+        },
+        {
+          "title": "分断耐性 P",
+          "badge": "Partition",
+          "badgeColor": "purple",
+          "points": [
+            "ネットワーク分断時も利用可能",
+            "ノード間通信障害",
+            "現実では必須の考慮事項"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "主要データベースのCAP選択",
+      "highlightFirst": true,
+      "headers": ["データベース", "タイプ", "CAP選択", "説明"],
+      "rows": [
+        ["MySQL (主従)", "リレーショナル", "CA (単体)", "ネットワーク分断時は利用不可"],
+        ["PostgreSQL", "リレーショナル", "CA (単体)", "同期レプリケーション設定可能"],
+        ["MongoDB", "ドキュメント", "CP/AP 設定可", "書き込み確認レベルに依存"],
+        ["Cassandra", "ワイドカラム", "AP", "結果整合性"],
+        ["Redis Cluster", "KV", "AP", "非同期レプリケーション"],
+        ["etcd", "KV", "CP", "Raft強整合"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "CAPトレードオフの例",
+      "language": "text",
+      "code": "シナリオ：ECサイトの在庫システム\n\n方式1：CP優先（強整合性）\n- 書き込み時にすべてのレプリカを同期\n- ネットワーク分断時は書き込み拒否\n- 適用：在庫引き当て、売り越し防止\n\n方式2：AP優先（高可用性）\n- 書き込み時に非同期レプリケーション\n- ネットワーク分断時もサービス継続\n- 適用：商品閲覧、ショッピングカート\n\n実践：ハイブリッド戦略\n- コア在庫：CP、同期で引き当て\n- 在庫表示：AP、非同期更新、短期的な不整合を許容"
+    },
+    {
+      "type": "list",
+      "title": "実践上のアドバイス",
+      "style": "check",
+      "items": [
+        { "label": "Pは必須", "description": "ネットワーク分断は分散システムで避けられない" },
+        { "label": "ビジネス要件で決定", "description": "業務によってCとAの要求が異なる" },
+        { "label": "領域分割設計", "description": "コアデータはCP、周辺データはAP" },
+        { "label": "結果整合性", "description": "APシステムは補償メカニズムで最終的に整合" }
+      ]
+    }
+  ],
+  "relatedTopics": ["分散トランザクション", "整合性モデル", "BASE理論"]
+}

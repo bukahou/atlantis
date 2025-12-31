@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "title": "Varnish Cache",
+    "description": "高性能 HTTP 高速化キャッシュプロキシ",
+    "order": 1,
+    "tags": ["Varnish", "キャッシュ", "HTTP", "パフォーマンス最適化"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "HTTP 高速化専用に設計されたリバースプロキシ",
+        "VCL 設定言語は柔軟で強力",
+        "メモリキャッシュ、ミリ秒レスポンス",
+        "キャッシュ失効、クリア、プリウォームに対応"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Varnish 概要",
+      "content": "Varnish は HTTP レスポンスのキャッシュに特化した高性能な高速化プロキシおよびリバースプロキシです。VCL（Varnish Configuration Language）を使用してキャッシュ戦略を定義し、リクエストヘッダー、URL、Cookie などの条件に基づいて柔軟にキャッシュ動作を制御できます。Varnish はキャッシュをメモリに保存し、極めて低い遅延でリクエストに応答します。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "VCL 基本設定",
+      "language": "vcl",
+      "code": "vcl 4.1;\n\nbackend default {\n    .host = \"127.0.0.1\";\n    .port = \"8080\";\n    .connect_timeout = 5s;\n    .first_byte_timeout = 30s;\n    .between_bytes_timeout = 10s;\n}\n\nsub vcl_recv {\n    # キャッシュに影響しない Cookie を削除\n    if (req.http.Cookie) {\n        set req.http.Cookie = regsuball(req.http.Cookie, \"(^|;\\s*)(_ga|_gid|_gat)[^;]*\", \"\");\n    }\n    \n    # 静的リソースは常にキャッシュ\n    if (req.url ~ \"\\.(css|js|png|jpg|jpeg|gif|ico|woff2?)$\") {\n        unset req.http.Cookie;\n        return (hash);\n    }\n    \n    # POST リクエストはキャッシュしない\n    if (req.method != \"GET\" && req.method != \"HEAD\") {\n        return (pass);\n    }\n}\n\nsub vcl_backend_response {\n    # デフォルト TTL を設定\n    if (beresp.ttl <= 0s) {\n        set beresp.ttl = 1h;\n        set beresp.uncacheable = true;\n    }\n    \n    # 静的リソースはより長くキャッシュ\n    if (bereq.url ~ \"\\.(css|js|png|jpg|jpeg|gif|ico)$\") {\n        set beresp.ttl = 7d;\n    }\n}\n\nsub vcl_deliver {\n    # キャッシュ状態ヘッダーを追加\n    if (obj.hits > 0) {\n        set resp.http.X-Cache = \"HIT\";\n        set resp.http.X-Cache-Hits = obj.hits;\n    } else {\n        set resp.http.X-Cache = \"MISS\";\n    }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "VCL サブルーチン",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "vcl_recv",
+          "badge": "リクエスト",
+          "badgeColor": "blue",
+          "points": [
+            "クライアントリクエスト受信",
+            "キャッシュ検索の判定",
+            "リクエストヘッダー変更"
+          ]
+        },
+        {
+          "title": "vcl_hash",
+          "badge": "キャッシュキー",
+          "badgeColor": "green",
+          "points": [
+            "キャッシュキーを定義",
+            "URL/Host ベース",
+            "カスタマイズ可能"
+          ]
+        },
+        {
+          "title": "vcl_backend_response",
+          "badge": "レスポンス",
+          "badgeColor": "purple",
+          "points": [
+            "バックエンドレスポンス処理",
+            "TTL 設定",
+            "キャッシュ判定"
+          ]
+        },
+        {
+          "title": "vcl_deliver",
+          "badge": "配信",
+          "badgeColor": "amber",
+          "points": [
+            "クライアント送信前",
+            "ヘッダー追加/削除",
+            "デバッグ情報"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "主要コマンド",
+      "highlightFirst": true,
+      "headers": ["コマンド", "説明", "例"],
+      "rows": [
+        ["varnishadm", "管理インターフェース", "varnishadm ban req.url ~ /api/"],
+        ["varnishlog", "リアルタイムログ", "varnishlog -g request"],
+        ["varnishstat", "統計情報", "varnishstat -1"],
+        ["varnishhist", "遅延ヒストグラム", "varnishhist"],
+        ["varnishtop", "人気リクエスト", "varnishtop -i ReqURL"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "適切な TTL を設定", "description": "コンテンツ更新頻度に応じてキャッシュ時間を設定" },
+        { "label": "不要な Cookie を削除", "description": "Cookie によるキャッシュ無効化を回避" },
+        { "label": "静的/動的を区別", "description": "静的リソースは長い TTL、動的コンテンツは必要に応じてキャッシュ" },
+        { "label": "ヒット率を監視", "description": "目標 90%+ ヒット率" }
+      ]
+    }
+  ],
+  "relatedTopics": ["HTTP キャッシュ", "Nginx", "CDN"]
+}

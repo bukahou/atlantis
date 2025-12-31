@@ -1,15 +1,272 @@
 {
   "slug": "aws",
   "meta": {
-    "title": "AWS 云服务基础",
-    "description": "Amazon Web Services 核心服务介绍与实践指南",
+    "title": "AWS 云服务",
+    "description": "Amazon Web Services 核心服务与架构设计",
     "order": 1,
     "tags": [
-      "aws",
-      "cloud",
-      "ec2",
-      "s3"
+      "AWS",
+      "云计算",
+      "IaaS"
     ]
   },
-  "content": "<h1>AWS 云服务基础</h1>\n<h2>AWS 简介</h2>\n<p>Amazon Web Services (AWS) 是全球领先的云计算平台，提供超过 200 种功能完善的服务，涵盖计算、存储、数据库、网络、分析、机器学习等领域。</p>\n<pre><code>AWS 全球基础设施\n├── Regions (区域) - 33个\n│   ├── Availability Zones (可用区) - 105个\n│   │   └── Data Centers (数据中心)\n│   └── Local Zones (本地区域)\n├── Edge Locations (边缘站点) - 400+\n└── Wavelength Zones\n</code></pre>\n<h2>核心计算服务</h2>\n<h3>EC2 (Elastic Compute Cloud)</h3>\n<p>EC2 提供可调整容量的云服务器，是 AWS 最基础的计算服务。</p>\n<h4>实例类型</h4>\n<table>\n<thead>\n<tr>\n<th>类型</th>\n<th>用途</th>\n<th>示例</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>通用型</strong></td>\n<td>平衡计算/内存/网络</td>\n<td>t3, m6i, m7g</td>\n</tr>\n<tr>\n<td><strong>计算优化</strong></td>\n<td>高性能处理器</td>\n<td>c6i, c7g</td>\n</tr>\n<tr>\n<td><strong>内存优化</strong></td>\n<td>大型数据集处理</td>\n<td>r6i, x2idn</td>\n</tr>\n<tr>\n<td><strong>存储优化</strong></td>\n<td>高序列读写</td>\n<td>i3, d3</td>\n</tr>\n<tr>\n<td><strong>加速计算</strong></td>\n<td>GPU/FPGA</td>\n<td>p4d, g5</td>\n</tr>\n</tbody>\n</table>\n<h4>启动 EC2 实例</h4>\n<pre><code class=\"language-bash\"># 使用 AWS CLI 启动实例\naws ec2 run-instances \\\n  --image-id ami-0abcdef1234567890 \\\n  --instance-type t3.micro \\\n  --key-name my-key-pair \\\n  --security-group-ids sg-0123456789abcdef0 \\\n  --subnet-id subnet-0123456789abcdef0 \\\n  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=MyServer}]'\n</code></pre>\n<h4>实例生命周期</h4>\n<pre><code>pending → running ←→ stopping → stopped\n                  ↘ shutting-down → terminated\n</code></pre>\n<h3>Lambda (无服务器计算)</h3>\n<p>Lambda 让您无需管理服务器即可运行代码。</p>\n<pre><code class=\"language-python\"># Lambda 函数示例\nimport json\n\ndef lambda_handler(event, context):\n    name = event.get('name', 'World')\n    return {\n        'statusCode': 200,\n        'body': json.dumps(f'Hello, {name}!')\n    }\n</code></pre>\n<h4>Lambda 配置</h4>\n<pre><code class=\"language-yaml\"># SAM 模板示例\nAWSTemplateFormatVersion: '2010-09-09'\nTransform: AWS::Serverless-2016-10-31\n\nResources:\n  HelloFunction:\n    Type: AWS::Serverless::Function\n    Properties:\n      Handler: app.lambda_handler\n      Runtime: python3.11\n      MemorySize: 128\n      Timeout: 30\n      Events:\n        Api:\n          Type: Api\n          Properties:\n            Path: /hello\n            Method: get\n</code></pre>\n<h2>存储服务</h2>\n<h3>S3 (Simple Storage Service)</h3>\n<p>S3 是对象存储服务，提供 99.999999999% (11个9) 的持久性。</p>\n<h4>存储类别</h4>\n<pre><code>S3 存储类别对比\n┌─────────────────────┬──────────────┬─────────────┐\n│ 存储类别            │ 用途         │ 成本        │\n├─────────────────────┼──────────────┼─────────────┤\n│ S3 Standard         │ 频繁访问     │ 高          │\n│ S3 Intelligent      │ 自动分层     │ 中          │\n│ S3 Standard-IA      │ 不频繁访问   │ 中低        │\n│ S3 One Zone-IA      │ 单可用区     │ 低          │\n│ S3 Glacier          │ 归档存储     │ 很低        │\n│ S3 Glacier Deep     │ 长期归档     │ 最低        │\n└─────────────────────┴──────────────┴─────────────┘\n</code></pre>\n<h4>S3 操作</h4>\n<pre><code class=\"language-bash\"># 创建存储桶\naws s3 mb s3://my-bucket-name\n\n# 上传文件\naws s3 cp file.txt s3://my-bucket-name/\n\n# 同步目录\naws s3 sync ./local-dir s3://my-bucket-name/remote-dir\n\n# 设置生命周期策略\naws s3api put-bucket-lifecycle-configuration \\\n  --bucket my-bucket-name \\\n  --lifecycle-configuration file://lifecycle.json\n</code></pre>\n<h3>EBS (Elastic Block Store)</h3>\n<p>EBS 为 EC2 实例提供块存储卷。</p>\n<pre><code>EBS 卷类型\n├── gp3 (通用SSD) - 基准 3000 IOPS\n├── gp2 (通用SSD) - 突发性能\n├── io2 (预置IOPS SSD) - 高性能数据库\n├── st1 (吞吐优化HDD) - 大数据工作负载\n└── sc1 (冷HDD) - 不频繁访问\n</code></pre>\n<h2>网络服务</h2>\n<h3>VPC (Virtual Private Cloud)</h3>\n<p>VPC 是 AWS 中的虚拟网络环境。</p>\n<pre><code>VPC 架构示例\n┌────────────────────────────────────────────┐\n│ VPC: 10.0.0.0/16                           │\n│                                            │\n│  ┌─────────────────┐  ┌─────────────────┐  │\n│  │ Public Subnet   │  │ Public Subnet   │  │\n│  │ 10.0.1.0/24     │  │ 10.0.2.0/24     │  │\n│  │ AZ-a            │  │ AZ-b            │  │\n│  │ ┌───┐ ┌───┐     │  │ ┌───┐ ┌───┐     │  │\n│  │ │EC2│ │NAT│     │  │ │EC2│ │NAT│     │  │\n│  │ └───┘ └───┘     │  │ └───┘ └───┘     │  │\n│  └────────┬────────┘  └────────┬────────┘  │\n│           │ Internet Gateway   │           │\n│  ┌────────┴────────┐  ┌────────┴────────┐  │\n│  │ Private Subnet  │  │ Private Subnet  │  │\n│  │ 10.0.3.0/24     │  │ 10.0.4.0/24     │  │\n│  │ AZ-a            │  │ AZ-b            │  │\n│  │ ┌───┐ ┌───┐     │  │ ┌───┐ ┌───┐     │  │\n│  │ │EC2│ │RDS│     │  │ │EC2│ │RDS│     │  │\n│  │ └───┘ └───┘     │  │ └───┘ └───┘     │  │\n│  └─────────────────┘  └─────────────────┘  │\n└────────────────────────────────────────────┘\n</code></pre>\n<h4>VPC 创建</h4>\n<pre><code class=\"language-bash\"># 创建 VPC\naws ec2 create-vpc --cidr-block 10.0.0.0/16\n\n# 创建子网\naws ec2 create-subnet \\\n  --vpc-id vpc-xxx \\\n  --cidr-block 10.0.1.0/24 \\\n  --availability-zone ap-northeast-1a\n\n# 创建 Internet Gateway\naws ec2 create-internet-gateway\naws ec2 attach-internet-gateway \\\n  --vpc-id vpc-xxx \\\n  --internet-gateway-id igw-xxx\n</code></pre>\n<h3>Route 53 (DNS 服务)</h3>\n<pre><code class=\"language-bash\"># 创建托管区域\naws route53 create-hosted-zone \\\n  --name example.com \\\n  --caller-reference unique-string\n\n# 添加 A 记录\naws route53 change-resource-record-sets \\\n  --hosted-zone-id Z123456 \\\n  --change-batch '{\n    \"Changes\": [{\n      \"Action\": \"CREATE\",\n      \"ResourceRecordSet\": {\n        \"Name\": \"www.example.com\",\n        \"Type\": \"A\",\n        \"TTL\": 300,\n        \"ResourceRecords\": [{\"Value\": \"1.2.3.4\"}]\n      }\n    }]\n  }'\n</code></pre>\n<h2>数据库服务</h2>\n<h3>RDS (Relational Database Service)</h3>\n<pre><code class=\"language-bash\"># 创建 MySQL 实例\naws rds create-db-instance \\\n  --db-instance-identifier mydb \\\n  --db-instance-class db.t3.micro \\\n  --engine mysql \\\n  --engine-version 8.0 \\\n  --master-username admin \\\n  --master-user-password MyPassword123 \\\n  --allocated-storage 20 \\\n  --vpc-security-group-ids sg-xxx \\\n  --db-subnet-group-name my-subnet-group\n</code></pre>\n<h3>DynamoDB (NoSQL)</h3>\n<pre><code class=\"language-python\">import boto3\n\n# 创建表\ndynamodb = boto3.resource('dynamodb')\ntable = dynamodb.create_table(\n    TableName='Users',\n    KeySchema=[\n        {'AttributeName': 'user_id', 'KeyType': 'HASH'},\n        {'AttributeName': 'created_at', 'KeyType': 'RANGE'}\n    ],\n    AttributeDefinitions=[\n        {'AttributeName': 'user_id', 'AttributeType': 'S'},\n        {'AttributeName': 'created_at', 'AttributeType': 'N'}\n    ],\n    BillingMode='PAY_PER_REQUEST'\n)\n\n# 写入数据\ntable.put_item(Item={\n    'user_id': 'user123',\n    'created_at': 1234567890,\n    'name': 'John Doe'\n})\n</code></pre>\n<h2>IAM (身份与访问管理)</h2>\n<h3>策略示例</h3>\n<pre><code class=\"language-json\">{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\"\n      ],\n      \"Resource\": \"arn:aws:s3:::my-bucket/*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"s3:ListBucket\",\n      \"Resource\": \"arn:aws:s3:::my-bucket\"\n    }\n  ]\n}\n</code></pre>\n<h3>最佳实践</h3>\n<ol>\n<li><strong>最小权限原则</strong> - 只授予必要的权限</li>\n<li><strong>使用 IAM 角色</strong> - 避免长期凭证</li>\n<li><strong>启用 MFA</strong> - 增强账户安全</li>\n<li><strong>定期轮换凭证</strong> - 降低泄露风险</li>\n<li><strong>使用 AWS Organizations</strong> - 多账户管理</li>\n</ol>\n<h2>成本优化</h2>\n<h3>计费模式</h3>\n<pre><code>EC2 定价选项\n├── 按需实例 - 按秒计费，灵活\n├── Reserved Instances - 1-3年承诺，最高75%折扣\n├── Savings Plans - 灵活的承诺折扣\n├── Spot Instances - 竞价实例，最高90%折扣\n└── Dedicated Hosts - 专用物理服务器\n</code></pre>\n<h3>Cost Explorer</h3>\n<pre><code class=\"language-bash\"># 获取成本和使用情况\naws ce get-cost-and-usage \\\n  --time-period Start=2024-01-01,End=2024-01-31 \\\n  --granularity MONTHLY \\\n  --metrics BlendedCost \\\n  --group-by Type=DIMENSION,Key=SERVICE\n</code></pre>\n<h2>总结</h2>\n<p>AWS 核心服务要点：</p>\n<ol>\n<li><strong>计算</strong>: EC2 (虚拟机), Lambda (无服务器), ECS/EKS (容器)</li>\n<li><strong>存储</strong>: S3 (对象), EBS (块), EFS (文件)</li>\n<li><strong>数据库</strong>: RDS (关系型), DynamoDB (NoSQL), ElastiCache (缓存)</li>\n<li><strong>网络</strong>: VPC, Route 53, CloudFront, ELB</li>\n<li><strong>安全</strong>: IAM, KMS, WAF, Shield</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "AWS 是全球最大的云服务提供商",
+        "提供 200+ 种云服务",
+        "按区域和可用区部署",
+        "按需付费，弹性扩展"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "AWS 概述",
+      "content": "Amazon Web Services (AWS) 提供全面的云计算服务，从计算、存储到机器学习、IoT。其全球基础设施覆盖 30+ 个地理区域，是企业云原生转型的首选平台。"
+    },
+    {
+      "type": "cards",
+      "title": "核心服务",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "计算服务",
+          "badge": "Compute",
+          "badgeColor": "orange",
+          "points": [
+            "EC2 - 虚拟服务器",
+            "Lambda - 无服务器函数",
+            "ECS/EKS - 容器服务",
+            "Fargate - 无服务器容器"
+          ]
+        },
+        {
+          "title": "存储服务",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "S3 - 对象存储",
+            "EBS - 块存储",
+            "EFS - 文件存储",
+            "Glacier - 归档存储"
+          ]
+        },
+        {
+          "title": "数据库服务",
+          "badge": "Database",
+          "badgeColor": "blue",
+          "points": [
+            "RDS - 托管关系型数据库",
+            "DynamoDB - NoSQL",
+            "ElastiCache - 缓存",
+            "Aurora - 高性能数据库"
+          ]
+        },
+        {
+          "title": "网络服务",
+          "badge": "Network",
+          "badgeColor": "purple",
+          "points": [
+            "VPC - 虚拟私有云",
+            "Route 53 - DNS",
+            "CloudFront - CDN",
+            "API Gateway"
+          ]
+        },
+        {
+          "title": "安全服务",
+          "badge": "Security",
+          "badgeColor": "red",
+          "points": [
+            "IAM - 身份管理",
+            "KMS - 密钥管理",
+            "WAF - Web 防火墙",
+            "Shield - DDoS 防护"
+          ]
+        },
+        {
+          "title": "DevOps",
+          "badge": "DevOps",
+          "badgeColor": "cyan",
+          "points": [
+            "CloudFormation - IaC",
+            "CodePipeline - CI/CD",
+            "CloudWatch - 监控",
+            "Systems Manager"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "典型 Web 应用架构",
+      "subtitle": "高可用三层架构",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Route 53",
+          "description": "DNS",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "CloudFront",
+          "description": "CDN",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "ALB",
+          "description": "负载均衡",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "EC2/ECS",
+          "description": "计算",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "RDS",
+          "description": "数据库",
+          "color": "bg-yellow-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "EC2 实例类型",
+      "columns": [
+        {
+          "title": "通用型",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "系列",
+              "description": "t3, m5, m6i"
+            },
+            {
+              "label": "特点",
+              "description": "平衡计算/内存/网络"
+            },
+            {
+              "label": "场景",
+              "description": "Web 服务器、小型数据库"
+            }
+          ]
+        },
+        {
+          "title": "计算优化",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            {
+              "label": "系列",
+              "description": "c5, c6i"
+            },
+            {
+              "label": "特点",
+              "description": "高 CPU 性能"
+            },
+            {
+              "label": "场景",
+              "description": "批处理、游戏服务器"
+            }
+          ]
+        },
+        {
+          "title": "内存优化",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "系列",
+              "description": "r5, r6i, x2"
+            },
+            {
+              "label": "特点",
+              "description": "大内存"
+            },
+            {
+              "label": "场景",
+              "description": "内存数据库、缓存"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "S3 存储类别",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "访问频率",
+        "延迟",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "频繁",
+          "毫秒",
+          "活跃数据"
+        ],
+        [
+          "Standard-IA",
+          "低频",
+          "毫秒",
+          "备份、长期存储"
+        ],
+        [
+          "One Zone-IA",
+          "低频",
+          "毫秒",
+          "可重建数据"
+        ],
+        [
+          "Glacier Instant",
+          "归档",
+          "毫秒",
+          "合规归档"
+        ],
+        [
+          "Glacier Deep",
+          "深度归档",
+          "12小时",
+          "长期保存"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "AWS 最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 IAM 角色",
+          "description": "避免硬编码凭证，使用角色进行权限管理"
+        },
+        {
+          "label": "多可用区部署",
+          "description": "将资源分布在多个 AZ 提高可用性"
+        },
+        {
+          "label": "启用 CloudTrail",
+          "description": "记录 API 调用，满足审计需求"
+        },
+        {
+          "label": "成本优化",
+          "description": "使用预留实例、Savings Plans 降低成本"
+        },
+        {
+          "label": "基础设施即代码",
+          "description": "使用 CloudFormation 或 Terraform"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Terraform",
+    "Kubernetes",
+    "DevOps"
+  ]
 }

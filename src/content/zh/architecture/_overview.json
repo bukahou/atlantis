@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "title": "架构",
+    "description": "设计模式、分布式系统、高可用架构与领域驱动设计",
+    "icon": "boxes"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "设计模式：可复用的解决方案模板",
+        "分布式系统：CAP理论与一致性模型",
+        "高可用架构：冗余、容错与灾备",
+        "DDD：以业务领域为中心的设计方法"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "软件架构是系统的骨架，决定了系统的可扩展性、可维护性和可靠性。良好的架构设计需要在性能、成本和复杂度之间取得平衡，没有银弹，只有针对具体场景的最优解。"
+    },
+    {
+      "type": "comparison",
+      "title": "架构风格对比",
+      "columns": [
+        {
+          "title": "单体架构",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            { "label": "特点", "description": "部署简单，运维成本低" },
+            { "label": "适用", "description": "小型项目、MVP 验证" },
+            { "label": "挑战", "description": "扩展困难、技术栈单一" }
+          ]
+        },
+        {
+          "title": "微服务架构",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "特点", "description": "独立部署，技术多样" },
+            { "label": "适用", "description": "大型系统、团队协作" },
+            { "label": "挑战", "description": "运维复杂、分布式事务" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "架构决策矩阵",
+      "highlightFirst": true,
+      "headers": ["维度", "单体", "SOA", "微服务"],
+      "rows": [
+        ["部署复杂度", "低", "中", "高"],
+        ["扩展性", "垂直", "服务级", "细粒度"],
+        ["技术多样性", "单一", "有限", "灵活"],
+        ["团队规模", "小型", "中型", "大型"],
+        ["运维成本", "低", "中", "高"]
+      ]
+    }
+  ],
+  "relatedTopics": ["微服务", "云原生", "DevOps"],
+  "articles": [
+    {
+      "slug": "patterns",
+      "title": "设计模式",
+      "description": "经典设计模式与现代应用",
+      "priority": "essential"
+    },
+    {
+      "slug": "distributed",
+      "title": "分布式系统",
+      "description": "CAP理论、一致性与分布式事务",
+      "priority": "essential"
+    },
+    {
+      "slug": "high-availability",
+      "title": "高可用",
+      "description": "冗余设计、故障转移与灾备",
+      "priority": "recommended"
+    },
+    {
+      "slug": "ddd",
+      "title": "领域驱动设计",
+      "description": "限界上下文、聚合根与事件溯源",
+      "priority": "important"
+    }
+  ]
+}

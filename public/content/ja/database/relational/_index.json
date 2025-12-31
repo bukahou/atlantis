@@ -3,7 +3,7 @@
     {
       "slug": "mysql",
       "title": "MySQL",
-      "description": "MySQL データベースコアコンセプト、クエリ最適化と高可用性アーキテクチャ",
+      "description": "MySQL データベースのコア概念、クエリ最適化と高可用性アーキテクチャ",
       "href": "/database/relational/mysql",
       "order": 1
     },

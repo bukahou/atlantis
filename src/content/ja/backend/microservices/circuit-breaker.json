@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "title": "サーキットブレーカーパターン",
+    "description": "サービスフォールトトレランスとレジリエンス設計",
+    "order": 3,
+    "tags": ["マイクロサービス", "サーキットブレーカー", "フォールトトレランス"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "サーキットブレーカーはカスケード障害を防止",
+        "3つの状態：クローズド、オープン、ハーフオープン",
+        "失敗率が閾値を超えると熔断をトリガー",
+        "自動復旧メカニズム"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "サーキットブレーカーステートマシン",
+      "subtitle": "状態遷移フロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Closed", "description": "正常通過", "color": "bg-green-500" },
+        { "label": "Open", "description": "フェイルファスト", "color": "bg-red-500" },
+        { "label": "Half-Open", "description": "復旧テスト", "color": "bg-amber-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "フォールトトレランス戦略",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "サーキットブレーカー",
+          "badge": "Circuit Breaker",
+          "badgeColor": "red",
+          "points": [
+            "失敗率閾値超過でトリガー",
+            "待機せずフェイルファスト",
+            "自動復旧"
+          ]
+        },
+        {
+          "title": "リトライ",
+          "badge": "Retry",
+          "badgeColor": "blue",
+          "points": [
+            "一時的障害をリトライ",
+            "指数バックオフ",
+            "最大リトライ回数"
+          ]
+        },
+        {
+          "title": "タイムアウト",
+          "badge": "Timeout",
+          "badgeColor": "amber",
+          "points": [
+            "無限待機を回避",
+            "リソースを迅速に解放",
+            "適切なタイムアウト設定"
+          ]
+        },
+        {
+          "title": "フォールバック",
+          "badge": "Fallback",
+          "badgeColor": "purple",
+          "points": [
+            "失敗時にデフォルト値を返却",
+            "キャッシュデータでフォールバック",
+            "コア機能を保証"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "主要実装",
+      "columns": [
+        {
+          "title": "Resilience4j",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "言語", "description": "Java" },
+            { "label": "特徴", "description": "軽量、関数型" },
+            { "label": "機能", "description": "熔断/レート制限/リトライ" }
+          ]
+        },
+        {
+          "title": "Sentinel",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "言語", "description": "Java/Go" },
+            { "label": "特徴", "description": "Alibaba オープンソース" },
+            { "label": "機能", "description": "フロー制御/熔断/ホットスポット" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "サーキットブレーカーパラメータ",
+      "highlightFirst": true,
+      "headers": ["パラメータ", "説明", "推奨値"],
+      "rows": [
+        ["failureRateThreshold", "失敗率閾値", "50%"],
+        ["slowCallRateThreshold", "スロー呼び出し率閾値", "100%"],
+        ["slowCallDurationThreshold", "スロー呼び出し時間", "2s"],
+        ["waitDurationInOpenState", "熔断待機時間", "60s"],
+        ["permittedNumberOfCallsInHalfOpenState", "ハーフオープン状態リクエスト数", "10"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "適切な閾値", "description": "ビジネス特性に応じて失敗率閾値を設定" },
+        { "label": "フォールバック方案", "description": "重要インターフェースにはフォールバック戻り値を準備" },
+        { "label": "監視アラート", "description": "熔断トリガー時に即座にアラート" },
+        { "label": "過度な保護を回避", "description": "すべてのインターフェースに熔断は不要" }
+      ]
+    }
+  ],
+  "relatedTopics": ["マイクロサービス", "サービスメッシュ", "オブザーバビリティ"]
+}

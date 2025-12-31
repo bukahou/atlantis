@@ -1,0 +1,106 @@
+{
+  "slug": "logging",
+  "meta": {
+    "title": "审计日志",
+    "description": "日志设计、采集与分析",
+    "order": 1,
+    "tags": [
+      "审计",
+      "日志",
+      "安全"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "审计日志记录安全相关的操作和事件",
+        "6W：Who、What、When、Where、Why、How",
+        "不可篡改：写入后不能修改或删除",
+        "保留期限：根据合规要求保留（通常6个月-7年）"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "审计日志格式",
+      "language": "json",
+      "code": "{\n  \"timestamp\": \"2024-01-15T10:30:45.123Z\",\n  \"event_id\": \"evt_abc123\",\n  \"event_type\": \"user.login\",\n  \"severity\": \"info\",\n  \"actor\": {\n    \"user_id\": \"user_123\",\n    \"username\": \"john@example.com\",\n    \"ip_address\": \"192.168.1.100\",\n    \"user_agent\": \"Mozilla/5.0...\"\n  },\n  \"action\": {\n    \"type\": \"authentication\",\n    \"method\": \"password\",\n    \"result\": \"success\"\n  },\n  \"resource\": {\n    \"type\": \"session\",\n    \"id\": \"sess_xyz789\"\n  },\n  \"context\": {\n    \"request_id\": \"req_def456\",\n    \"session_id\": \"sess_xyz789\",\n    \"geo_location\": \"Shanghai, CN\"\n  },\n  \"metadata\": {\n    \"mfa_used\": true,\n    \"risk_score\": 0.1\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "审计日志实现",
+      "language": "typescript",
+      "code": "interface AuditEvent {\n  eventType: string;\n  actor: Actor;\n  action: Action;\n  resource?: Resource;\n  result: 'success' | 'failure';\n  metadata?: Record<string, any>;\n}\n\nclass AuditLogger {\n  constructor(\n    private transport: AuditTransport,\n    private context: RequestContext\n  ) {}\n\n  async log(event: AuditEvent): Promise<void> {\n    const auditLog = {\n      timestamp: new Date().toISOString(),\n      eventId: generateId(),\n      ...event,\n      actor: {\n        ...event.actor,\n        ipAddress: this.context.ip,\n        userAgent: this.context.userAgent,\n      },\n      context: {\n        requestId: this.context.requestId,\n        traceId: this.context.traceId,\n      },\n    };\n\n    // 异步写入，不阻塞业务\n    await this.transport.send(auditLog);\n  }\n}\n\n// 使用装饰器自动记录\n@AuditLog('user.delete', { captureArgs: true })\nasync deleteUser(userId: string): Promise<void> {\n  // 业务逻辑\n}\n\n// 敏感操作强制审计\nasync function transferMoney(from: string, to: string, amount: number) {\n  await auditLogger.log({\n    eventType: 'transaction.transfer',\n    actor: { userId: getCurrentUser().id },\n    action: { type: 'transfer', method: 'api' },\n    resource: { type: 'account', id: from },\n    result: 'success',\n    metadata: { toAccount: to, amount, currency: 'CNY' },\n  });\n  \n  // 执行转账\n}"
+    },
+    {
+      "type": "table",
+      "title": "必须审计的事件",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "事件",
+        "说明"
+      ],
+      "rows": [
+        [
+          "认证",
+          "登录/登出/MFA",
+          "所有身份验证"
+        ],
+        [
+          "授权",
+          "权限变更/角色分配",
+          "访问控制变更"
+        ],
+        [
+          "数据",
+          "敏感数据访问/导出",
+          "隐私数据操作"
+        ],
+        [
+          "配置",
+          "安全配置变更",
+          "系统设置修改"
+        ],
+        [
+          "异常",
+          "失败登录/越权访问",
+          "可疑行为"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "结构化日志",
+          "description": "JSON 格式便于解析和检索"
+        },
+        {
+          "label": "不记录敏感数据",
+          "description": "密码、Token 等脱敏处理"
+        },
+        {
+          "label": "异步写入",
+          "description": "不影响业务性能"
+        },
+        {
+          "label": "集中存储",
+          "description": "发送到专用日志系统（ELK、Loki）"
+        },
+        {
+          "label": "不可篡改",
+          "description": "使用 WORM 存储或区块链"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "SIEM",
+    "日志分析",
+    "合规"
+  ]
+}

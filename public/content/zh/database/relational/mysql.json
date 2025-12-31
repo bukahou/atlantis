@@ -5,11 +5,217 @@
     "description": "MySQL 数据库核心概念、查询优化与高可用架构",
     "order": 1,
     "tags": [
-      "database",
-      "mysql",
-      "sql",
-      "relational"
+      "MySQL",
+      "SQL",
+      "关系型数据库"
     ]
   },
-  "content": "<h1>MySQL</h1>\n<h2>MySQL 概述</h2>\n<p>MySQL 是最流行的开源关系型数据库，广泛应用于 Web 应用和企业系统。</p>\n<pre><code>MySQL 架构\n├── 连接层 - 连接池、认证\n├── 服务层 - 解析、优化、缓存\n├── 引擎层 - InnoDB、MyISAM\n└── 存储层 - 文件系统、日志\n</code></pre>\n<h2>存储引擎</h2>\n<h3>InnoDB</h3>\n<pre><code>InnoDB 特性\n├── 事务支持 - ACID 保证\n├── 行级锁 - 高并发\n├── 外键约束 - 数据完整性\n├── MVCC - 多版本并发控制\n├── 聚簇索引 - 主键索引存储数据\n└── 崩溃恢复 - redo/undo log\n</code></pre>\n<h3>引擎对比</h3>\n<pre><code>特性比较\n├── InnoDB\n│   ├── 事务: 支持\n│   ├── 锁粒度: 行锁\n│   ├── 外键: 支持\n│   └── 适用: OLTP\n└── MyISAM\n    ├── 事务: 不支持\n    ├── 锁粒度: 表锁\n    ├── 外键: 不支持\n    └── 适用: 只读/读多写少\n</code></pre>\n<h2>索引</h2>\n<h3>索引类型</h3>\n<pre><code class=\"language-sql\">-- B+Tree 索引 (默认)\nCREATE INDEX idx_name ON users(name);\n\n-- 唯一索引\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 复合索引\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- 全文索引\nCREATE FULLTEXT INDEX idx_content ON articles(content);\n\n-- 前缀索引\nCREATE INDEX idx_title ON articles(title(20));\n</code></pre>\n<h3>索引优化</h3>\n<pre><code class=\"language-sql\">-- 覆盖索引\nCREATE INDEX idx_cover ON orders(user_id, status, created_at);\nSELECT user_id, status, created_at FROM orders WHERE user_id = 1;\n\n-- 最左前缀原则\n-- 索引 (a, b, c)\nWHERE a = 1                  -- 使用索引\nWHERE a = 1 AND b = 2        -- 使用索引\nWHERE a = 1 AND b = 2 AND c = 3  -- 使用索引\nWHERE b = 2                  -- 不使用索引\nWHERE a = 1 AND c = 3        -- 部分使用 (a)\n\n-- EXPLAIN 分析\nEXPLAIN SELECT * FROM users WHERE name = 'test';\n</code></pre>\n<h2>事务</h2>\n<h3>事务特性 (ACID)</h3>\n<pre><code>ACID\n├── Atomicity (原子性) - 全部成功或全部失败\n├── Consistency (一致性) - 数据完整性约束\n├── Isolation (隔离性) - 事务互不干扰\n└── Durability (持久性) - 提交后永久保存\n</code></pre>\n<h3>隔离级别</h3>\n<pre><code class=\"language-sql\">-- 查看隔离级别\nSELECT @@transaction_isolation;\n\n-- 设置隔离级别\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\n\n-- 隔离级别\n-- READ UNCOMMITTED - 脏读\n-- READ COMMITTED - 不可重复读\n-- REPEATABLE READ - 幻读 (MySQL 默认)\n-- SERIALIZABLE - 串行化\n</code></pre>\n<h3>MVCC</h3>\n<pre><code>多版本并发控制\n├── 每行记录有隐藏列\n│   ├── DB_TRX_ID - 最后修改事务 ID\n│   ├── DB_ROLL_PTR - 回滚指针\n│   └── DB_ROW_ID - 隐藏主键\n├── Undo Log - 版本链\n├── Read View - 可见性判断\n└── 快照读 vs 当前读\n</code></pre>\n<h2>锁机制</h2>\n<h3>锁类型</h3>\n<pre><code class=\"language-sql\">-- 共享锁 (S)\nSELECT * FROM users WHERE id = 1 LOCK IN SHARE MODE;\n\n-- 排他锁 (X)\nSELECT * FROM users WHERE id = 1 FOR UPDATE;\n\n-- 意向锁 - 表级别标识\n-- IS: 意向共享锁\n-- IX: 意向排他锁\n\n-- 间隙锁 (Gap Lock)\n-- 防止幻读，锁定范围\n\n-- 临键锁 (Next-Key Lock)\n-- 行锁 + 间隙锁\n</code></pre>\n<h3>死锁处理</h3>\n<pre><code class=\"language-sql\">-- 查看死锁日志\nSHOW ENGINE INNODB STATUS;\n\n-- 设置超时\nSET innodb_lock_wait_timeout = 50;\n\n-- 死锁检测\nSET innodb_deadlock_detect = ON;\n</code></pre>\n<h2>查询优化</h2>\n<h3>慢查询分析</h3>\n<pre><code class=\"language-sql\">-- 开启慢查询日志\nSET GLOBAL slow_query_log = ON;\nSET GLOBAL long_query_time = 1;\n\n-- 分析执行计划\nEXPLAIN SELECT * FROM orders WHERE user_id = 1;\n\n-- 查看索引使用\nSHOW INDEX FROM orders;\n\n-- 优化器提示\nSELECT /*+ INDEX(orders idx_user) */ * FROM orders WHERE user_id = 1;\n</code></pre>\n<h3>SQL 优化技巧</h3>\n<pre><code class=\"language-sql\">-- 避免 SELECT *\nSELECT id, name, email FROM users WHERE status = 1;\n\n-- 使用 LIMIT\nSELECT * FROM orders ORDER BY created_at DESC LIMIT 10;\n\n-- 避免在索引列上使用函数\n-- 错误\nSELECT * FROM users WHERE YEAR(created_at) = 2024;\n-- 正确\nSELECT * FROM users WHERE created_at >= '2024-01-01' AND created_at &#x3C; '2025-01-01';\n\n-- 使用 EXISTS 替代 IN\nSELECT * FROM users u WHERE EXISTS (\n    SELECT 1 FROM orders o WHERE o.user_id = u.id\n);\n\n-- 批量插入\nINSERT INTO users (name, email) VALUES\n('user1', 'user1@example.com'),\n('user2', 'user2@example.com'),\n('user3', 'user3@example.com');\n</code></pre>\n<h2>高可用架构</h2>\n<h3>主从复制</h3>\n<pre><code class=\"language-yaml\"># 主库配置\nserver-id: 1\nlog-bin: mysql-bin\nbinlog-format: ROW\n\n# 从库配置\nserver-id: 2\nrelay-log: relay-bin\nread-only: ON\n\n# 复制类型\n├── 异步复制 - 默认，可能丢数据\n├── 半同步复制 - 至少一个从库确认\n└── 组复制 - 多主，强一致\n</code></pre>\n<h3>分库分表</h3>\n<pre><code>分片策略\n├── 水平分片 - 按行拆分\n│   ├── Range - 按范围\n│   ├── Hash - 按哈希\n│   └── List - 按列表\n└── 垂直分片 - 按列拆分\n\n中间件\n├── ShardingSphere\n├── MyCat\n└── Vitess\n</code></pre>\n<h2>总结</h2>\n<p>MySQL 要点：</p>\n<ol>\n<li><strong>存储引擎</strong> - InnoDB 事务支持，行锁</li>\n<li><strong>索引</strong> - B+Tree，覆盖索引，最左前缀</li>\n<li><strong>事务</strong> - ACID，隔离级别，MVCC</li>\n<li><strong>锁</strong> - 行锁、间隙锁、死锁处理</li>\n<li><strong>高可用</strong> - 主从复制、分库分表</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "MySQL 是最流行的开源关系型数据库",
+        "InnoDB 引擎支持事务和行锁",
+        "B+Tree 索引结构，支持覆盖索引",
+        "MVCC 多版本并发控制"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "存储引擎",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "InnoDB",
+          "badge": "推荐",
+          "badgeColor": "green",
+          "points": [
+            "ACID 事务支持",
+            "行级锁，高并发",
+            "外键约束",
+            "崩溃恢复"
+          ]
+        },
+        {
+          "title": "MyISAM",
+          "badge": "旧版",
+          "badgeColor": "gray",
+          "points": [
+            "不支持事务",
+            "表级锁",
+            "全文索引",
+            "适合只读场景"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "索引类型",
+      "language": "sql",
+      "code": "-- B+Tree 索引 (默认)\nCREATE INDEX idx_name ON users(name);\n\n-- 唯一索引\nCREATE UNIQUE INDEX idx_email ON users(email);\n\n-- 复合索引\nCREATE INDEX idx_name_age ON users(name, age);\n\n-- 全文索引\nCREATE FULLTEXT INDEX idx_content ON articles(content);\n\n-- 最左前缀原则\n-- 索引 (a, b, c)\nWHERE a = 1                  -- 使用索引\nWHERE a = 1 AND b = 2        -- 使用索引\nWHERE b = 2                  -- 不使用索引"
+    },
+    {
+      "type": "comparison",
+      "title": "事务隔离级别",
+      "columns": [
+        {
+          "title": "READ UNCOMMITTED",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "问题",
+              "description": "脏读"
+            },
+            {
+              "label": "性能",
+              "description": "最高"
+            }
+          ]
+        },
+        {
+          "title": "READ COMMITTED",
+          "color": "from-amber-500 to-yellow-500",
+          "items": [
+            {
+              "label": "问题",
+              "description": "不可重复读"
+            },
+            {
+              "label": "性能",
+              "description": "较高"
+            }
+          ]
+        },
+        {
+          "title": "REPEATABLE READ",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "问题",
+              "description": "幻读"
+            },
+            {
+              "label": "性能",
+              "description": "默认级别"
+            }
+          ]
+        },
+        {
+          "title": "SERIALIZABLE",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "问题",
+              "description": "无"
+            },
+            {
+              "label": "性能",
+              "description": "最低"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "锁类型",
+      "highlightFirst": true,
+      "headers": [
+        "锁类型",
+        "粒度",
+        "并发性",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "共享锁 (S)",
+          "行",
+          "允许多读",
+          "SELECT ... LOCK IN SHARE MODE"
+        ],
+        [
+          "排他锁 (X)",
+          "行",
+          "互斥",
+          "SELECT ... FOR UPDATE"
+        ],
+        [
+          "间隙锁",
+          "范围",
+          "防止幻读",
+          "REPEATABLE READ 级别"
+        ],
+        [
+          "表锁",
+          "表",
+          "低",
+          "DDL 操作"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "查询优化",
+      "language": "sql",
+      "code": "-- 分析执行计划\nEXPLAIN SELECT * FROM orders WHERE user_id = 1;\n\n-- 避免 SELECT *\nSELECT id, name, email FROM users;\n\n-- 避免在索引列上使用函数\n-- 错误: WHERE YEAR(created_at) = 2024\n-- 正确:\nWHERE created_at >= '2024-01-01' AND created_at < '2025-01-01';\n\n-- 批量插入\nINSERT INTO users (name, email) VALUES\n('user1', 'u1@test.com'),\n('user2', 'u2@test.com');"
+    },
+    {
+      "type": "flow",
+      "title": "主从复制",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "主库写入",
+          "description": "Binlog",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "传输日志",
+          "description": "IO Thread",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "从库接收",
+          "description": "Relay Log",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "重放应用",
+          "description": "SQL Thread",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "高可用方案",
+      "style": "check",
+      "items": [
+        {
+          "label": "主从复制",
+          "description": "异步/半同步/组复制"
+        },
+        {
+          "label": "读写分离",
+          "description": "主写从读，ProxySQL/MaxScale"
+        },
+        {
+          "label": "分库分表",
+          "description": "ShardingSphere、MyCat、Vitess"
+        },
+        {
+          "label": "MGR",
+          "description": "MySQL Group Replication 多主"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "PostgreSQL",
+    "索引优化",
+    "分库分表"
+  ]
 }

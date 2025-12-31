@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "title": "コンプライアンスチェック",
+    "description": "ISMS、GDPRとSOC 2",
+    "order": 3,
+    "tags": ["コンプライアンス", "ISMS", "GDPR"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "コンプライアンスは法規制と基準の必須要件",
+        "業界/地域によって異なるコンプライアンス要件",
+        "コンプライアンス ≠ セキュリティ、しかしコンプライアンスはセキュリティのベースライン",
+        "継続的コンプライアンス：自動化されたチェックと修正"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要なコンプライアンス基準",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ISMS/ISO27001",
+          "badge": "国際",
+          "badgeColor": "blue",
+          "points": [
+            "情報セキュリティ管理",
+            "リスク評価",
+            "継続的改善"
+          ]
+        },
+        {
+          "title": "GDPR",
+          "badge": "EU",
+          "badgeColor": "green",
+          "points": [
+            "個人データ保護",
+            "データ主体の権利",
+            "違反時の重罰"
+          ]
+        },
+        {
+          "title": "SOC 2",
+          "badge": "国際",
+          "badgeColor": "purple",
+          "points": [
+            "SaaSサービスセキュリティ",
+            "Type I/Type II",
+            "信頼サービス基準"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ISMS管理策ドメイン",
+      "highlightFirst": true,
+      "headers": ["ドメイン", "要件", "実装"],
+      "rows": [
+        ["物理的セキュリティ", "施設セキュリティ", "アクセス制御、環境監視"],
+        ["通信セキュリティ", "ネットワーク、通信", "ネットワーク分離、暗号化転送"],
+        ["アクセス制御", "境界防御、アクセス制御", "ファイアウォール、侵入検知"],
+        ["システムセキュリティ", "認証、アクセス制御", "MFA、RBAC、監査ログ"],
+        ["運用セキュリティ", "システム管理、監視", "踏み台サーバー、SOC"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "GDPR技術要件実装",
+      "language": "typescript",
+      "code": "// データ主体の権利実装\nclass GDPRCompliance {\n  // アクセス権（Right of Access）\n  async getPersonalData(userId: string): Promise<PersonalData> {\n    const data = await this.collectAllUserData(userId);\n    return this.formatForExport(data);\n  }\n  \n  // 忘れられる権利（Right to Erasure）\n  async deletePersonalData(userId: string): Promise<void> {\n    // 1. すべての個人データを削除\n    await this.deleteFromAllSystems(userId);\n    \n    // 2. データ処理者に通知\n    await this.notifyProcessors(userId, 'deletion');\n    \n    // 3. 削除操作を記録\n    await this.auditLog.log({\n      eventType: 'gdpr.erasure',\n      userId,\n      timestamp: new Date(),\n    });\n  }\n  \n  // データポータビリティ権（Right to Portability）\n  async exportPersonalData(userId: string): Promise<Buffer> {\n    const data = await this.getPersonalData(userId);\n    return this.formatAsPortableJSON(data);\n  }\n  \n  // 同意管理\n  async recordConsent(userId: string, purposes: string[]): Promise<void> {\n    await this.consentStore.save({\n      userId,\n      purposes,\n      timestamp: new Date(),\n      version: this.privacyPolicyVersion,\n    });\n  }\n}\n\n// データ最小化\nclass DataMinimization {\n  // 必要なフィールドのみ収集\n  sanitizeUserInput(input: any): SanitizedInput {\n    return {\n      email: input.email,\n      name: input.name,\n      // 収集しない：生年月日、住所（必要でない場合）\n    };\n  }\n  \n  // 期限切れデータの定期削除\n  async purgeExpiredData(): Promise<void> {\n    const retentionDays = 365 * 3; // 3年保持\n    await this.db.deleteWhere({\n      createdAt: { $lt: daysAgo(retentionDays) },\n    });\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "自動コンプライアンスチェック",
+      "language": "yaml",
+      "code": "# Checkov - インフラコンプライアンスチェック\ncheckov:\n  # SOC 2関連チェック\n  - check: CKV_AWS_19  # S3暗号化\n  - check: CKV_AWS_21  # CloudTrail有効化\n  - check: CKV_AWS_23  # セキュリティグループ制限\n  \n# AWS Config コンプライアンスルール\nResources:\n  S3BucketEncryptionRule:\n    Type: AWS::Config::ConfigRule\n    Properties:\n      ConfigRuleName: s3-bucket-server-side-encryption-enabled\n      Source:\n        Owner: AWS\n        SourceIdentifier: S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED\n        \n  MFAEnabledRule:\n    Type: AWS::Config::ConfigRule\n    Properties:\n      ConfigRuleName: iam-user-mfa-enabled\n      Source:\n        Owner: AWS\n        SourceIdentifier: IAM_USER_MFA_ENABLED"
+    },
+    {
+      "type": "list",
+      "title": "コンプライアンス実施",
+      "style": "check",
+      "items": [
+        { "label": "ギャップ分析", "description": "現状と要件のギャップを評価" },
+        { "label": "コントロール実装", "description": "技術的および管理的コントロール措置" },
+        { "label": "継続的監視", "description": "自動化されたコンプライアンスチェック" },
+        { "label": "定期監査", "description": "内部監査 + 第三者監査" }
+      ]
+    }
+  ],
+  "relatedTopics": ["ISMS", "プライバシー保護", "監査"]
+}

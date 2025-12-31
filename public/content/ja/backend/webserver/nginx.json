@@ -1,0 +1,164 @@
+{
+  "slug": "nginx",
+  "meta": {
+    "title": "Nginx",
+    "description": "高性能 Web サーバーとリバースプロキシの設定ガイド",
+    "order": 1,
+    "tags": [
+      "Nginx",
+      "Webサーバー",
+      "リバースプロキシ",
+      "ロードバランサー"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "イベント駆動アーキテクチャ、高並列接続をサポート",
+        "低メモリ使用量、リソース制限環境に適合",
+        "リバースプロキシ、ロードバランシング、キャッシュをサポート",
+        "モジュラー設計、拡張が容易"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Nginx 概要",
+      "content": "Nginx は軽量・高性能な Web サーバーおよびリバースプロキシサーバーです。イベント駆動の非同期ノンブロッキングアーキテクチャを採用し、極めて少ないリソースで数万の並列接続を処理できます。Web サーバーとしてだけでなく、ロードバランシング、HTTP キャッシュ、API ゲートウェイなどのシナリオでも広く利用されています。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本設定構造",
+      "language": "nginx",
+      "code": "# /etc/nginx/nginx.conf\nuser nginx;\nworker_processes auto;  # CPU コア数に自動マッチ\nerror_log /var/log/nginx/error.log;\n\nevents {\n    worker_connections 1024;  # worker あたり最大接続数\n    use epoll;                # Linux 高効率イベントモデル\n}\n\nhttp {\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n    \n    # パフォーマンス最適化\n    sendfile on;\n    tcp_nopush on;\n    tcp_nodelay on;\n    keepalive_timeout 65;\n    \n    # Gzip 圧縮\n    gzip on;\n    gzip_types text/plain application/json application/javascript text/css;\n    \n    include /etc/nginx/conf.d/*.conf;\n}"
+    },
+    {
+      "type": "cards",
+      "title": "コア機能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "静的ファイル配信",
+          "badge": "基本",
+          "badgeColor": "green",
+          "points": [
+            "root でルートディレクトリ指定",
+            "try_files で SPA ルーティング",
+            "expires でキャッシュ時間設定",
+            "autoindex でディレクトリ一覧"
+          ]
+        },
+        {
+          "title": "リバースプロキシ",
+          "badge": "コア",
+          "badgeColor": "blue",
+          "points": [
+            "proxy_pass でリクエスト転送",
+            "proxy_set_header でヘッダー伝達",
+            "proxy_cache でレスポンスキャッシュ",
+            "upstream でバックエンド定義"
+          ]
+        },
+        {
+          "title": "ロードバランシング",
+          "badge": "上級",
+          "badgeColor": "purple",
+          "points": [
+            "round-robin ラウンドロビン",
+            "least_conn 最小接続数",
+            "ip_hash セッション維持",
+            "weight 重み付け"
+          ]
+        },
+        {
+          "title": "SSL/TLS",
+          "badge": "セキュリティ",
+          "badgeColor": "red",
+          "points": [
+            "ssl_certificate 証明書設定",
+            "ssl_protocols プロトコルバージョン",
+            "HSTS 強制 HTTPS",
+            "OCSP Stapling"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "リバースプロキシ設定例",
+      "language": "nginx",
+      "code": "upstream backend {\n    server 127.0.0.1:8080 weight=3;\n    server 127.0.0.1:8081 weight=2;\n    server 127.0.0.1:8082 backup;  # バックアップサーバー\n}\n\nserver {\n    listen 80;\n    server_name example.com;\n    return 301 https://$server_name$request_uri;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name example.com;\n    \n    ssl_certificate /etc/ssl/certs/example.crt;\n    ssl_certificate_key /etc/ssl/private/example.key;\n    ssl_protocols TLSv1.2 TLSv1.3;\n    \n    location / {\n        proxy_pass http://backend;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n    \n    location /static/ {\n        alias /var/www/static/;\n        expires 30d;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "よく使うディレクティブ",
+      "highlightFirst": true,
+      "headers": [
+        "ディレクティブ",
+        "機能",
+        "例"
+      ],
+      "rows": [
+        [
+          "listen",
+          "ポート監視",
+          "listen 443 ssl http2"
+        ],
+        [
+          "server_name",
+          "ドメインマッチ",
+          "server_name *.example.com"
+        ],
+        [
+          "location",
+          "パスマッチ",
+          "location ~ \\.php$"
+        ],
+        [
+          "proxy_pass",
+          "プロキシ転送",
+          "proxy_pass http://backend"
+        ],
+        [
+          "rewrite",
+          "URL 書き換え",
+          "rewrite ^/old /new permanent"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "パフォーマンス最適化のヒント",
+      "style": "check",
+      "items": [
+        {
+          "label": "sendfile を有効化",
+          "description": "静的ファイルのゼロコピー転送"
+        },
+        {
+          "label": "Gzip 圧縮を有効化",
+          "description": "転送データ量を 60-80% 削減"
+        },
+        {
+          "label": "バッファを設定",
+          "description": "proxy_buffer_size、proxy_buffers"
+        },
+        {
+          "label": "HTTP/2 を有効化",
+          "description": "多重化、ヘッダー圧縮"
+        },
+        {
+          "label": "接続再利用",
+          "description": "keepalive で長期接続維持"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "ロードバランサー",
+    "SSL/TLS",
+    "HAProxy"
+  ]
+}

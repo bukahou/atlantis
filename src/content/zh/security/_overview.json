@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "title": "安全",
+    "description": "认证授权、加密技术、网络安全与安全审计",
+    "icon": "shield"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "认证授权：身份验证与访问控制",
+        "加密技术：数据保密与完整性",
+        "网络安全：传输层与应用层防护",
+        "安全审计：日志记录与合规检查"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "安全是系统设计的重要维度，涵盖身份认证、数据加密、网络防护、审计合规等多个层面。OWASP Top 10 列出了最常见的 Web 安全风险，是安全防护的重要参考。安全不是一次性工作，而是持续的过程。"
+    },
+    {
+      "type": "cards",
+      "title": "安全层次",
+      "layout": "grid",
+      "columns": 4,
+      "items": [
+        {
+          "title": "身份安全",
+          "badge": "认证",
+          "badgeColor": "blue",
+          "points": [
+            "OAuth 2.0",
+            "OIDC",
+            "MFA"
+          ]
+        },
+        {
+          "title": "数据安全",
+          "badge": "加密",
+          "badgeColor": "green",
+          "points": [
+            "传输加密",
+            "存储加密",
+            "密钥管理"
+          ]
+        },
+        {
+          "title": "网络安全",
+          "badge": "防护",
+          "badgeColor": "purple",
+          "points": [
+            "WAF",
+            "DDoS 防护",
+            "零信任"
+          ]
+        },
+        {
+          "title": "合规审计",
+          "badge": "监控",
+          "badgeColor": "orange",
+          "points": [
+            "审计日志",
+            "漏洞扫描",
+            "等保合规"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "OWASP Top 10 (2021)",
+      "highlightFirst": true,
+      "headers": ["排名", "风险", "防护措施"],
+      "rows": [
+        ["A01", "访问控制失效", "RBAC、最小权限原则"],
+        ["A02", "加密失败", "TLS、AES-256、密钥轮换"],
+        ["A03", "注入攻击", "参数化查询、输入验证"],
+        ["A04", "不安全设计", "威胁建模、安全设计模式"],
+        ["A05", "安全配置错误", "安全基线、自动化扫描"]
+      ]
+    }
+  ],
+  "relatedTopics": ["DevSecOps", "零信任", "合规"],
+  "articles": [
+    {
+      "slug": "auth",
+      "title": "认证授权",
+      "description": "OAuth、JWT 与 RBAC 访问控制",
+      "priority": "essential"
+    },
+    {
+      "slug": "encryption",
+      "title": "加密技术",
+      "description": "对称加密、非对称加密与哈希算法",
+      "priority": "essential"
+    },
+    {
+      "slug": "network-security",
+      "title": "网络安全",
+      "description": "TLS/SSL、防火墙与 WAF",
+      "priority": "recommended"
+    },
+    {
+      "slug": "audit",
+      "title": "安全审计",
+      "description": "审计日志、漏洞扫描与合规检查",
+      "priority": "important"
+    }
+  ]
+}

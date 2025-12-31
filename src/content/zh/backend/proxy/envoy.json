@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "title": "Envoy Proxy",
+    "description": "服务网格数据面与高性能边缘代理",
+    "order": 3,
+    "tags": ["Envoy", "服务网格", "Istio", "CNCF"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "CNCF 毕业项目，服务网格标准数据面",
+        "L3/L4/L7 全协议栈代理",
+        "强大的可观测性：指标、日志、链路追踪",
+        "动态配置：xDS API 实时更新"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Envoy 简介",
+      "content": "Envoy 是由 Lyft 开发的高性能 C++ 边缘和服务代理，现已成为 CNCF 毕业项目。Envoy 是 Istio 服务网格的核心数据面组件，也被用作独立的边缘代理和 API 网关。其设计目标是为大规模微服务架构提供可观测性、灵活性和高性能。"
+    },
+    {
+      "type": "cards",
+      "title": "核心组件",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Listener",
+          "badge": "入口",
+          "badgeColor": "blue",
+          "points": [
+            "监听端口",
+            "接收连接",
+            "TLS 终端",
+            "过滤器链"
+          ]
+        },
+        {
+          "title": "Cluster",
+          "badge": "上游",
+          "badgeColor": "green",
+          "points": [
+            "后端服务组",
+            "负载均衡",
+            "健康检查",
+            "熔断配置"
+          ]
+        },
+        {
+          "title": "Route",
+          "badge": "路由",
+          "badgeColor": "purple",
+          "points": [
+            "请求匹配",
+            "流量分割",
+            "重定向/重写",
+            "超时/重试"
+          ]
+        },
+        {
+          "title": "Filter",
+          "badge": "过滤器",
+          "badgeColor": "amber",
+          "points": [
+            "HTTP 过滤器",
+            "网络过滤器",
+            "Lua 脚本",
+            "WASM 扩展"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础配置示例",
+      "language": "yaml",
+      "code": "static_resources:\n  listeners:\n    - name: listener_0\n      address:\n        socket_address:\n          address: 0.0.0.0\n          port_value: 8080\n      filter_chains:\n        - filters:\n            - name: envoy.filters.network.http_connection_manager\n              typed_config:\n                \"@type\": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager\n                stat_prefix: ingress_http\n                route_config:\n                  name: local_route\n                  virtual_hosts:\n                    - name: backend\n                      domains: [\"*\"]\n                      routes:\n                        - match:\n                            prefix: \"/api\"\n                          route:\n                            cluster: api_cluster\n                        - match:\n                            prefix: \"/\"\n                          route:\n                            cluster: web_cluster\n                http_filters:\n                  - name: envoy.filters.http.router\n                    typed_config:\n                      \"@type\": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router\n\n  clusters:\n    - name: api_cluster\n      connect_timeout: 5s\n      type: STRICT_DNS\n      lb_policy: ROUND_ROBIN\n      load_assignment:\n        cluster_name: api_cluster\n        endpoints:\n          - lb_endpoints:\n              - endpoint:\n                  address:\n                    socket_address:\n                      address: api-service\n                      port_value: 8080"
+    },
+    {
+      "type": "flow",
+      "title": "xDS 动态配置",
+      "subtitle": "Envoy 通过 xDS API 接收动态配置",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "LDS", "description": "监听器发现", "color": "bg-blue-500" },
+        { "label": "RDS", "description": "路由发现", "color": "bg-purple-500" },
+        { "label": "CDS", "description": "集群发现", "color": "bg-green-500" },
+        { "label": "EDS", "description": "端点发现", "color": "bg-amber-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "可观测性配置",
+      "highlightFirst": true,
+      "headers": ["功能", "说明", "集成"],
+      "rows": [
+        ["指标", "Prometheus 格式指标", "/stats/prometheus"],
+        ["追踪", "分布式链路追踪", "Jaeger/Zipkin/OpenTelemetry"],
+        ["日志", "访问日志", "文件/stdout"],
+        ["Admin", "管理接口", "/clusters /config_dump"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "使用场景",
+      "style": "check",
+      "items": [
+        { "label": "服务网格 Sidecar", "description": "Istio/Linkerd 数据面代理" },
+        { "label": "API 网关", "description": "边缘代理、认证、限流" },
+        { "label": "前端代理", "description": "负载均衡、TLS 终端" },
+        { "label": "可观测性", "description": "统一收集指标、日志、追踪" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Istio", "服务网格", "Kubernetes"]
+}

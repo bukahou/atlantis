@@ -5,11 +5,135 @@
     "description": "Jenkins 持续集成、Pipeline 与自动化部署",
     "order": 2,
     "tags": [
-      "toolchain",
-      "cicd",
-      "jenkins",
-      "automation"
+      "Jenkins",
+      "CI/CD",
+      "Pipeline"
     ]
   },
-  "content": "<h1>Jenkins</h1>\n<h2>Jenkins 概述</h2>\n<p>Jenkins 是开源的自动化服务器，支持构建、测试和部署软件项目的持续集成和持续交付。</p>\n<pre><code>Jenkins 架构\n├── Master - 控制节点\n│   ├── 任务调度\n│   ├── 配置管理\n│   └── Web 界面\n├── Agent - 执行节点\n│   ├── 构建执行\n│   └── 分布式构建\n└── Plugin - 插件生态\n    ├── 源码管理\n    ├── 构建工具\n    └── 部署集成\n</code></pre>\n<h2>Pipeline</h2>\n<h3>声明式 Pipeline</h3>\n<pre><code class=\"language-groovy\">// Jenkinsfile\npipeline {\n    agent any\n\n    environment {\n        GO_VERSION = '1.21'\n        DOCKER_REGISTRY = 'registry.example.com'\n    }\n\n    options {\n        timeout(time: 1, unit: 'HOURS')\n        disableConcurrentBuilds()\n        buildDiscarder(logRotator(numToKeepStr: '10'))\n    }\n\n    stages {\n        stage('Checkout') {\n            steps {\n                checkout scm\n            }\n        }\n\n        stage('Build') {\n            steps {\n                sh 'go build -o app ./...'\n            }\n        }\n\n        stage('Test') {\n            steps {\n                sh 'go test -v -coverprofile=coverage.out ./...'\n            }\n            post {\n                always {\n                    publishCoverage adapters: [coberturaAdapter('coverage.xml')]\n                }\n            }\n        }\n\n        stage('Docker Build') {\n            when {\n                branch 'main'\n            }\n            steps {\n                script {\n                    docker.build(\"${DOCKER_REGISTRY}/myapp:${BUILD_NUMBER}\")\n                }\n            }\n        }\n\n        stage('Deploy') {\n            when {\n                branch 'main'\n            }\n            steps {\n                script {\n                    docker.withRegistry(\"https://${DOCKER_REGISTRY}\", 'docker-credentials') {\n                        docker.image(\"${DOCKER_REGISTRY}/myapp:${BUILD_NUMBER}\").push()\n                    }\n                }\n            }\n        }\n    }\n\n    post {\n        success {\n            slackSend(color: 'good', message: \"Build ${BUILD_NUMBER} succeeded\")\n        }\n        failure {\n            slackSend(color: 'danger', message: \"Build ${BUILD_NUMBER} failed\")\n        }\n    }\n}\n</code></pre>\n<h3>脚本式 Pipeline</h3>\n<pre><code class=\"language-groovy\">node {\n    def app\n\n    stage('Clone') {\n        checkout scm\n    }\n\n    stage('Build') {\n        app = docker.build(\"myapp:${env.BUILD_ID}\")\n    }\n\n    stage('Test') {\n        app.inside {\n            sh 'go test ./...'\n        }\n    }\n\n    stage('Push') {\n        docker.withRegistry('https://registry.example.com', 'docker-credentials') {\n            app.push(\"${env.BUILD_NUMBER}\")\n            app.push(\"latest\")\n        }\n    }\n\n    stage('Deploy') {\n        if (env.BRANCH_NAME == 'main') {\n            sh 'kubectl set image deployment/myapp myapp=myapp:${BUILD_NUMBER}'\n        }\n    }\n}\n</code></pre>\n<h2>多分支 Pipeline</h2>\n<pre><code class=\"language-groovy\">// 多分支配置\npipeline {\n    agent any\n\n    stages {\n        stage('Build') {\n            steps {\n                echo \"Building branch: ${env.BRANCH_NAME}\"\n                sh 'make build'\n            }\n        }\n\n        stage('Test') {\n            steps {\n                sh 'make test'\n            }\n        }\n\n        stage('Deploy to Staging') {\n            when {\n                branch 'develop'\n            }\n            steps {\n                sh 'make deploy-staging'\n            }\n        }\n\n        stage('Deploy to Production') {\n            when {\n                branch 'main'\n            }\n            steps {\n                input message: 'Deploy to production?'\n                sh 'make deploy-production'\n            }\n        }\n    }\n}\n</code></pre>\n<h2>并行构建</h2>\n<pre><code class=\"language-groovy\">pipeline {\n    agent any\n\n    stages {\n        stage('Parallel Tests') {\n            parallel {\n                stage('Unit Tests') {\n                    steps {\n                        sh 'go test -v ./pkg/...'\n                    }\n                }\n                stage('Integration Tests') {\n                    steps {\n                        sh 'go test -v ./integration/...'\n                    }\n                }\n                stage('E2E Tests') {\n                    agent {\n                        docker {\n                            image 'cypress/browsers:latest'\n                        }\n                    }\n                    steps {\n                        sh 'npm run test:e2e'\n                    }\n                }\n            }\n        }\n\n        stage('Build Matrix') {\n            matrix {\n                axes {\n                    axis {\n                        name 'PLATFORM'\n                        values 'linux', 'darwin', 'windows'\n                    }\n                    axis {\n                        name 'ARCH'\n                        values 'amd64', 'arm64'\n                    }\n                }\n                excludes {\n                    exclude {\n                        axis {\n                            name 'PLATFORM'\n                            values 'windows'\n                        }\n                        axis {\n                            name 'ARCH'\n                            values 'arm64'\n                        }\n                    }\n                }\n                stages {\n                    stage('Build') {\n                        steps {\n                            sh \"GOOS=${PLATFORM} GOARCH=${ARCH} go build -o app-${PLATFORM}-${ARCH}\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}\n</code></pre>\n<h2>共享库</h2>\n<pre><code class=\"language-groovy\">// vars/buildGo.groovy\ndef call(Map config = [:]) {\n    def goVersion = config.goVersion ?: '1.21'\n\n    pipeline {\n        agent any\n\n        tools {\n            go \"go-${goVersion}\"\n        }\n\n        stages {\n            stage('Build') {\n                steps {\n                    sh 'go build ./...'\n                }\n            }\n            stage('Test') {\n                steps {\n                    sh 'go test -v ./...'\n                }\n            }\n        }\n    }\n}\n\n// 使用共享库\n@Library('my-shared-lib') _\n\nbuildGo(goVersion: '1.21')\n</code></pre>\n<h2>凭据管理</h2>\n<pre><code class=\"language-groovy\">pipeline {\n    agent any\n\n    stages {\n        stage('Deploy') {\n            steps {\n                // 用户名密码\n                withCredentials([usernamePassword(\n                    credentialsId: 'docker-hub',\n                    usernameVariable: 'DOCKER_USER',\n                    passwordVariable: 'DOCKER_PASS'\n                )]) {\n                    sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'\n                }\n\n                // SSH 密钥\n                withCredentials([sshUserPrivateKey(\n                    credentialsId: 'ssh-key',\n                    keyFileVariable: 'SSH_KEY'\n                )]) {\n                    sh 'ssh -i $SSH_KEY user@server \"deploy.sh\"'\n                }\n\n                // Secret 文件\n                withCredentials([file(\n                    credentialsId: 'kubeconfig',\n                    variable: 'KUBECONFIG'\n                )]) {\n                    sh 'kubectl apply -f manifests/'\n                }\n            }\n        }\n    }\n}\n</code></pre>\n<h2>代理配置</h2>\n<pre><code class=\"language-groovy\">pipeline {\n    agent {\n        // Docker 代理\n        docker {\n            image 'golang:1.21'\n            args '-v /var/run/docker.sock:/var/run/docker.sock'\n        }\n    }\n\n    // 或 Kubernetes 代理\n    agent {\n        kubernetes {\n            yaml '''\n                apiVersion: v1\n                kind: Pod\n                spec:\n                  containers:\n                  - name: golang\n                    image: golang:1.21\n                    command:\n                    - sleep\n                    args:\n                    - infinity\n                  - name: docker\n                    image: docker:dind\n                    securityContext:\n                      privileged: true\n            '''\n            defaultContainer 'golang'\n        }\n    }\n\n    stages {\n        stage('Build') {\n            steps {\n                container('golang') {\n                    sh 'go build ./...'\n                }\n            }\n        }\n    }\n}\n</code></pre>\n<h2>总结</h2>\n<p>Jenkins 要点：</p>\n<ol>\n<li><strong>Pipeline</strong> - 声明式/脚本式，代码即配置</li>\n<li><strong>多分支</strong> - 自动发现分支，差异化构建</li>\n<li><strong>并行</strong> - 矩阵构建，并行测试</li>\n<li><strong>共享库</strong> - 复用构建逻辑</li>\n<li><strong>凭据</strong> - 安全管理敏感信息</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Jenkins 是开源的自动化服务器",
+        "Master-Agent 分布式架构",
+        "Pipeline 代码即配置",
+        "丰富的插件生态"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Pipeline 类型",
+      "columns": [
+        {
+          "title": "声明式",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "语法",
+              "description": "pipeline { }"
+            },
+            {
+              "label": "特点",
+              "description": "结构清晰、易读"
+            },
+            {
+              "label": "适用",
+              "description": "标准 CI/CD 流程"
+            }
+          ]
+        },
+        {
+          "title": "脚本式",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "语法",
+              "description": "node { }"
+            },
+            {
+              "label": "特点",
+              "description": "灵活、Groovy 语法"
+            },
+            {
+              "label": "适用",
+              "description": "复杂逻辑"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "声明式 Pipeline",
+      "language": "groovy",
+      "code": "pipeline {\n    agent any\n    \n    environment {\n        GO_VERSION = '1.21'\n    }\n    \n    stages {\n        stage('Build') {\n            steps {\n                sh 'go build -o app ./...'\n            }\n        }\n        \n        stage('Test') {\n            steps {\n                sh 'go test -v ./...'\n            }\n        }\n        \n        stage('Deploy') {\n            when { branch 'main' }\n            steps {\n                sh 'make deploy'\n            }\n        }\n    }\n    \n    post {\n        success { echo 'Build succeeded!' }\n        failure { echo 'Build failed!' }\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "并行构建",
+      "language": "groovy",
+      "code": "stage('Parallel Tests') {\n    parallel {\n        stage('Unit Tests') {\n            steps { sh 'go test ./pkg/...' }\n        }\n        stage('Integration Tests') {\n            steps { sh 'go test ./integration/...' }\n        }\n    }\n}\n\nstage('Build Matrix') {\n    matrix {\n        axes {\n            axis { name 'PLATFORM'; values 'linux', 'darwin' }\n            axis { name 'ARCH'; values 'amd64', 'arm64' }\n        }\n        stages {\n            stage('Build') {\n                steps {\n                    sh \"GOOS=${PLATFORM} GOARCH=${ARCH} go build\"\n                }\n            }\n        }\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "凭据类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "用途",
+        "使用方式"
+      ],
+      "rows": [
+        [
+          "usernamePassword",
+          "用户名密码",
+          "DOCKER_USER/DOCKER_PASS"
+        ],
+        [
+          "sshUserPrivateKey",
+          "SSH 密钥",
+          "keyFileVariable"
+        ],
+        [
+          "file",
+          "文件",
+          "KUBECONFIG"
+        ],
+        [
+          "string",
+          "密钥字符串",
+          "API_KEY"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "声明式优先",
+          "description": "结构清晰，易于维护"
+        },
+        {
+          "label": "共享库",
+          "description": "复用构建逻辑"
+        },
+        {
+          "label": "凭据管理",
+          "description": "使用 Jenkins 凭据存储"
+        },
+        {
+          "label": "分布式构建",
+          "description": "Agent 分担负载"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "GitHub Actions",
+    "Docker",
+    "Kubernetes"
+  ]
 }

@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "title": "コンテナ基礎",
+    "description": "コンテナの基本概念：仮想化技術との比較、イメージの仕組みとランタイム",
+    "icon": "box"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "コンテナは Linux カーネルベースの軽量仮想化技術",
+        "Namespace でリソース分離、cgroups でリソース制限を実現",
+        "コンテナイメージは UnionFS ベースのレイヤー構造",
+        "イメージは読み取り専用、実行時に書き込み可能レイヤーを追加"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "コンテナ技術はクラウドネイティブアプリケーションの基盤です。コンテナと仮想マシンの本質的な違い、イメージのレイヤー構造、コンテナランタイムの動作原理を理解することが、Docker や Kubernetes などのツールを習得する前提となります。本章では、基礎原理からコンテナ技術の核心概念を体系的に解説します。"
+    },
+    {
+      "type": "comparison",
+      "title": "仮想マシン vs コンテナ",
+      "columns": [
+        {
+          "title": "仮想マシン (VM)",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "仮想化レイヤー", "description": "Hypervisor によるハードウェア仮想化" },
+            { "label": "OS", "description": "完全な Guest OS" },
+            { "label": "起動時間", "description": "分単位" },
+            { "label": "リソース消費", "description": "GB レベル" },
+            { "label": "分離性", "description": "強い分離 (ハードウェアレベル)" }
+          ]
+        },
+        {
+          "title": "コンテナ (Container)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "仮想化レイヤー", "description": "ホストカーネルを共有" },
+            { "label": "OS", "description": "アプリと依存ライブラリのみ" },
+            { "label": "起動時間", "description": "秒/ミリ秒単位" },
+            { "label": "リソース消費", "description": "MB レベル" },
+            { "label": "分離性", "description": "プロセスレベルの分離" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Linux コンテナのコア技術",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Namespace (名前空間)",
+          "badge": "分離",
+          "badgeColor": "blue",
+          "points": [
+            "PID: プロセス ID の分離",
+            "NET: ネットワークスタックの分離",
+            "MNT: ファイルシステムマウントの分離",
+            "UTS: ホスト名の分離",
+            "IPC: プロセス間通信の分離",
+            "USER: ユーザー/グループ ID の分離"
+          ]
+        },
+        {
+          "title": "cgroups (コントロールグループ)",
+          "badge": "制限",
+          "badgeColor": "green",
+          "points": [
+            "CPU: CPU 使用率の制限",
+            "Memory: メモリ使用量の制限",
+            "I/O: ディスク読み書き速度の制限",
+            "Network: ネットワーク帯域の制限",
+            "リソース統計とモニタリング"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "コンテナイメージのレイヤー構造",
+      "direction": "vertical",
+      "steps": [
+        { "label": "書き込み可能レイヤー", "description": "Container Layer (読み書き可)", "color": "bg-red-500" },
+        { "label": "アプリレイヤー", "description": "App Code + Configs", "color": "bg-blue-500" },
+        { "label": "依存レイヤー", "description": "Libraries + Packages", "color": "bg-cyan-500" },
+        { "label": "ベースイメージ", "description": "Base OS (読み取り専用)", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ベースイメージの選択",
+      "highlightFirst": true,
+      "headers": ["イメージ", "サイズ", "特徴", "適用シーン"],
+      "rows": [
+        ["alpine", "~5MB", "musl libc、最小化", "本番環境、軽量アプリ"],
+        ["debian/ubuntu", "~100MB", "完全な glibc、互換性良好", "開発デバッグ、複雑な依存"],
+        ["distroless", "~20MB", "シェルなし、パッケージマネージャなし", "セキュリティ重視の本番環境"],
+        ["scratch", "0MB", "空イメージ、ファイルなし", "Go/Rust 静的コンパイルプログラム"]
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker", "Kubernetes", "Linux カーネル", "マイクロサービス"],
+  "articles": [
+    {
+      "slug": "vm-vs-container",
+      "title": "仮想マシン vs コンテナ",
+      "description": "仮想化技術の比較：Hypervisor、コンテナランタイムと分離メカニズム",
+      "priority": "essential"
+    },
+    {
+      "slug": "image",
+      "title": "コンテナイメージ詳解",
+      "description": "イメージのレイヤー構造、UnionFS、イメージ構築と最適化",
+      "priority": "essential"
+    }
+  ]
+}

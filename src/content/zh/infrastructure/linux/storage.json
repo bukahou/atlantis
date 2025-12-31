@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "title": "存储管理",
+    "description": "Linux 存储：文件系统、磁盘管理与 I/O 调度",
+    "order": 4,
+    "tags": ["Linux", "存储", "文件系统", "LVM"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "VFS 虚拟文件系统提供统一接口",
+        "块设备通过分区和文件系统组织",
+        "LVM 提供灵活的卷管理",
+        "I/O 调度器优化磁盘访问性能"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "存储层次结构",
+      "direction": "vertical",
+      "steps": [
+        { "label": "应用程序", "description": "read/write", "color": "bg-blue-500" },
+        { "label": "VFS", "description": "虚拟文件系统", "color": "bg-cyan-500" },
+        { "label": "文件系统", "description": "ext4/xfs/btrfs", "color": "bg-purple-500" },
+        { "label": "块层", "description": "I/O 调度", "color": "bg-amber-500" },
+        { "label": "设备驱动", "description": "SCSI/NVMe", "color": "bg-orange-500" },
+        { "label": "硬件", "description": "HDD/SSD", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "常用文件系统",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ext4",
+          "badge": "默认",
+          "badgeColor": "green",
+          "points": [
+            "Linux 默认文件系统",
+            "日志功能，可靠性高",
+            "最大 1EB 卷/16TB 文件",
+            "成熟稳定"
+          ]
+        },
+        {
+          "title": "XFS",
+          "badge": "高性能",
+          "badgeColor": "blue",
+          "points": [
+            "RHEL 默认",
+            "大文件高性能",
+            "支持在线扩容",
+            "延迟分配"
+          ]
+        },
+        {
+          "title": "Btrfs",
+          "badge": "高级",
+          "badgeColor": "purple",
+          "points": [
+            "写时复制 (CoW)",
+            "快照/子卷",
+            "内置 RAID",
+            "数据校验"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "磁盘与分区管理",
+      "language": "bash",
+      "code": "# 查看磁盘\nlsblk                     # 块设备列表\nfdisk -l                  # 磁盘详情\nblkid                     # 分区 UUID\n\n# 分区工具\nfdisk /dev/sdb            # MBR 分区\ngdisk /dev/sdb            # GPT 分区\nparted /dev/sdb           # 通用工具\n\n# 创建文件系统\nmkfs.ext4 /dev/sdb1\nmkfs.xfs /dev/sdb2\nmkfs.btrfs /dev/sdb3\n\n# 挂载\nmount /dev/sdb1 /mnt/data\numount /mnt/data\n\n# 永久挂载 (/etc/fstab)\nUUID=xxx /mnt/data ext4 defaults 0 2"
+    },
+    {
+      "type": "table",
+      "title": "MBR vs GPT",
+      "highlightFirst": true,
+      "headers": ["特性", "MBR", "GPT"],
+      "rows": [
+        ["最大磁盘", "2TB", "9.4ZB"],
+        ["分区数量", "4 主分区", "128 分区"],
+        ["引导方式", "BIOS", "UEFI"],
+        ["数据冗余", "无", "有备份表"],
+        ["现代系统", "兼容旧系统", "推荐使用"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "LVM 逻辑卷管理",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "PV 物理卷",
+          "badge": "底层",
+          "badgeColor": "gray",
+          "points": [
+            "物理分区或磁盘",
+            "pvcreate 创建",
+            "pvdisplay 查看"
+          ]
+        },
+        {
+          "title": "VG 卷组",
+          "badge": "池",
+          "badgeColor": "blue",
+          "points": [
+            "PV 的集合",
+            "vgcreate 创建",
+            "可动态扩展"
+          ]
+        },
+        {
+          "title": "LV 逻辑卷",
+          "badge": "使用",
+          "badgeColor": "green",
+          "points": [
+            "实际使用的卷",
+            "lvcreate 创建",
+            "可调整大小"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "LVM 操作",
+      "language": "bash",
+      "code": "# 创建 LVM\npvcreate /dev/sdb1 /dev/sdc1        # 创建 PV\nvgcreate vg_data /dev/sdb1 /dev/sdc1 # 创建 VG\nlvcreate -L 100G -n lv_app vg_data   # 创建 LV\n\n# 格式化和挂载\nmkfs.xfs /dev/vg_data/lv_app\nmount /dev/vg_data/lv_app /app\n\n# 扩容 LV\nlvextend -L +50G /dev/vg_data/lv_app\nresize2fs /dev/vg_data/lv_app  # ext4\nxfs_growfs /app                 # xfs\n\n# 查看 LVM\npvs  # PV 简要信息\nvgs  # VG 简要信息\nlvs  # LV 简要信息"
+    },
+    {
+      "type": "comparison",
+      "title": "I/O 调度器",
+      "columns": [
+        {
+          "title": "mq-deadline",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "适用", "description": "HDD/通用" },
+            { "label": "特点", "description": "保证请求延迟" },
+            { "label": "策略", "description": "读优先，写批量" }
+          ]
+        },
+        {
+          "title": "bfq",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "适用", "description": "桌面/交互" },
+            { "label": "特点", "description": "低延迟响应" },
+            { "label": "策略", "description": "公平带宽分配" }
+          ]
+        },
+        {
+          "title": "none/noop",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            { "label": "适用", "description": "SSD/NVMe" },
+            { "label": "特点", "description": "最小开销" },
+            { "label": "策略", "description": "FIFO 简单队列" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "I/O 监控与调优",
+      "language": "bash",
+      "code": "# I/O 监控\niostat -x 1 5              # 磁盘 I/O 统计\niotop                      # 进程 I/O 实时\n\n# 查看/设置调度器\ncat /sys/block/sda/queue/scheduler\necho mq-deadline > /sys/block/sda/queue/scheduler\n\n# 查看队列深度\ncat /sys/block/sda/queue/nr_requests\n\n# 磁盘性能测试\ndd if=/dev/zero of=test bs=1G count=1 oflag=direct\nfio --name=randread --ioengine=libaio --direct=1 \\\n    --bs=4k --iodepth=32 --size=1G --rw=randread"
+    },
+    {
+      "type": "table",
+      "title": "重要目录说明",
+      "highlightFirst": true,
+      "headers": ["目录", "用途"],
+      "rows": [
+        ["/", "根目录"],
+        ["/boot", "引导文件、内核"],
+        ["/home", "用户主目录"],
+        ["/var", "可变数据、日志"],
+        ["/tmp", "临时文件"],
+        ["/opt", "第三方软件"],
+        ["/mnt", "临时挂载点"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "存储最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 LVM", "description": "便于扩容和管理" },
+        { "label": "SSD 用 none 调度器", "description": "减少不必要开销" },
+        { "label": "独立 /var 分区", "description": "防止日志撑满根分区" },
+        { "label": "定期监控 I/O", "description": "识别性能瓶颈" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Linux 内核", "性能调优", "高可用"]
+}

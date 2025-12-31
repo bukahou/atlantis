@@ -1,0 +1,274 @@
+{
+  "slug": "react",
+  "meta": {
+    "title": "React",
+    "description": "React 组件化开发与现代前端实践",
+    "order": 4,
+    "tags": [
+      "React",
+      "JavaScript",
+      "组件",
+      "Hooks"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "React 是声明式 UI 组件库",
+        "Virtual DOM 高效更新视图",
+        "Hooks 是函数组件的状态和生命周期",
+        "单向数据流，状态驱动视图"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心 Hooks",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "useState",
+          "badge": "状态",
+          "badgeColor": "blue",
+          "points": [
+            "组件内部状态",
+            "触发重新渲染",
+            "不可变更新"
+          ]
+        },
+        {
+          "title": "useEffect",
+          "badge": "副作用",
+          "badgeColor": "green",
+          "points": [
+            "数据获取",
+            "订阅/定时器",
+            "DOM 操作"
+          ]
+        },
+        {
+          "title": "useContext",
+          "badge": "上下文",
+          "badgeColor": "purple",
+          "points": [
+            "跨组件传值",
+            "避免 Props 穿透",
+            "主题/国际化"
+          ]
+        },
+        {
+          "title": "useRef",
+          "badge": "引用",
+          "badgeColor": "amber",
+          "points": [
+            "DOM 引用",
+            "存储可变值",
+            "不触发渲染"
+          ]
+        },
+        {
+          "title": "useMemo",
+          "badge": "缓存值",
+          "badgeColor": "cyan",
+          "points": [
+            "缓存计算结果",
+            "依赖变化才重算",
+            "性能优化"
+          ]
+        },
+        {
+          "title": "useCallback",
+          "badge": "缓存函数",
+          "badgeColor": "red",
+          "points": [
+            "缓存函数引用",
+            "配合 memo 使用",
+            "避免子组件重渲染"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "函数组件基础",
+      "language": "tsx",
+      "code": "import { useState, useEffect } from 'react';\n\ninterface User {\n  id: number;\n  name: string;\n}\n\nfunction UserProfile({ userId }: { userId: number }) {\n  const [user, setUser] = useState<User | null>(null);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    setLoading(true);\n    fetch(`/api/users/${userId}`)\n      .then(res => res.json())\n      .then(data => {\n        setUser(data);\n        setLoading(false);\n      });\n  }, [userId]); // 依赖数组\n\n  if (loading) return <div>Loading...</div>;\n  if (!user) return <div>User not found</div>;\n\n  return (\n    <div>\n      <h1>{user.name}</h1>\n    </div>\n  );\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "自定义 Hook",
+      "language": "tsx",
+      "code": "// useFetch 自定义 Hook\nfunction useFetch<T>(url: string) {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<Error | null>(null);\n\n  useEffect(() => {\n    const controller = new AbortController();\n    \n    setLoading(true);\n    fetch(url, { signal: controller.signal })\n      .then(res => res.json())\n      .then(setData)\n      .catch(setError)\n      .finally(() => setLoading(false));\n\n    return () => controller.abort(); // 清理\n  }, [url]);\n\n  return { data, loading, error };\n}\n\n// 使用\nfunction UserList() {\n  const { data: users, loading } = useFetch<User[]>('/api/users');\n  \n  if (loading) return <Spinner />;\n  return <ul>{users?.map(u => <li key={u.id}>{u.name}</li>)}</ul>;\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "状态管理方案",
+      "columns": [
+        {
+          "title": "Context + useReducer",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "适用",
+              "description": "中小型应用"
+            },
+            {
+              "label": "特点",
+              "description": "内置，零依赖"
+            },
+            {
+              "label": "复杂度",
+              "description": "简单"
+            }
+          ]
+        },
+        {
+          "title": "Zustand",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "适用",
+              "description": "中大型应用"
+            },
+            {
+              "label": "特点",
+              "description": "轻量，简洁 API"
+            },
+            {
+              "label": "复杂度",
+              "description": "低"
+            }
+          ]
+        },
+        {
+          "title": "Redux Toolkit",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "适用",
+              "description": "大型复杂应用"
+            },
+            {
+              "label": "特点",
+              "description": "生态丰富，DevTools"
+            },
+            {
+              "label": "复杂度",
+              "description": "较高"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "性能优化",
+      "language": "tsx",
+      "code": "import { memo, useMemo, useCallback } from 'react';\n\n// React.memo 缓存组件\nconst ExpensiveList = memo(function ExpensiveList({ items, onSelect }: Props) {\n  return (\n    <ul>\n      {items.map(item => (\n        <li key={item.id} onClick={() => onSelect(item)}>\n          {item.name}\n        </li>\n      ))}\n    </ul>\n  );\n});\n\n// 父组件\nfunction Parent({ data }: { data: Item[] }) {\n  // useMemo 缓存计算结果\n  const sortedItems = useMemo(\n    () => [...data].sort((a, b) => a.name.localeCompare(b.name)),\n    [data]\n  );\n\n  // useCallback 缓存函数\n  const handleSelect = useCallback((item: Item) => {\n    console.log('Selected:', item);\n  }, []);\n\n  return <ExpensiveList items={sortedItems} onSelect={handleSelect} />;\n}"
+    },
+    {
+      "type": "table",
+      "title": "React 生态",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "推荐方案",
+        "用途"
+      ],
+      "rows": [
+        [
+          "路由",
+          "React Router / TanStack Router",
+          "SPA 路由"
+        ],
+        [
+          "状态",
+          "Zustand / Jotai",
+          "全局状态"
+        ],
+        [
+          "数据获取",
+          "TanStack Query",
+          "服务端状态"
+        ],
+        [
+          "表单",
+          "React Hook Form",
+          "表单验证"
+        ],
+        [
+          "样式",
+          "Tailwind CSS / CSS Modules",
+          "组件样式"
+        ],
+        [
+          "框架",
+          "Next.js / Remix",
+          "全栈/SSR"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "React 渲染流程",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "State 变化",
+          "description": "触发更新",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Render",
+          "description": "生成虚拟 DOM",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "Reconcile",
+          "description": "Diff 算法",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "Commit",
+          "description": "更新真实 DOM",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "组件单一职责",
+          "description": "每个组件只做一件事"
+        },
+        {
+          "label": "状态下沉",
+          "description": "状态放在需要的最近组件"
+        },
+        {
+          "label": "合理拆分",
+          "description": "抽取自定义 Hook 复用逻辑"
+        },
+        {
+          "label": "避免过早优化",
+          "description": "先测量再优化"
+        },
+        {
+          "label": "Key 稳定唯一",
+          "description": "列表使用稳定的唯一 key"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "TypeScript",
+    "Next.js",
+    "状态管理",
+    "组件设计"
+  ]
+}

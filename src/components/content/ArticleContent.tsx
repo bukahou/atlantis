@@ -1,12 +1,45 @@
 "use client";
 
 import { ContentItem } from "@/types/content";
+import { SectionRenderer } from "./SectionRenderer";
 
 interface ArticleContentProps {
   article: ContentItem;
 }
 
 export function ArticleContent({ article }: ArticleContentProps) {
+  // If article has sections (modular JSON), render them
+  if (article.sections && article.sections.length > 0) {
+    return (
+      <div className="space-y-8">
+        {article.sections.map((section, index) => (
+          <SectionRenderer key={index} section={section} />
+        ))}
+
+        {/* Related Topics */}
+        {article.relatedTopics && article.relatedTopics.length > 0 && (
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+              相关主题
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {article.relatedTopics.map((topic, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800
+                             text-gray-700 dark:text-gray-300 rounded-full"
+                >
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback to HTML content (from markdown)
   return (
     <article className="prose prose-slate dark:prose-invert max-w-none
                         prose-headings:scroll-mt-24
@@ -35,7 +68,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
                         prose-blockquote:not-italic">
       <div
         className="article-content"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        dangerouslySetInnerHTML={{ __html: article.content || "" }}
       />
     </article>
   );

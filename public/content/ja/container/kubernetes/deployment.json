@@ -1,14 +1,238 @@
 {
   "slug": "deployment",
   "meta": {
-    "title": "Kubernetes Deployment 詳解",
-    "description": "Deployment 設定、更新戦略とローリングリリースの実践",
+    "title": "Deployment デプロイ",
+    "description": "宣言的デプロイ、ローリングアップデートとロールバック",
     "order": 3,
     "tags": [
-      "kubernetes",
-      "deployment",
-      "rolling-update"
+      "Kubernetes",
+      "Deployment",
+      "デプロイ"
     ]
   },
-  "content": "<h1>Kubernetes Deployment 詳解</h1>\n<h2>Deployment の概念</h2>\n<p>Deployment は ReplicaSet と Pod を管理する高レベルのコントローラーで、宣言的な更新、ローリングリリース、ロールバック機能を提供します。</p>\n<pre><code>Deployment 階層関係\n┌─────────────────────────────────────────┐\n│ Deployment                              │\n│   replicas: 3                           │\n│   strategy: RollingUpdate               │\n│                                         │\n│   ┌─────────────────────────────────┐   │\n│   │ ReplicaSet (current)            │   │\n│   │   replicas: 3                   │   │\n│   │   ┌─────┐ ┌─────┐ ┌─────┐       │   │\n│   │   │Pod 1│ │Pod 2│ │Pod 3│       │   │\n│   │   └─────┘ └─────┘ └─────┘       │   │\n│   └─────────────────────────────────┘   │\n└─────────────────────────────────────────┘\n</code></pre>\n<h2>基本設定</h2>\n<h3>完全な例</h3>\n<pre><code class=\"language-yaml\">apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp\n  namespace: production\n  labels:\n    app: webapp\nspec:\n  replicas: 3\n\n  # Pod セレクター\n  selector:\n    matchLabels:\n      app: webapp\n\n  # 更新戦略\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1        # 期望数を超える最大数\n      maxUnavailable: 0  # 利用不可の最大数\n\n  # 最小レディ時間\n  minReadySeconds: 10\n\n  # 履歴バージョン保持数\n  revisionHistoryLimit: 10\n\n  # Pod テンプレート\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: v1\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n          ports:\n            - name: http\n              containerPort: 8080\n\n          resources:\n            requests:\n              cpu: 100m\n              memory: 128Mi\n            limits:\n              cpu: 500m\n              memory: 256Mi\n\n          livenessProbe:\n            httpGet:\n              path: /health\n              port: 8080\n            initialDelaySeconds: 15\n            periodSeconds: 10\n\n          readinessProbe:\n            httpGet:\n              path: /ready\n              port: 8080\n            initialDelaySeconds: 5\n            periodSeconds: 5\n\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n            - weight: 100\n              podAffinityTerm:\n                labelSelector:\n                  matchLabels:\n                    app: webapp\n                topologyKey: kubernetes.io/hostname\n</code></pre>\n<h2>更新戦略</h2>\n<h3>RollingUpdate (ローリングアップデート)</h3>\n<pre><code class=\"language-yaml\">spec:\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 25%\n      maxUnavailable: 25%\n</code></pre>\n<pre><code>ローリングアップデート過程 (replicas=3, maxSurge=1, maxUnavailable=0)\n\n初期状態:\n  RS-old: [v1] [v1] [v1]  (3 pods)\n  RS-new: []              (0 pods)\n\nStep 1 - 新 Pod 作成:\n  RS-old: [v1] [v1] [v1]  (3 pods)\n  RS-new: [v2]            (1 pod) ← 新規作成\n\nStep 2 - 新 Pod Ready 後、旧 Pod 削除:\n  RS-old: [v1] [v1]       (2 pods)\n  RS-new: [v2] [v2]       (2 pods)\n\nStep 3 - 継続:\n  RS-old: [v1]            (1 pod)\n  RS-new: [v2] [v2] [v2]  (3 pods)\n\nStep 4 - 完了:\n  RS-old: []              (0 pods)\n  RS-new: [v2] [v2] [v2]  (3 pods)\n</code></pre>\n<h3>Recreate (再作成)</h3>\n<pre><code class=\"language-yaml\">spec:\n  strategy:\n    type: Recreate\n</code></pre>\n<pre><code>再作成過程 (すべての旧 Pod を削除してから新 Pod を作成)\n\nStep 1: [v1] [v1] [v1] → 全削除\nStep 2: [] → 削除完了待ち\nStep 3: [v2] [v2] [v2] → 新バージョン作成\n\n⚠️ サービス中断が発生、複数バージョン共存不可の場合に使用\n</code></pre>\n<h2>ローリングアップデート実践</h2>\n<h3>更新のトリガー</h3>\n<pre><code class=\"language-bash\"># 方法1: イメージの変更\nkubectl set image deployment/webapp webapp=myapp:2.0.0\n\n# 方法2: Deployment の編集\nkubectl edit deployment webapp\n\n# 方法3: 新しい設定を適用\nkubectl apply -f deployment.yaml\n</code></pre>\n<h3>更新の監視</h3>\n<pre><code class=\"language-bash\"># 更新状態の確認\nkubectl rollout status deployment/webapp\n\n# 更新履歴の確認\nkubectl rollout history deployment/webapp\n\n# 更新の一時停止\nkubectl rollout pause deployment/webapp\n\n# 更新の再開\nkubectl rollout resume deployment/webapp\n</code></pre>\n<h3>ロールバック</h3>\n<pre><code class=\"language-bash\"># 前のバージョンにロールバック\nkubectl rollout undo deployment/webapp\n\n# 特定のバージョンにロールバック\nkubectl rollout undo deployment/webapp --to-revision=2\n</code></pre>\n<h2>スケーリング</h2>\n<h3>手動スケーリング</h3>\n<pre><code class=\"language-bash\"># スケールアウト\nkubectl scale deployment webapp --replicas=5\n\n# スケールイン\nkubectl scale deployment webapp --replicas=2\n</code></pre>\n<h3>HPA 自動スケーリング</h3>\n<pre><code class=\"language-yaml\">apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: webapp-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: webapp\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 70\n    - type: Resource\n      resource:\n        name: memory\n        target:\n          type: Utilization\n          averageUtilization: 80\n</code></pre>\n<pre><code class=\"language-bash\"># HPA の作成 (簡易方法)\nkubectl autoscale deployment webapp --min=2 --max=10 --cpu-percent=70\n\n# HPA の確認\nkubectl get hpa\nkubectl describe hpa webapp-hpa\n</code></pre>\n<h2>Blue-Green デプロイ</h2>\n<pre><code class=\"language-yaml\"># Blue Deployment (現在のバージョン)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-blue\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: webapp\n      version: blue\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: blue\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n---\n# Green Deployment (新バージョン)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-green\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: webapp\n      version: green\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: green\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:2.0.0\n---\n# Service でトラフィックを切り替え\napiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp\n    version: blue  # green に切り替えてリリース完了\n  ports:\n    - port: 80\n</code></pre>\n<pre><code class=\"language-bash\"># トラフィックを green に切り替え\nkubectl patch service webapp -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'\n</code></pre>\n<h2>カナリアリリース</h2>\n<pre><code class=\"language-yaml\"># メイン Deployment (90% トラフィック)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-stable\nspec:\n  replicas: 9\n  selector:\n    matchLabels:\n      app: webapp\n      track: stable\n  template:\n    metadata:\n      labels:\n        app: webapp\n        track: stable\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n---\n# カナリア Deployment (10% トラフィック)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-canary\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: webapp\n      track: canary\n  template:\n    metadata:\n      labels:\n        app: webapp\n        track: canary\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:2.0.0\n</code></pre>\n<h2>よく使うコマンド</h2>\n<pre><code class=\"language-bash\"># 作成\nkubectl apply -f deployment.yaml\nkubectl create deployment nginx --image=nginx --replicas=3\n\n# 確認\nkubectl get deployments\nkubectl describe deploy webapp\n\n# 更新\nkubectl set image deploy/webapp webapp=myapp:2.0\n\n# スケーリング\nkubectl scale deploy/webapp --replicas=5\n\n# ロールバック\nkubectl rollout undo deploy/webapp\nkubectl rollout history deploy/webapp\n\n# 再起動 (ローリングアップデートをトリガー)\nkubectl rollout restart deploy/webapp\n\n# 削除\nkubectl delete deploy webapp\n</code></pre>\n<h2>ベストプラクティス</h2>\n<ol>\n<li><strong>リソース制限を設定</strong> - requests と limits を必ず設定</li>\n<li><strong>ヘルスチェックを設定</strong> - livenessProbe と readinessProbe</li>\n<li><strong>Pod Anti-Affinity を使用</strong> - Pod を異なるノードに分散</li>\n<li><strong>十分な履歴バージョンを保持</strong> - revisionHistoryLimit</li>\n<li><strong>minReadySeconds を設定</strong> - 新 Pod が安定してから続行</li>\n<li><strong>PodDisruptionBudget を使用</strong> - 最小可用数を保証</li>\n<li><strong>イメージタグをバージョン化</strong> - latest の使用を避ける</li>\n<li><strong>HPA を使用</strong> - 負荷に応じて自動スケーリング</li>\n</ol>\n<pre><code class=\"language-yaml\"># PodDisruptionBudget の例\napiVersion: policy/v1\nkind: PodDisruptionBudget\nmetadata:\n  name: webapp-pdb\nspec:\n  minAvailable: 2\n  selector:\n    matchLabels:\n      app: webapp\n</code></pre>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Deployment は Pod のレプリカと更新を管理",
+        "宣言的設定により、自動的に期待状態へ調整",
+        "ローリングアップデートとロールバックをサポート",
+        "ReplicaSet を通じてレプリカを管理"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Deployment とは",
+      "content": "Deployment は Kubernetes で最も一般的に使用されるワークロードコントローラーであり、宣言的な Pod 更新機能を提供します。期待する状態を記述するだけで、Deployment Controller が自動的に実際の状態を期待状態に調整し、ローリングアップデートやロールバックなどの高度な機能をサポートします。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Deployment 設定例",
+      "language": "yaml",
+      "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1        # 期待レプリカ数を超える最大数\n      maxUnavailable: 0  # 利用不可の最大レプリカ数\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n      - name: web\n        image: nginx:1.24\n        ports:\n        - containerPort: 80\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 200m\n            memory: 256Mi"
+    },
+    {
+      "type": "flow",
+      "title": "ローリングアップデートのプロセス",
+      "subtitle": "段階的に古い Pod を置き換え",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "v1: 3 Pods",
+          "description": "現在の状態",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "v2: 1 Pod",
+          "description": "新バージョンを作成",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "v1: 2 + v2: 1",
+          "description": "段階的に置き換え",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "v1: 1 + v2: 2",
+          "description": "置き換えを継続",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "v2: 3 Pods",
+          "description": "更新完了",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "更新戦略",
+      "columns": [
+        {
+          "title": "RollingUpdate",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "段階的に更新"
+            },
+            {
+              "label": "中断",
+              "description": "ダウンタイムなし"
+            },
+            {
+              "label": "パラメータ",
+              "description": "maxSurge, maxUnavailable"
+            },
+            {
+              "label": "推奨",
+              "description": "本番環境で推奨"
+            }
+          ]
+        },
+        {
+          "title": "Recreate",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "削除後に作成"
+            },
+            {
+              "label": "中断",
+              "description": "ダウンタイムあり"
+            },
+            {
+              "label": "パラメータ",
+              "description": "なし"
+            },
+            {
+              "label": "推奨",
+              "description": "複数バージョン共存不可の場合"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Deployment 操作コマンド",
+      "highlightFirst": true,
+      "headers": [
+        "コマンド",
+        "説明"
+      ],
+      "rows": [
+        [
+          "kubectl apply -f deployment.yaml",
+          "Deployment を作成/更新"
+        ],
+        [
+          "kubectl scale deploy/web --replicas=5",
+          "スケーリング"
+        ],
+        [
+          "kubectl set image deploy/web web=nginx:1.25",
+          "イメージを更新"
+        ],
+        [
+          "kubectl rollout status deploy/web",
+          "更新ステータスを確認"
+        ],
+        [
+          "kubectl rollout history deploy/web",
+          "更新履歴を確認"
+        ],
+        [
+          "kubectl rollout undo deploy/web",
+          "前のバージョンにロールバック"
+        ],
+        [
+          "kubectl rollout undo deploy/web --to-revision=2",
+          "指定バージョンにロールバック"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "重要な設定",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "レプリカ管理",
+          "badge": "Replicas",
+          "badgeColor": "blue",
+          "points": [
+            "replicas - 期待レプリカ数",
+            "kubectl scale で動的調整",
+            "HPA による自動スケーリング"
+          ]
+        },
+        {
+          "title": "更新戦略",
+          "badge": "Strategy",
+          "badgeColor": "green",
+          "points": [
+            "maxSurge - 最大超過数",
+            "maxUnavailable - 最大利用不可数",
+            "minReadySeconds - 準備完了待機時間"
+          ]
+        },
+        {
+          "title": "ロールバック機構",
+          "badge": "Rollback",
+          "badgeColor": "amber",
+          "points": [
+            "revisionHistoryLimit - 履歴バージョン数",
+            "rollout undo - 迅速なロールバック",
+            "ReplicaSet を自動保存"
+          ]
+        },
+        {
+          "title": "ラベルセレクター",
+          "badge": "Selector",
+          "badgeColor": "purple",
+          "points": [
+            "matchLabels - 完全一致",
+            "matchExpressions - 式による指定",
+            "不変、作成後は変更不可"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "リソースクォータを設定",
+          "description": "すべてのコンテナに requests と limits を設定"
+        },
+        {
+          "label": "ヘルスチェックを設定",
+          "description": "新しい Pod が準備完了後にトラフィックを受信"
+        },
+        {
+          "label": "更新履歴を保持",
+          "description": "適切な revisionHistoryLimit を設定"
+        },
+        {
+          "label": "カナリアリリースを使用",
+          "description": "Service と連携してトラフィックを段階的に移行"
+        },
+        {
+          "label": "更新プロセスを監視",
+          "description": "kubectl rollout status で追跡"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "ReplicaSet",
+    "HPA",
+    "Service"
+  ]
 }

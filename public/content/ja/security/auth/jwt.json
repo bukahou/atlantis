@@ -1,0 +1,158 @@
+{
+  "slug": "jwt",
+  "meta": {
+    "title": "JWT",
+    "description": "トークン構造、署名とセキュアな使用法",
+    "order": 2,
+    "tags": [
+      "JWT",
+      "トークン",
+      "認証"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "JWT = Header.Payload.Signature の3部構成",
+        "自己完結型：トークン自体がユーザー情報を含む",
+        "ステートレス：サーバー側でセッション保存不要",
+        "署名は完全性を保証するが、内容は暗号化されない"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JWT構造解析",
+      "language": "text",
+      "code": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\neyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4iLCJpYXQiOjE1MTYyMzkwMjJ9.\nSflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n\n┌─────────────────────────────────────────────────────────────┐\n│ Header (アルゴリズムとタイプ)                                │\n├─────────────────────────────────────────────────────────────┤\n│ {                                                           │\n│   \"alg\": \"HS256\",    // 署名アルゴリズム                    │\n│   \"typ\": \"JWT\"       // トークンタイプ                      │\n│ }                                                           │\n├─────────────────────────────────────────────────────────────┤\n│ Payload (クレーム)                                          │\n├─────────────────────────────────────────────────────────────┤\n│ {                                                           │\n│   \"sub\": \"1234567890\",  // サブジェクト（ユーザーID）       │\n│   \"name\": \"John\",       // カスタムクレーム                 │\n│   \"iat\": 1516239022,    // 発行時刻                         │\n│   \"exp\": 1516242622,    // 有効期限                         │\n│   \"iss\": \"auth.example.com\"  // 発行者                      │\n│ }                                                           │\n├─────────────────────────────────────────────────────────────┤\n│ Signature                                                   │\n├─────────────────────────────────────────────────────────────┤\n│ HMACSHA256(                                                 │\n│   base64UrlEncode(header) + \".\" + base64UrlEncode(payload), │\n│   secret                                                    │\n│ )                                                           │\n└─────────────────────────────────────────────────────────────┘"
+    },
+    {
+      "type": "comparison",
+      "title": "対称署名 vs 非対称署名",
+      "columns": [
+        {
+          "title": "HS256 (HMAC)",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            {
+              "label": "鍵",
+              "description": "共有秘密鍵"
+            },
+            {
+              "label": "署名/検証",
+              "description": "同じ鍵"
+            },
+            {
+              "label": "適用",
+              "description": "単一サービス、内部システム"
+            }
+          ]
+        },
+        {
+          "title": "RS256 (RSA)",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            {
+              "label": "鍵",
+              "description": "公開鍵/秘密鍵ペア"
+            },
+            {
+              "label": "署名/検証",
+              "description": "秘密鍵で署名/公開鍵で検証"
+            },
+            {
+              "label": "適用",
+              "description": "分散システム、マイクロサービス"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JWT発行と検証",
+      "language": "typescript",
+      "code": "import jwt from 'jsonwebtoken';\n\nconst SECRET = process.env.JWT_SECRET!;\nconst EXPIRES_IN = '15m';\n\n// Access Token発行\nfunction signAccessToken(user: User): string {\n  return jwt.sign(\n    {\n      sub: user.id,\n      email: user.email,\n      roles: user.roles,\n    },\n    SECRET,\n    {\n      expiresIn: EXPIRES_IN,\n      issuer: 'auth.example.com',\n      audience: 'api.example.com',\n    }\n  );\n}\n\n// Token検証\nfunction verifyToken(token: string): JwtPayload {\n  try {\n    return jwt.verify(token, SECRET, {\n      issuer: 'auth.example.com',\n      audience: 'api.example.com',\n    }) as JwtPayload;\n  } catch (error) {\n    if (error instanceof jwt.TokenExpiredError) {\n      throw new AuthError('Token expired');\n    }\n    if (error instanceof jwt.JsonWebTokenError) {\n      throw new AuthError('Invalid token');\n    }\n    throw error;\n  }\n}\n\n// Expressミドルウェア\nfunction authMiddleware(req: Request, res: Response, next: NextFunction) {\n  const authHeader = req.headers.authorization;\n  if (!authHeader?.startsWith('Bearer ')) {\n    return res.status(401).json({ error: 'No token provided' });\n  }\n  \n  const token = authHeader.slice(7);\n  try {\n    req.user = verifyToken(token);\n    next();\n  } catch (error) {\n    return res.status(401).json({ error: error.message });\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "標準クレーム (Registered Claims)",
+      "highlightFirst": true,
+      "headers": [
+        "クレーム",
+        "名称",
+        "説明"
+      ],
+      "rows": [
+        [
+          "iss",
+          "Issuer",
+          "発行者"
+        ],
+        [
+          "sub",
+          "Subject",
+          "サブジェクト（通常はユーザーID）"
+        ],
+        [
+          "aud",
+          "Audience",
+          "オーディエンス（API識別子）"
+        ],
+        [
+          "exp",
+          "Expiration",
+          "有効期限"
+        ],
+        [
+          "nbf",
+          "Not Before",
+          "有効開始時刻"
+        ],
+        [
+          "iat",
+          "Issued At",
+          "発行時刻"
+        ],
+        [
+          "jti",
+          "JWT ID",
+          "一意識別子（リプレイ防止）"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "セキュリティ注意事項",
+      "style": "check",
+      "items": [
+        {
+          "label": "機密情報を含めない",
+          "description": "PayloadはただのBase64、誰でもデコード可能"
+        },
+        {
+          "label": "短い有効期限を設定",
+          "description": "Access Tokenは15分以内を推奨"
+        },
+        {
+          "label": "すべてのクレームを検証",
+          "description": "iss、aud、expすべて検証が必要"
+        },
+        {
+          "label": "強力な鍵を使用",
+          "description": "HS256は最低256ビット、RS256は最低2048ビット"
+        },
+        {
+          "label": "HTTPS転送",
+          "description": "JWTは傍受される可能性があり、暗号化転送必須"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "OAuth",
+    "Session",
+    "リフレッシュトークン"
+  ]
+}

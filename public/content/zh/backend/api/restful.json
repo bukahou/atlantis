@@ -2,14 +2,160 @@
   "slug": "restful",
   "meta": {
     "title": "RESTful API 设计",
-    "description": "RESTful API 设计原则、最佳实践与规范",
+    "description": "REST 架构风格与 API 设计最佳实践",
     "order": 1,
     "tags": [
-      "api",
-      "rest",
-      "http",
-      "backend"
+      "API",
+      "REST",
+      "后端"
     ]
   },
-  "content": "<h1>RESTful API 设计</h1>\n<h2>REST 概述</h2>\n<p>REST (Representational State Transfer) 是一种软件架构风格，定义了一组用于创建 Web 服务的约束和原则。</p>\n<pre><code>REST 核心原则\n├── 统一接口 - 标准化的资源操作\n├── 无状态 - 请求包含所有信息\n├── 可缓存 - 响应可标记为可缓存\n├── 分层系统 - 客户端无需知道服务器架构\n└── 按需代码 - 可选的代码下载\n</code></pre>\n<h2>资源设计</h2>\n<h3>URL 设计</h3>\n<pre><code># 资源命名规范\nGET    /users              # 获取用户列表\nGET    /users/123          # 获取单个用户\nPOST   /users              # 创建用户\nPUT    /users/123          # 更新用户\nPATCH  /users/123          # 部分更新用户\nDELETE /users/123          # 删除用户\n\n# 嵌套资源\nGET    /users/123/posts          # 用户的文章列表\nGET    /users/123/posts/456      # 用户的特定文章\nPOST   /users/123/posts          # 为用户创建文章\n\n# 避免的设计\nGET    /getUsers            # ❌ 动词\nGET    /user/list           # ❌ 动词\nPOST   /createUser          # ❌ 动词\nGET    /users/get/123       # ❌ 冗余\n</code></pre>\n<h3>命名约定</h3>\n<pre><code># 使用复数名词\n/users          ✓\n/user           ✗\n\n# 使用小写和连字符\n/user-profiles  ✓\n/userProfiles   ✗\n/user_profiles  ✗\n\n# 资源层级不超过 3 层\n/users/123/posts/456/comments     ✓\n/users/123/posts/456/comments/789/replies  ✗ (太深)\n\n# 使用查询参数过滤\n/posts?author=123&#x26;status=published  ✓\n/posts/author/123/status/published  ✗\n</code></pre>\n<h2>HTTP 方法</h2>\n<h3>标准方法</h3>\n<pre><code>方法      幂等性   安全性   用途\n────────────────────────────────────\nGET       是      是      获取资源\nPOST      否      否      创建资源\nPUT       是      否      完整更新\nPATCH     否      否      部分更新\nDELETE    是      否      删除资源\nHEAD      是      是      获取元信息\nOPTIONS   是      是      获取支持的方法\n</code></pre>\n<h3>方法使用示例</h3>\n<pre><code class=\"language-http\"># GET - 获取资源\nGET /api/v1/users/123 HTTP/1.1\nHost: api.example.com\n\n# POST - 创建资源\nPOST /api/v1/users HTTP/1.1\nContent-Type: application/json\n\n{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\"\n}\n\n# PUT - 完整更新\nPUT /api/v1/users/123 HTTP/1.1\nContent-Type: application/json\n\n{\n  \"name\": \"Alice Smith\",\n  \"email\": \"alice.smith@example.com\",\n  \"age\": 30\n}\n\n# PATCH - 部分更新\nPATCH /api/v1/users/123 HTTP/1.1\nContent-Type: application/json\n\n{\n  \"name\": \"Alice Smith\"\n}\n\n# DELETE - 删除资源\nDELETE /api/v1/users/123 HTTP/1.1\n</code></pre>\n<h2>状态码</h2>\n<h3>常用状态码</h3>\n<pre><code>2xx 成功\n────────────────────────────\n200 OK                 请求成功\n201 Created            资源创建成功\n204 No Content         成功但无返回内容\n\n3xx 重定向\n────────────────────────────\n301 Moved Permanently  永久重定向\n304 Not Modified       资源未修改\n\n4xx 客户端错误\n────────────────────────────\n400 Bad Request        请求格式错误\n401 Unauthorized       未认证\n403 Forbidden          无权限\n404 Not Found          资源不存在\n405 Method Not Allowed 方法不允许\n409 Conflict           资源冲突\n422 Unprocessable      验证失败\n429 Too Many Requests  请求过多\n\n5xx 服务器错误\n────────────────────────────\n500 Internal Error     服务器错误\n502 Bad Gateway        网关错误\n503 Service Unavailable 服务不可用\n504 Gateway Timeout    网关超时\n</code></pre>\n<h3>状态码选择</h3>\n<pre><code class=\"language-json\">// 201 Created - 创建成功\nPOST /users\nResponse: 201 Created\nLocation: /users/123\n{\n  \"id\": 123,\n  \"name\": \"Alice\"\n}\n\n// 204 No Content - 删除成功\nDELETE /users/123\nResponse: 204 No Content\n\n// 400 Bad Request - 请求格式错误\n{\n  \"error\": \"Bad Request\",\n  \"message\": \"Invalid JSON format\"\n}\n\n// 422 Unprocessable Entity - 验证失败\n{\n  \"error\": \"Validation Error\",\n  \"details\": [\n    {\"field\": \"email\", \"message\": \"Invalid email format\"}\n  ]\n}\n</code></pre>\n<h2>请求与响应</h2>\n<h3>请求头</h3>\n<pre><code class=\"language-http\">Content-Type: application/json\nAccept: application/json\nAuthorization: Bearer &#x3C;token>\nAccept-Language: zh-CN\nX-Request-ID: uuid-string\n</code></pre>\n<h3>响应格式</h3>\n<pre><code class=\"language-json\">// 单个资源\n{\n  \"id\": 123,\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"createdAt\": \"2024-01-15T10:30:00Z\",\n  \"updatedAt\": \"2024-01-15T10:30:00Z\"\n}\n\n// 资源列表\n{\n  \"data\": [\n    {\"id\": 1, \"name\": \"Alice\"},\n    {\"id\": 2, \"name\": \"Bob\"}\n  ],\n  \"meta\": {\n    \"total\": 100,\n    \"page\": 1,\n    \"perPage\": 20,\n    \"totalPages\": 5\n  }\n}\n\n// 错误响应\n{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Validation failed\",\n    \"details\": [\n      {\"field\": \"email\", \"message\": \"Invalid format\"}\n    ]\n  }\n}\n</code></pre>\n<h2>分页与过滤</h2>\n<h3>分页</h3>\n<pre><code class=\"language-http\"># 偏移分页\nGET /users?page=2&#x26;per_page=20\n\n# 游标分页 (推荐大数据集)\nGET /users?cursor=abc123&#x26;limit=20\n\n# 响应\n{\n  \"data\": [...],\n  \"meta\": {\n    \"total\": 1000,\n    \"page\": 2,\n    \"perPage\": 20\n  },\n  \"links\": {\n    \"first\": \"/users?page=1\",\n    \"prev\": \"/users?page=1\",\n    \"next\": \"/users?page=3\",\n    \"last\": \"/users?page=50\"\n  }\n}\n</code></pre>\n<h3>过滤与排序</h3>\n<pre><code class=\"language-http\"># 过滤\nGET /users?status=active&#x26;role=admin\nGET /posts?created_after=2024-01-01\n\n# 排序\nGET /users?sort=name           # 升序\nGET /users?sort=-created_at    # 降序\nGET /users?sort=name,-age      # 多字段\n\n# 字段选择\nGET /users?fields=id,name,email\n\n# 搜索\nGET /users?q=alice\nGET /posts?search=keyword\n</code></pre>\n<h2>版本控制</h2>\n<pre><code class=\"language-http\"># URL 路径版本 (推荐)\nGET /api/v1/users\nGET /api/v2/users\n\n# 请求头版本\nGET /api/users\nAccept: application/vnd.api+json; version=1\n\n# 查询参数版本\nGET /api/users?version=1\n</code></pre>\n<h2>认证与安全</h2>\n<pre><code class=\"language-http\"># Bearer Token\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIs...\n\n# API Key\nX-API-Key: your-api-key\n\n# Basic Auth\nAuthorization: Basic base64(username:password)\n</code></pre>\n<h3>安全最佳实践</h3>\n<pre><code>1. 始终使用 HTTPS\n2. 验证所有输入\n3. 实现速率限制\n4. 使用适当的 CORS 策略\n5. 不在 URL 中暴露敏感信息\n6. 实现请求日志和审计\n</code></pre>\n<h2>HATEOAS</h2>\n<pre><code class=\"language-json\">// Hypermedia as the Engine of Application State\n{\n  \"id\": 123,\n  \"name\": \"Alice\",\n  \"status\": \"active\",\n  \"_links\": {\n    \"self\": {\"href\": \"/users/123\"},\n    \"posts\": {\"href\": \"/users/123/posts\"},\n    \"deactivate\": {\n      \"href\": \"/users/123/deactivate\",\n      \"method\": \"POST\"\n    }\n  }\n}\n</code></pre>\n<h2>总结</h2>\n<p>RESTful API 设计要点：</p>\n<ol>\n<li><strong>资源导向</strong> - URL 表示资源，HTTP 方法表示操作</li>\n<li><strong>正确状态码</strong> - 准确反映请求结果</li>\n<li><strong>一致性</strong> - 统一的命名和响应格式</li>\n<li><strong>版本控制</strong> - 支持 API 演进</li>\n<li><strong>安全性</strong> - HTTPS、认证、验证</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "REST 是一种架构风格，不是协议",
+        "资源通过 URI 标识，方法表示操作",
+        "无状态、统一接口、可缓存",
+        "HTTP 状态码表示操作结果"
+      ]
+    },
+    {
+      "type": "table",
+      "title": "HTTP 方法语义",
+      "highlightFirst": true,
+      "headers": [
+        "方法",
+        "操作",
+        "幂等",
+        "示例"
+      ],
+      "rows": [
+        [
+          "GET",
+          "读取资源",
+          "是",
+          "GET /users/123"
+        ],
+        [
+          "POST",
+          "创建资源",
+          "否",
+          "POST /users"
+        ],
+        [
+          "PUT",
+          "替换资源",
+          "是",
+          "PUT /users/123"
+        ],
+        [
+          "PATCH",
+          "部分更新",
+          "否",
+          "PATCH /users/123"
+        ],
+        [
+          "DELETE",
+          "删除资源",
+          "是",
+          "DELETE /users/123"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "URI 设计规范",
+      "language": "text",
+      "code": "# 资源命名（名词复数）\nGET    /users              # 用户列表\nGET    /users/123          # 单个用户\nPOST   /users              # 创建用户\nPUT    /users/123          # 更新用户\nDELETE /users/123          # 删除用户\n\n# 嵌套资源\nGET    /users/123/orders   # 用户的订单\nGET    /users/123/orders/456\n\n# 查询参数\nGET    /users?status=active&page=1&limit=20\nGET    /users?sort=-created_at\nGET    /users?fields=id,name,email"
+    },
+    {
+      "type": "cards",
+      "title": "响应设计",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "成功响应",
+          "badge": "2xx",
+          "badgeColor": "green",
+          "points": [
+            "200 OK - 成功",
+            "201 Created - 已创建",
+            "204 No Content - 无内容"
+          ]
+        },
+        {
+          "title": "客户端错误",
+          "badge": "4xx",
+          "badgeColor": "amber",
+          "points": [
+            "400 Bad Request",
+            "401 Unauthorized",
+            "403 Forbidden",
+            "404 Not Found"
+          ]
+        },
+        {
+          "title": "服务端错误",
+          "badge": "5xx",
+          "badgeColor": "red",
+          "points": [
+            "500 Internal Error",
+            "502 Bad Gateway",
+            "503 Service Unavailable"
+          ]
+        },
+        {
+          "title": "响应格式",
+          "badge": "JSON",
+          "badgeColor": "blue",
+          "points": [
+            "统一响应结构",
+            "错误信息详细",
+            "HATEOAS 链接"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "统一响应格式",
+      "language": "json",
+      "code": "// 成功响应\n{\n  \"data\": {\n    \"id\": 123,\n    \"name\": \"John\",\n    \"email\": \"john@example.com\"\n  },\n  \"meta\": {\n    \"timestamp\": \"2024-01-01T00:00:00Z\"\n  }\n}\n\n// 列表响应\n{\n  \"data\": [...],\n  \"meta\": {\n    \"total\": 100,\n    \"page\": 1,\n    \"limit\": 20\n  }\n}\n\n// 错误响应\n{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid input\",\n    \"details\": [\n      { \"field\": \"email\", \"message\": \"Invalid email format\" }\n    ]\n  }\n}"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "版本控制",
+          "description": "URI 或 Header 中包含 API 版本 /v1/users"
+        },
+        {
+          "label": "分页",
+          "description": "大列表必须分页，返回总数和链接"
+        },
+        {
+          "label": "过滤排序",
+          "description": "支持查询参数过滤和排序"
+        },
+        {
+          "label": "HATEOAS",
+          "description": "响应中包含相关资源链接"
+        },
+        {
+          "label": "限流",
+          "description": "实施请求限流，返回 429 状态码"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "GraphQL",
+    "gRPC",
+    "API 网关"
+  ]
 }

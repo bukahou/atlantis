@@ -1,0 +1,140 @@
+{
+  "slug": "hash",
+  "meta": {
+    "title": "ハッシュアルゴリズム",
+    "description": "SHAシリーズ、パスワードハッシュとHMAC",
+    "order": 3,
+    "tags": [
+      "ハッシュ",
+      "SHA",
+      "パスワード保存"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ハッシュ：任意長の入力 → 固定長の出力",
+        "特性：一方向性、衝突耐性、雪崩効果",
+        "用途：完全性検証、パスワード保存、デジタル署名",
+        "パスワードハッシュ：専用設計の低速ハッシュ（Argon2、bcrypt）"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "ハッシュアルゴリズム分類",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "汎用ハッシュ",
+          "badge": "完全性",
+          "badgeColor": "blue",
+          "points": [
+            "SHA-256/384/512",
+            "BLAKE3",
+            "高速計算"
+          ]
+        },
+        {
+          "title": "パスワードハッシュ",
+          "badge": "パスワード保存",
+          "badgeColor": "green",
+          "points": [
+            "Argon2id",
+            "bcrypt/scrypt",
+            "意図的に低速"
+          ]
+        },
+        {
+          "title": "MAC",
+          "badge": "認証",
+          "badgeColor": "purple",
+          "points": [
+            "HMAC-SHA256",
+            "メッセージ認証",
+            "改ざん防止"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "パスワードハッシュ保存",
+      "language": "typescript",
+      "code": "import argon2 from 'argon2';\n\n// Argon2id設定（OWASP推奨）\nconst ARGON2_OPTIONS = {\n  type: argon2.argon2id,\n  memoryCost: 2 ** 16,  // 64 MB\n  timeCost: 3,          // 3回の繰り返し\n  parallelism: 1,\n};\n\n// パスワードハッシュ化\nasync function hashPassword(password: string): Promise<string> {\n  return argon2.hash(password, ARGON2_OPTIONS);\n}\n\n// パスワード検証\nasync function verifyPassword(hash: string, password: string): Promise<boolean> {\n  try {\n    return await argon2.verify(hash, password);\n  } catch {\n    return false;\n  }\n}\n\n// 例\nconst hash = await hashPassword('mySecurePassword');\n// $argon2id$v=19$m=65536,t=3,p=1$salt$hash\n\nconst isValid = await verifyPassword(hash, 'mySecurePassword');\n// true"
+    },
+    {
+      "type": "codeBlock",
+      "title": "HMACメッセージ認証",
+      "language": "go",
+      "code": "import (\n    \"crypto/hmac\"\n    \"crypto/sha256\"\n    \"encoding/hex\"\n)\n\n// HMAC生成\nfunc GenerateHMAC(key, message []byte) string {\n    h := hmac.New(sha256.New, key)\n    h.Write(message)\n    return hex.EncodeToString(h.Sum(nil))\n}\n\n// HMAC検証（定数時間比較、タイミング攻撃防止）\nfunc VerifyHMAC(key, message []byte, expectedMAC string) bool {\n    expectedBytes, _ := hex.DecodeString(expectedMAC)\n    actualMAC := hmac.New(sha256.New, key)\n    actualMAC.Write(message)\n    return hmac.Equal(actualMAC.Sum(nil), expectedBytes)\n}\n\n// Webhook署名検証の例\nfunc VerifyWebhook(secret, payload []byte, signature string) bool {\n    expected := \"sha256=\" + GenerateHMAC(secret, payload)\n    return hmac.Equal([]byte(expected), []byte(signature))\n}"
+    },
+    {
+      "type": "table",
+      "title": "アルゴリズム選択",
+      "highlightFirst": true,
+      "headers": [
+        "用途",
+        "推奨",
+        "非推奨"
+      ],
+      "rows": [
+        [
+          "パスワード保存",
+          "Argon2id",
+          "MD5, SHA1, SHA256"
+        ],
+        [
+          "ファイル検証",
+          "SHA-256, BLAKE3",
+          "MD5"
+        ],
+        [
+          "メッセージ認証",
+          "HMAC-SHA256",
+          "独自方式"
+        ],
+        [
+          "データフィンガープリント",
+          "SHA-256",
+          "CRC32"
+        ],
+        [
+          "高性能ハッシュ",
+          "BLAKE3",
+          "SHA-1"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "セキュリティプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "パスワードには専用ハッシュ",
+          "description": "Argon2id > bcrypt > scrypt > PBKDF2"
+        },
+        {
+          "label": "自動ソルト",
+          "description": "Argon2/bcryptは自動処理、手動不要"
+        },
+        {
+          "label": "定数時間比較",
+          "description": "検証時はhmac.Equalを使用しタイミング攻撃を防止"
+        },
+        {
+          "label": "MD5/SHA1は禁止",
+          "description": "破られている、レガシー互換のみに使用"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "パスワードセキュリティ",
+    "対称暗号",
+    "デジタル署名"
+  ]
+}

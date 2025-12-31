@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "title": "PHP",
+    "description": "Web 开发、Laravel 框架与现代 PHP 实践",
+    "order": 2,
+    "tags": ["PHP", "Laravel", "Web开发", "WordPress"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "专为 Web 开发设计的服务端脚本语言",
+        "驱动全球约 77% 的网站（WordPress、维基百科等）",
+        "Laravel、Symfony 等现代框架生态完善",
+        "PHP 8.x 带来重大性能提升与新特性"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "PHP 简介",
+      "content": "PHP（Hypertext Preprocessor）诞生于 1995 年，是最流行的 Web 后端语言之一。从早期的简单脚本到如今的现代化框架，PHP 经历了巨大的演进。PHP 8 引入了 JIT 编译器、联合类型、属性等特性，使 PHP 成为一门功能强大的现代编程语言。"
+    },
+    {
+      "type": "cards",
+      "title": "核心特性",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Web 原生",
+          "badge": "核心",
+          "badgeColor": "blue",
+          "points": [
+            "HTML 嵌入式",
+            "超全局变量",
+            "会话管理"
+          ]
+        },
+        {
+          "title": "类型系统",
+          "badge": "PHP 8",
+          "badgeColor": "green",
+          "points": [
+            "类型声明",
+            "联合类型",
+            "属性 Attributes"
+          ]
+        },
+        {
+          "title": "性能",
+          "badge": "JIT",
+          "badgeColor": "purple",
+          "points": [
+            "OPcache 缓存",
+            "JIT 编译器",
+            "Fibers 协程"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础语法",
+      "language": "php",
+      "code": "<?php\ndeclare(strict_types=1);\n\n// 变量与类型\n$name = 'PHP';\n$version = 8.3;\n$features = ['JIT', 'Attributes', 'Named Arguments'];\n\n// 类型声明\nfunction greet(string $name): string {\n    return \"Hello, {$name}!\";\n}\n\n// 箭头函数\n$double = fn(int $n): int => $n * 2;\n\n// 类与接口\nclass User {\n    public function __construct(\n        public readonly string $name,\n        public readonly int $age,\n    ) {}\n}\n\n// 枚举 (PHP 8.1)\nenum Status: string {\n    case Active = 'active';\n    case Inactive = 'inactive';\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Laravel 示例",
+      "language": "php",
+      "code": "// 路由定义\nRoute::get('/users', [UserController::class, 'index']);\nRoute::post('/users', [UserController::class, 'store']);\n\n// 控制器\nclass UserController extends Controller\n{\n    public function index(): JsonResponse\n    {\n        $users = User::query()\n            ->where('active', true)\n            ->orderBy('created_at', 'desc')\n            ->paginate(15);\n            \n        return response()->json($users);\n    }\n    \n    public function store(UserRequest $request): JsonResponse\n    {\n        $user = User::create($request->validated());\n        return response()->json($user, 201);\n    }\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "Laravel vs Symfony",
+      "columns": [
+        {
+          "title": "Laravel",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "理念", "description": "优雅、简洁、快速开发" },
+            { "label": "学习曲线", "description": "较平缓" },
+            { "label": "适用", "description": "中小型项目、API" }
+          ]
+        },
+        {
+          "title": "Symfony",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            { "label": "理念", "description": "灵活、可复用组件" },
+            { "label": "学习曲线", "description": "较陡峭" },
+            { "label": "适用", "description": "大型企业应用" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "PHP 8.x 新特性",
+      "highlightFirst": true,
+      "headers": ["特性", "版本", "说明"],
+      "rows": [
+        ["JIT 编译器", "8.0", "即时编译提升性能"],
+        ["联合类型", "8.0", "int|string 多类型声明"],
+        ["Named Arguments", "8.0", "命名参数传递"],
+        ["Enums", "8.1", "原生枚举支持"],
+        ["Fibers", "8.1", "协程支持"],
+        ["只读类", "8.2", "readonly class"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 Composer", "description": "依赖管理与自动加载" },
+        { "label": "遵循 PSR 标准", "description": "PSR-4 自动加载、PSR-12 代码风格" },
+        { "label": "启用严格模式", "description": "declare(strict_types=1)" },
+        { "label": "使用现代框架", "description": "Laravel/Symfony 而非原生 PHP" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Laravel", "Web开发", "MySQL"]
+}

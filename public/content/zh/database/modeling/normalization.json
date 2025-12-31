@@ -5,11 +5,210 @@
     "description": "数据库范式理论、反范式设计与数据建模",
     "order": 1,
     "tags": [
-      "database",
-      "modeling",
-      "normalization",
-      "design"
+      "数据库设计",
+      "范式",
+      "建模"
     ]
   },
-  "content": "<h1>数据库范式</h1>\n<h2>范式概述</h2>\n<p>数据库范式是设计关系数据库时消除冗余、保证数据完整性的指导原则。</p>\n<pre><code>范式层级\n├── 1NF - 原子性 (属性不可分)\n├── 2NF - 完全依赖 (消除部分依赖)\n├── 3NF - 消除传递依赖\n├── BCNF - 消除主属性依赖\n├── 4NF - 消除多值依赖\n└── 5NF - 消除连接依赖\n</code></pre>\n<h2>第一范式 (1NF)</h2>\n<h3>定义</h3>\n<p>每个属性都是原子的、不可再分的。</p>\n<pre><code class=\"language-sql\">-- 违反 1NF\nCREATE TABLE orders_bad (\n    id INT,\n    products VARCHAR(500)  -- \"iPhone,MacBook,AirPods\"\n);\n\n-- 符合 1NF\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    customer_id INT\n);\n\nCREATE TABLE order_items (\n    order_id INT,\n    product_id INT,\n    quantity INT,\n    PRIMARY KEY (order_id, product_id)\n);\n</code></pre>\n<h2>第二范式 (2NF)</h2>\n<h3>定义</h3>\n<p>满足 1NF，且非主属性完全依赖于主键。</p>\n<pre><code class=\"language-sql\">-- 违反 2NF (部分依赖)\n-- 主键: (student_id, course_id)\n-- student_name 只依赖 student_id\nCREATE TABLE enrollment_bad (\n    student_id INT,\n    course_id INT,\n    student_name VARCHAR(100),  -- 部分依赖\n    grade DECIMAL(3,1),\n    PRIMARY KEY (student_id, course_id)\n);\n\n-- 符合 2NF\nCREATE TABLE students (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE enrollments (\n    student_id INT,\n    course_id INT,\n    grade DECIMAL(3,1),\n    PRIMARY KEY (student_id, course_id),\n    FOREIGN KEY (student_id) REFERENCES students(id)\n);\n</code></pre>\n<h2>第三范式 (3NF)</h2>\n<h3>定义</h3>\n<p>满足 2NF，且非主属性不传递依赖于主键。</p>\n<pre><code class=\"language-sql\">-- 违反 3NF (传递依赖)\n-- department_name 依赖 department_id，而非直接依赖 id\nCREATE TABLE employees_bad (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    department_name VARCHAR(100)  -- 传递依赖\n);\n\n-- 符合 3NF\nCREATE TABLE departments (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    FOREIGN KEY (department_id) REFERENCES departments(id)\n);\n</code></pre>\n<h2>BCNF (巴斯-科德范式)</h2>\n<h3>定义</h3>\n<p>满足 3NF，且每个决定因素都是候选键。</p>\n<pre><code class=\"language-sql\">-- 违反 BCNF\n-- 假设: 一个学生只能选一个导师的课\n-- 导师只教一门课\nCREATE TABLE student_course_bad (\n    student_id INT,\n    course_id INT,\n    teacher_id INT,\n    PRIMARY KEY (student_id, course_id)\n    -- teacher_id -> course_id，但 teacher_id 不是候选键\n);\n\n-- 符合 BCNF\nCREATE TABLE teacher_courses (\n    teacher_id INT PRIMARY KEY,\n    course_id INT\n);\n\nCREATE TABLE student_teachers (\n    student_id INT,\n    teacher_id INT,\n    PRIMARY KEY (student_id, teacher_id)\n);\n</code></pre>\n<h2>反范式设计</h2>\n<h3>何时反范式</h3>\n<pre><code>适用场景\n├── 读多写少 - 减少 JOIN\n├── 报表查询 - 预聚合数据\n├── 高性能要求 - 空间换时间\n└── 数据仓库 - 星型/雪花模型\n</code></pre>\n<h3>反范式技术</h3>\n<pre><code class=\"language-sql\">-- 1. 冗余字段\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    user_id INT,\n    user_name VARCHAR(100),  -- 冗余，避免 JOIN\n    total_amount DECIMAL(10,2)\n);\n\n-- 2. 预计算字段\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    price DECIMAL(10,2),\n    review_count INT DEFAULT 0,  -- 预计算\n    avg_rating DECIMAL(2,1) DEFAULT 0\n);\n\n-- 3. 汇总表\nCREATE TABLE daily_sales (\n    date DATE PRIMARY KEY,\n    total_orders INT,\n    total_revenue DECIMAL(12,2),\n    avg_order_value DECIMAL(10,2)\n);\n</code></pre>\n<h2>数据建模实践</h2>\n<h3>实体关系设计</h3>\n<pre><code class=\"language-sql\">-- 一对多\nCREATE TABLE categories (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    category_id INT,\n    FOREIGN KEY (category_id) REFERENCES categories(id)\n);\n\n-- 多对多\nCREATE TABLE tags (\n    id INT PRIMARY KEY,\n    name VARCHAR(50)\n);\n\nCREATE TABLE product_tags (\n    product_id INT,\n    tag_id INT,\n    PRIMARY KEY (product_id, tag_id),\n    FOREIGN KEY (product_id) REFERENCES products(id),\n    FOREIGN KEY (tag_id) REFERENCES tags(id)\n);\n\n-- 自关联\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    manager_id INT,\n    FOREIGN KEY (manager_id) REFERENCES employees(id)\n);\n</code></pre>\n<h3>继承模式</h3>\n<pre><code class=\"language-sql\">-- 单表继承\nCREATE TABLE vehicles (\n    id INT PRIMARY KEY,\n    type ENUM('car', 'motorcycle', 'truck'),\n    brand VARCHAR(50),\n    -- Car 字段\n    num_doors INT,\n    -- Motorcycle 字段\n    engine_cc INT,\n    -- Truck 字段\n    payload_capacity DECIMAL(10,2)\n);\n\n-- 类表继承\nCREATE TABLE vehicles (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50)\n);\n\nCREATE TABLE cars (\n    vehicle_id INT PRIMARY KEY,\n    num_doors INT,\n    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)\n);\n\nCREATE TABLE motorcycles (\n    vehicle_id INT PRIMARY KEY,\n    engine_cc INT,\n    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)\n);\n\n-- 具体表继承\nCREATE TABLE cars (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50),\n    num_doors INT\n);\n\nCREATE TABLE motorcycles (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50),\n    engine_cc INT\n);\n</code></pre>\n<h2>设计原则</h2>\n<pre><code class=\"language-yaml\">规范化优先:\n  - 从高范式开始\n  - 根据性能需求适当反范式\n  - 记录反范式决策理由\n\n命名规范:\n  - 表名: 复数形式 (users, orders)\n  - 主键: id 或 table_id\n  - 外键: referenced_table_id\n  - 时间戳: created_at, updated_at\n\n约束使用:\n  - 主键约束\n  - 外键约束 (考虑性能影响)\n  - 唯一约束\n  - 检查约束\n</code></pre>\n<h2>总结</h2>\n<p>数据库范式要点：</p>\n<ol>\n<li><strong>1NF</strong> - 原子性，属性不可分</li>\n<li><strong>2NF</strong> - 消除部分依赖</li>\n<li><strong>3NF</strong> - 消除传递依赖</li>\n<li><strong>反范式</strong> - 性能优化，适当冗余</li>\n<li><strong>实践</strong> - 平衡规范化与性能</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "范式是设计关系数据库消除冗余的指导原则",
+        "从低到高：1NF -> 2NF -> 3NF -> BCNF",
+        "高范式减少冗余，但可能影响查询性能",
+        "实际设计需平衡规范化与性能"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "范式层级",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "1NF",
+          "description": "原子性",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "2NF",
+          "description": "消除部分依赖",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "3NF",
+          "description": "消除传递依赖",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "BCNF",
+          "description": "消除主属性依赖",
+          "color": "bg-purple-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "范式详解",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "第一范式 (1NF)",
+          "badge": "原子性",
+          "badgeColor": "blue",
+          "points": [
+            "每个属性不可再分",
+            "不能存储数组/列表",
+            "如：products 不能存 \"A,B,C\""
+          ]
+        },
+        {
+          "title": "第二范式 (2NF)",
+          "badge": "完全依赖",
+          "badgeColor": "green",
+          "points": [
+            "满足 1NF",
+            "非主属性完全依赖主键",
+            "消除部分依赖"
+          ]
+        },
+        {
+          "title": "第三范式 (3NF)",
+          "badge": "直接依赖",
+          "badgeColor": "amber",
+          "points": [
+            "满足 2NF",
+            "非主属性不传递依赖主键",
+            "消除传递依赖"
+          ]
+        },
+        {
+          "title": "BCNF",
+          "badge": "决定因素",
+          "badgeColor": "purple",
+          "points": [
+            "满足 3NF",
+            "每个决定因素都是候选键",
+            "更严格的 3NF"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "3NF 示例",
+      "language": "sql",
+      "code": "-- 违反 3NF (传递依赖)\n-- department_name 依赖 department_id\nCREATE TABLE employees_bad (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    department_name VARCHAR(100)  -- 传递依赖\n);\n\n-- 符合 3NF\nCREATE TABLE departments (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT REFERENCES departments(id)\n);"
+    },
+    {
+      "type": "comparison",
+      "title": "范式 vs 反范式",
+      "columns": [
+        {
+          "title": "规范化",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "优点",
+              "description": "减少冗余、数据一致"
+            },
+            {
+              "label": "缺点",
+              "description": "多表 JOIN、查询复杂"
+            },
+            {
+              "label": "适用",
+              "description": "OLTP、写多读少"
+            }
+          ]
+        },
+        {
+          "title": "反范式",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "优点",
+              "description": "查询快、减少 JOIN"
+            },
+            {
+              "label": "缺点",
+              "description": "数据冗余、更新复杂"
+            },
+            {
+              "label": "适用",
+              "description": "OLAP、读多写少"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "反范式技术",
+      "language": "sql",
+      "code": "-- 1. 冗余字段 (避免 JOIN)\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    user_id INT,\n    user_name VARCHAR(100),  -- 冗余\n    total_amount DECIMAL(10,2)\n);\n\n-- 2. 预计算字段\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    review_count INT DEFAULT 0,\n    avg_rating DECIMAL(2,1) DEFAULT 0\n);\n\n-- 3. 汇总表\nCREATE TABLE daily_sales (\n    date DATE PRIMARY KEY,\n    total_orders INT,\n    total_revenue DECIMAL(12,2)\n);"
+    },
+    {
+      "type": "table",
+      "title": "实体关系",
+      "highlightFirst": true,
+      "headers": [
+        "关系类型",
+        "实现方式",
+        "示例"
+      ],
+      "rows": [
+        [
+          "一对一",
+          "主键关联/同表",
+          "用户-详情"
+        ],
+        [
+          "一对多",
+          "外键关联",
+          "分类-商品"
+        ],
+        [
+          "多对多",
+          "中间表",
+          "商品-标签"
+        ],
+        [
+          "自关联",
+          "自引用外键",
+          "员工-上级"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "设计原则",
+      "style": "check",
+      "items": [
+        {
+          "label": "从高范式开始",
+          "description": "根据性能需求适当反范式"
+        },
+        {
+          "label": "命名规范",
+          "description": "表名复数，外键 table_id"
+        },
+        {
+          "label": "主键设计",
+          "description": "自增 ID 或分布式 ID"
+        },
+        {
+          "label": "记录决策",
+          "description": "文档化反范式理由"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "索引设计",
+    "分库分表",
+    "数据建模"
+  ]
 }

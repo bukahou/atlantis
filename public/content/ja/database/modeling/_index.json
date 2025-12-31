@@ -10,7 +10,7 @@
     {
       "slug": "indexing",
       "title": "インデックス設計",
-      "description": "データベースインデックス原理、設計戦略とパフォーマンス最適化",
+      "description": "データベースインデックスの原理、設計戦略と性能最適化",
       "href": "/database/modeling/indexing",
       "order": 2
     },

@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "title": "CSS",
+    "description": "CSS3 スタイルとモダンレイアウト技術",
+    "order": 2,
+    "tags": ["CSS", "CSS3", "レイアウト", "スタイル"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "CSS は Web のスタイルシート言語",
+        "CSS3 でアニメーション、変数、Grid/Flexbox を導入",
+        "レスポンシブデザインでマルチデバイス対応",
+        "モダン CSS で JavaScript 依存を削減"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "レイアウト方式",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Flexbox",
+          "badge": "1次元",
+          "badgeColor": "blue",
+          "points": [
+            "主軸/交差軸レイアウト",
+            "justify-content 主軸揃え",
+            "align-items 交差軸揃え",
+            "flex-grow/shrink 伸縮"
+          ]
+        },
+        {
+          "title": "Grid",
+          "badge": "2次元",
+          "badgeColor": "green",
+          "points": [
+            "行列グリッドレイアウト",
+            "grid-template トラック定義",
+            "grid-area 領域命名",
+            "gap 間隔制御"
+          ]
+        },
+        {
+          "title": "位置指定",
+          "badge": "Position",
+          "badgeColor": "purple",
+          "points": [
+            "relative 相対位置",
+            "absolute 絶対位置",
+            "fixed 固定位置",
+            "sticky 粘着位置"
+          ]
+        },
+        {
+          "title": "コンテナクエリ",
+          "badge": "新機能",
+          "badgeColor": "amber",
+          "points": [
+            "container-type でコンテナ定義",
+            "@container でサイズクエリ",
+            "コンポーネントレベル対応",
+            "メディアクエリの一部代替"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Flexbox レイアウト",
+      "language": "css",
+      "code": "/* コンテナ */\n.flex-container {\n  display: flex;\n  flex-direction: row;        /* row | column */\n  justify-content: center;    /* 主軸揃え */\n  align-items: center;        /* 交差軸揃え */\n  gap: 1rem;                  /* 間隔 */\n  flex-wrap: wrap;            /* 折り返し */\n}\n\n/* 子要素 */\n.flex-item {\n  flex: 1;                    /* flex-grow: 1 */\n  flex: 0 0 200px;            /* 固定幅 */\n  align-self: flex-start;     /* 個別揃え */\n}\n\n/* よくあるレイアウト */\n.space-between { justify-content: space-between; }\n.center-all { justify-content: center; align-items: center; }"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Grid レイアウト",
+      "language": "css",
+      "code": "/* 基本グリッド */\n.grid-container {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);  /* 3等分 */\n  grid-template-rows: auto 1fr auto;       /* ヘッダー/コンテンツ/フッター */\n  gap: 1rem;\n}\n\n/* レスポンシブグリッド */\n.responsive-grid {\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n}\n\n/* 領域命名 */\n.layout {\n  grid-template-areas:\n    \"header header header\"\n    \"sidebar main main\"\n    \"footer footer footer\";\n}\n.header { grid-area: header; }\n.sidebar { grid-area: sidebar; }\n.main { grid-area: main; }"
+    },
+    {
+      "type": "codeBlock",
+      "title": "CSS 変数",
+      "language": "css",
+      "code": ":root {\n  /* カラーシステム */\n  --color-primary: #3b82f6;\n  --color-secondary: #64748b;\n  --color-bg: #ffffff;\n  --color-text: #1e293b;\n  \n  /* スペーシング */\n  --spacing-sm: 0.5rem;\n  --spacing-md: 1rem;\n  --spacing-lg: 2rem;\n  \n  /* フォント */\n  --font-sans: system-ui, sans-serif;\n  --font-mono: 'Fira Code', monospace;\n}\n\n/* ダークモード */\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-bg: #0f172a;\n    --color-text: #f1f5f9;\n  }\n}\n\n/* 変数使用 */\n.button {\n  background: var(--color-primary);\n  padding: var(--spacing-sm) var(--spacing-md);\n  font-family: var(--font-sans);\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "Flexbox vs Grid",
+      "columns": [
+        {
+          "title": "Flexbox",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "次元", "description": "1次元（行または列）" },
+            { "label": "適用", "description": "ナビ、カードリスト、揃え" },
+            { "label": "特徴", "description": "コンテンツ駆動、自動適応" }
+          ]
+        },
+        {
+          "title": "Grid",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "次元", "description": "2次元（行と列）" },
+            { "label": "適用", "description": "ページレイアウト、複雑グリッド" },
+            { "label": "特徴", "description": "レイアウト駆動、精密制御" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "モダン CSS 機能",
+      "highlightFirst": true,
+      "headers": ["機能", "用途", "互換性"],
+      "rows": [
+        ["CSS 変数", "テーマ/デザインシステム", "全面サポート"],
+        ["Grid", "2次元レイアウト", "全面サポート"],
+        ["Container Queries", "コンポーネントレスポンシブ", "モダンブラウザ"],
+        ["@layer", "カスケード制御", "モダンブラウザ"],
+        [":has()", "親セレクタ", "モダンブラウザ"],
+        ["Subgrid", "サブグリッド継承", "一部サポート"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "モバイルファースト", "description": "小画面から始めて段階的に強化" },
+        { "label": "CSS 変数使用", "description": "デザインシステム構築、テーマ切替" },
+        { "label": "!important 回避", "description": "セレクタ優先度を適切に管理" },
+        { "label": "論理プロパティ", "description": "margin-inline で margin-left/right 代替" },
+        { "label": "モダンレイアウト", "description": "Flexbox/Grid 優先、float 削減" }
+      ]
+    }
+  ],
+  "relatedTopics": ["HTML", "JavaScript", "Tailwind CSS", "レスポンシブデザイン"]
+}

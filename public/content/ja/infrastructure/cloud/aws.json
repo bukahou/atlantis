@@ -1,15 +1,272 @@
 {
   "slug": "aws",
   "meta": {
-    "title": "AWS クラウドサービス基礎",
-    "description": "Amazon Web Services コアサービスの紹介と実践ガイド",
+    "title": "AWS クラウドサービス",
+    "description": "Amazon Web Services のコアサービスとアーキテクチャ設計",
     "order": 1,
     "tags": [
-      "aws",
-      "cloud",
-      "ec2",
-      "s3"
+      "AWS",
+      "クラウドコンピューティング",
+      "IaaS"
     ]
   },
-  "content": "<h1>AWS クラウドサービス基礎</h1>\n<h2>AWS とは</h2>\n<p>Amazon Web Services (AWS) は、世界最大のクラウドコンピューティングプラットフォームで、コンピューティング、ストレージ、データベース、ネットワーク、分析、機械学習など、200以上のサービスを提供しています。</p>\n<pre><code>AWS グローバルインフラストラクチャ\n├── Regions (リージョン) - 33個\n│   ├── Availability Zones (AZ) - 105個\n│   │   └── Data Centers\n│   └── Local Zones\n├── Edge Locations - 400+\n└── Wavelength Zones\n</code></pre>\n<h2>コアコンピューティングサービス</h2>\n<h3>EC2 (Elastic Compute Cloud)</h3>\n<p>EC2 は、サイズ変更可能なコンピューティング容量を提供する AWS の基本的なサービスです。</p>\n<h4>インスタンスタイプ</h4>\n<table>\n<thead>\n<tr>\n<th>タイプ</th>\n<th>用途</th>\n<th>例</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>汎用</strong></td>\n<td>バランス型</td>\n<td>t3, m6i, m7g</td>\n</tr>\n<tr>\n<td><strong>コンピューティング最適化</strong></td>\n<td>高性能CPU</td>\n<td>c6i, c7g</td>\n</tr>\n<tr>\n<td><strong>メモリ最適化</strong></td>\n<td>大規模データセット</td>\n<td>r6i, x2idn</td>\n</tr>\n<tr>\n<td><strong>ストレージ最適化</strong></td>\n<td>高シーケンシャルI/O</td>\n<td>i3, d3</td>\n</tr>\n<tr>\n<td><strong>高速コンピューティング</strong></td>\n<td>GPU/FPGA</td>\n<td>p4d, g5</td>\n</tr>\n</tbody>\n</table>\n<h4>EC2 インスタンスの起動</h4>\n<pre><code class=\"language-bash\"># AWS CLI でインスタンスを起動\naws ec2 run-instances \\\n  --image-id ami-0abcdef1234567890 \\\n  --instance-type t3.micro \\\n  --key-name my-key-pair \\\n  --security-group-ids sg-0123456789abcdef0 \\\n  --subnet-id subnet-0123456789abcdef0 \\\n  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=MyServer}]'\n</code></pre>\n<h4>インスタンスライフサイクル</h4>\n<pre><code>pending → running ←→ stopping → stopped\n                  ↘ shutting-down → terminated\n</code></pre>\n<h3>Lambda (サーバーレスコンピューティング)</h3>\n<p>Lambda を使用すると、サーバーを管理せずにコードを実行できます。</p>\n<pre><code class=\"language-python\"># Lambda 関数の例\nimport json\n\ndef lambda_handler(event, context):\n    name = event.get('name', 'World')\n    return {\n        'statusCode': 200,\n        'body': json.dumps(f'Hello, {name}!')\n    }\n</code></pre>\n<h4>Lambda 設定</h4>\n<pre><code class=\"language-yaml\"># SAM テンプレートの例\nAWSTemplateFormatVersion: '2010-09-09'\nTransform: AWS::Serverless-2016-10-31\n\nResources:\n  HelloFunction:\n    Type: AWS::Serverless::Function\n    Properties:\n      Handler: app.lambda_handler\n      Runtime: python3.11\n      MemorySize: 128\n      Timeout: 30\n      Events:\n        Api:\n          Type: Api\n          Properties:\n            Path: /hello\n            Method: get\n</code></pre>\n<h2>ストレージサービス</h2>\n<h3>S3 (Simple Storage Service)</h3>\n<p>S3 は、99.999999999% (イレブンナイン) の耐久性を提供するオブジェクトストレージです。</p>\n<h4>ストレージクラス</h4>\n<pre><code>S3 ストレージクラス比較\n┌─────────────────────┬────────────────┬─────────────┐\n│ ストレージクラス    │ 用途           │ コスト      │\n├─────────────────────┼────────────────┼─────────────┤\n│ S3 Standard         │ 頻繁アクセス   │ 高          │\n│ S3 Intelligent      │ 自動階層化     │ 中          │\n│ S3 Standard-IA      │ 低頻度アクセス │ 中低        │\n│ S3 One Zone-IA      │ 単一AZ         │ 低          │\n│ S3 Glacier          │ アーカイブ     │ 非常に低い  │\n│ S3 Glacier Deep     │ 長期アーカイブ │ 最低        │\n└─────────────────────┴────────────────┴─────────────┘\n</code></pre>\n<h4>S3 操作</h4>\n<pre><code class=\"language-bash\"># バケットの作成\naws s3 mb s3://my-bucket-name\n\n# ファイルのアップロード\naws s3 cp file.txt s3://my-bucket-name/\n\n# ディレクトリの同期\naws s3 sync ./local-dir s3://my-bucket-name/remote-dir\n\n# ライフサイクルポリシーの設定\naws s3api put-bucket-lifecycle-configuration \\\n  --bucket my-bucket-name \\\n  --lifecycle-configuration file://lifecycle.json\n</code></pre>\n<h3>EBS (Elastic Block Store)</h3>\n<p>EBS は、EC2 インスタンス用のブロックストレージボリュームを提供します。</p>\n<pre><code>EBS ボリュームタイプ\n├── gp3 (汎用SSD) - ベースライン 3000 IOPS\n├── gp2 (汎用SSD) - バースト性能\n├── io2 (プロビジョンドIOPS SSD) - 高性能DB\n├── st1 (スループット最適化HDD) - ビッグデータ\n└── sc1 (コールドHDD) - 低頻度アクセス\n</code></pre>\n<h2>ネットワークサービス</h2>\n<h3>VPC (Virtual Private Cloud)</h3>\n<p>VPC は AWS 内の仮想ネットワーク環境です。</p>\n<pre><code>VPC アーキテクチャ例\n┌────────────────────────────────────────────┐\n│ VPC: 10.0.0.0/16                           │\n│                                            │\n│  ┌─────────────────┐  ┌─────────────────┐  │\n│  │ Public Subnet   │  │ Public Subnet   │  │\n│  │ 10.0.1.0/24     │  │ 10.0.2.0/24     │  │\n│  │ AZ-a            │  │ AZ-b            │  │\n│  │ ┌───┐ ┌───┐     │  │ ┌───┐ ┌───┐     │  │\n│  │ │EC2│ │NAT│     │  │ │EC2│ │NAT│     │  │\n│  │ └───┘ └───┘     │  │ └───┘ └───┘     │  │\n│  └────────┬────────┘  └────────┬────────┘  │\n│           │ Internet Gateway   │           │\n│  ┌────────┴────────┐  ┌────────┴────────┐  │\n│  │ Private Subnet  │  │ Private Subnet  │  │\n│  │ 10.0.3.0/24     │  │ 10.0.4.0/24     │  │\n│  │ AZ-a            │  │ AZ-b            │  │\n│  │ ┌───┐ ┌───┐     │  │ ┌───┐ ┌───┐     │  │\n│  │ │EC2│ │RDS│     │  │ │EC2│ │RDS│     │  │\n│  │ └───┘ └───┘     │  │ └───┘ └───┘     │  │\n│  └─────────────────┘  └─────────────────┘  │\n└────────────────────────────────────────────┘\n</code></pre>\n<h4>VPC の作成</h4>\n<pre><code class=\"language-bash\"># VPC の作成\naws ec2 create-vpc --cidr-block 10.0.0.0/16\n\n# サブネットの作成\naws ec2 create-subnet \\\n  --vpc-id vpc-xxx \\\n  --cidr-block 10.0.1.0/24 \\\n  --availability-zone ap-northeast-1a\n\n# Internet Gateway の作成\naws ec2 create-internet-gateway\naws ec2 attach-internet-gateway \\\n  --vpc-id vpc-xxx \\\n  --internet-gateway-id igw-xxx\n</code></pre>\n<h3>Route 53 (DNS サービス)</h3>\n<pre><code class=\"language-bash\"># ホストゾーンの作成\naws route53 create-hosted-zone \\\n  --name example.com \\\n  --caller-reference unique-string\n\n# A レコードの追加\naws route53 change-resource-record-sets \\\n  --hosted-zone-id Z123456 \\\n  --change-batch '{\n    \"Changes\": [{\n      \"Action\": \"CREATE\",\n      \"ResourceRecordSet\": {\n        \"Name\": \"www.example.com\",\n        \"Type\": \"A\",\n        \"TTL\": 300,\n        \"ResourceRecords\": [{\"Value\": \"1.2.3.4\"}]\n      }\n    }]\n  }'\n</code></pre>\n<h2>データベースサービス</h2>\n<h3>RDS (Relational Database Service)</h3>\n<pre><code class=\"language-bash\"># MySQL インスタンスの作成\naws rds create-db-instance \\\n  --db-instance-identifier mydb \\\n  --db-instance-class db.t3.micro \\\n  --engine mysql \\\n  --engine-version 8.0 \\\n  --master-username admin \\\n  --master-user-password MyPassword123 \\\n  --allocated-storage 20 \\\n  --vpc-security-group-ids sg-xxx \\\n  --db-subnet-group-name my-subnet-group\n</code></pre>\n<h3>DynamoDB (NoSQL)</h3>\n<pre><code class=\"language-python\">import boto3\n\n# テーブルの作成\ndynamodb = boto3.resource('dynamodb')\ntable = dynamodb.create_table(\n    TableName='Users',\n    KeySchema=[\n        {'AttributeName': 'user_id', 'KeyType': 'HASH'},\n        {'AttributeName': 'created_at', 'KeyType': 'RANGE'}\n    ],\n    AttributeDefinitions=[\n        {'AttributeName': 'user_id', 'AttributeType': 'S'},\n        {'AttributeName': 'created_at', 'AttributeType': 'N'}\n    ],\n    BillingMode='PAY_PER_REQUEST'\n)\n\n# データの書き込み\ntable.put_item(Item={\n    'user_id': 'user123',\n    'created_at': 1234567890,\n    'name': 'John Doe'\n})\n</code></pre>\n<h2>IAM (Identity and Access Management)</h2>\n<h3>ポリシーの例</h3>\n<pre><code class=\"language-json\">{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\"\n      ],\n      \"Resource\": \"arn:aws:s3:::my-bucket/*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"s3:ListBucket\",\n      \"Resource\": \"arn:aws:s3:::my-bucket\"\n    }\n  ]\n}\n</code></pre>\n<h3>ベストプラクティス</h3>\n<ol>\n<li><strong>最小権限の原則</strong> - 必要な権限のみを付与</li>\n<li><strong>IAM ロールの使用</strong> - 長期認証情報を避ける</li>\n<li><strong>MFA の有効化</strong> - アカウントセキュリティの強化</li>\n<li><strong>認証情報の定期的なローテーション</strong> - 漏洩リスクの軽減</li>\n<li><strong>AWS Organizations の使用</strong> - マルチアカウント管理</li>\n</ol>\n<h2>コスト最適化</h2>\n<h3>料金モデル</h3>\n<pre><code>EC2 料金オプション\n├── オンデマンド - 秒単位課金、柔軟\n├── Reserved Instances - 1-3年コミット、最大75%割引\n├── Savings Plans - 柔軟なコミット割引\n├── Spot Instances - 入札式、最大90%割引\n└── Dedicated Hosts - 専用物理サーバー\n</code></pre>\n<h3>Cost Explorer</h3>\n<pre><code class=\"language-bash\"># コストと使用状況の取得\naws ce get-cost-and-usage \\\n  --time-period Start=2024-01-01,End=2024-01-31 \\\n  --granularity MONTHLY \\\n  --metrics BlendedCost \\\n  --group-by Type=DIMENSION,Key=SERVICE\n</code></pre>\n<h2>まとめ</h2>\n<p>AWS コアサービスのポイント：</p>\n<ol>\n<li><strong>コンピューティング</strong>: EC2 (仮想マシン), Lambda (サーバーレス), ECS/EKS (コンテナ)</li>\n<li><strong>ストレージ</strong>: S3 (オブジェクト), EBS (ブロック), EFS (ファイル)</li>\n<li><strong>データベース</strong>: RDS (リレーショナル), DynamoDB (NoSQL), ElastiCache (キャッシュ)</li>\n<li><strong>ネットワーク</strong>: VPC, Route 53, CloudFront, ELB</li>\n<li><strong>セキュリティ</strong>: IAM, KMS, WAF, Shield</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "AWS は世界最大のクラウドサービスプロバイダー",
+        "200以上のクラウドサービスを提供",
+        "リージョンとアベイラビリティゾーンでデプロイ",
+        "従量課金、弾力的スケーリング"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "AWS 概要",
+      "content": "Amazon Web Services (AWS) は、コンピュート、ストレージから機械学習、IoT まで包括的なクラウドコンピューティングサービスを提供します。グローバルインフラは 30 以上の地理的リージョンをカバーし、企業のクラウドネイティブ移行の第一選択プラットフォームです。"
+    },
+    {
+      "type": "cards",
+      "title": "コアサービス",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "コンピュートサービス",
+          "badge": "Compute",
+          "badgeColor": "orange",
+          "points": [
+            "EC2 - 仮想サーバー",
+            "Lambda - サーバーレス関数",
+            "ECS/EKS - コンテナサービス",
+            "Fargate - サーバーレスコンテナ"
+          ]
+        },
+        {
+          "title": "ストレージサービス",
+          "badge": "Storage",
+          "badgeColor": "green",
+          "points": [
+            "S3 - オブジェクトストレージ",
+            "EBS - ブロックストレージ",
+            "EFS - ファイルストレージ",
+            "Glacier - アーカイブストレージ"
+          ]
+        },
+        {
+          "title": "データベースサービス",
+          "badge": "Database",
+          "badgeColor": "blue",
+          "points": [
+            "RDS - マネージド RDB",
+            "DynamoDB - NoSQL",
+            "ElastiCache - キャッシュ",
+            "Aurora - 高性能データベース"
+          ]
+        },
+        {
+          "title": "ネットワークサービス",
+          "badge": "Network",
+          "badgeColor": "purple",
+          "points": [
+            "VPC - 仮想プライベートクラウド",
+            "Route 53 - DNS",
+            "CloudFront - CDN",
+            "API Gateway"
+          ]
+        },
+        {
+          "title": "セキュリティサービス",
+          "badge": "Security",
+          "badgeColor": "red",
+          "points": [
+            "IAM - ID 管理",
+            "KMS - キー管理",
+            "WAF - Web ファイアウォール",
+            "Shield - DDoS 対策"
+          ]
+        },
+        {
+          "title": "DevOps",
+          "badge": "DevOps",
+          "badgeColor": "cyan",
+          "points": [
+            "CloudFormation - IaC",
+            "CodePipeline - CI/CD",
+            "CloudWatch - 監視",
+            "Systems Manager"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "典型的な Web アプリケーションアーキテクチャ",
+      "subtitle": "高可用性 3 層アーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Route 53",
+          "description": "DNS",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "CloudFront",
+          "description": "CDN",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "ALB",
+          "description": "ロードバランサー",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "EC2/ECS",
+          "description": "コンピュート",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "RDS",
+          "description": "データベース",
+          "color": "bg-yellow-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "EC2 インスタンスタイプ",
+      "columns": [
+        {
+          "title": "汎用",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "シリーズ",
+              "description": "t3, m5, m6i"
+            },
+            {
+              "label": "特徴",
+              "description": "コンピュート/メモリ/ネットワークのバランス"
+            },
+            {
+              "label": "シナリオ",
+              "description": "Web サーバー、小規模 DB"
+            }
+          ]
+        },
+        {
+          "title": "コンピュート最適化",
+          "color": "from-orange-500 to-red-500",
+          "items": [
+            {
+              "label": "シリーズ",
+              "description": "c5, c6i"
+            },
+            {
+              "label": "特徴",
+              "description": "高 CPU 性能"
+            },
+            {
+              "label": "シナリオ",
+              "description": "バッチ処理、ゲームサーバー"
+            }
+          ]
+        },
+        {
+          "title": "メモリ最適化",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "シリーズ",
+              "description": "r5, r6i, x2"
+            },
+            {
+              "label": "特徴",
+              "description": "大容量メモリ"
+            },
+            {
+              "label": "シナリオ",
+              "description": "インメモリ DB、キャッシュ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "S3 ストレージクラス",
+      "highlightFirst": true,
+      "headers": [
+        "クラス",
+        "アクセス頻度",
+        "レイテンシ",
+        "適用シナリオ"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "頻繁",
+          "ミリ秒",
+          "アクティブデータ"
+        ],
+        [
+          "Standard-IA",
+          "低頻度",
+          "ミリ秒",
+          "バックアップ、長期保存"
+        ],
+        [
+          "One Zone-IA",
+          "低頻度",
+          "ミリ秒",
+          "再構築可能なデータ"
+        ],
+        [
+          "Glacier Instant",
+          "アーカイブ",
+          "ミリ秒",
+          "コンプライアンスアーカイブ"
+        ],
+        [
+          "Glacier Deep",
+          "深層アーカイブ",
+          "12時間",
+          "長期保存"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "AWS ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "IAM ロールを使用",
+          "description": "認証情報のハードコーディングを避け、ロールで権限管理"
+        },
+        {
+          "label": "マルチ AZ デプロイ",
+          "description": "リソースを複数 AZ に分散して可用性向上"
+        },
+        {
+          "label": "CloudTrail を有効化",
+          "description": "API コールを記録し、監査要件を満たす"
+        },
+        {
+          "label": "コスト最適化",
+          "description": "リザーブドインスタンス、Savings Plans でコスト削減"
+        },
+        {
+          "label": "Infrastructure as Code",
+          "description": "CloudFormation または Terraform を使用"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Terraform",
+    "Kubernetes",
+    "DevOps"
+  ]
 }

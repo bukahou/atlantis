@@ -1,0 +1,114 @@
+{
+  "slug": "tls",
+  "meta": {
+    "title": "TLS/SSL",
+    "description": "TLS 1.3、証明書管理と設定",
+    "order": 1,
+    "tags": [
+      "TLS",
+      "HTTPS",
+      "証明書"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "TLS：トランスポート層セキュリティプロトコル、HTTPSの基盤",
+        "ハンドシェイク：鍵交換 + サーバー認証",
+        "TLS 1.3：より安全で高速（1-RTTハンドシェイク）",
+        "証明書：X.509形式、CA発行"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "TLS 1.3 ハンドシェイクフロー",
+      "language": "text",
+      "code": "TLS 1.3 ハンドシェイク (1-RTT)\n\nClient                                           Server\n   │                                                │\n   │  ClientHello                                   │\n   │  + key_share                                   │\n   │  + supported_versions                          │\n   │─────────────────────────────────────────────►  │\n   │                                                │\n   │                          ServerHello           │\n   │                          + key_share           │\n   │                          {EncryptedExtensions} │\n   │                          {Certificate}         │\n   │                          {CertificateVerify}   │\n   │                          {Finished}            │\n   │  ◄─────────────────────────────────────────────│\n   │                                                │\n   │  {Finished}                                    │\n   │─────────────────────────────────────────────►  │\n   │                                                │\n   │  ──────── Application Data ────────►           │\n   │  ◄─────── Application Data ─────────           │\n\n暗号スイート (TLS 1.3):\n- TLS_AES_256_GCM_SHA384\n- TLS_CHACHA20_POLY1305_SHA256"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Nginx TLS設定",
+      "language": "nginx",
+      "code": "server {\n    listen 443 ssl http2;\n    server_name example.com;\n    \n    # 証明書\n    ssl_certificate /etc/ssl/certs/example.com.pem;\n    ssl_certificate_key /etc/ssl/private/example.com.key;\n    \n    # TLSバージョン（1.2と1.3のみ許可）\n    ssl_protocols TLSv1.2 TLSv1.3;\n    \n    # 暗号スイート\n    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384;\n    ssl_prefer_server_ciphers off;\n    \n    # OCSP Stapling\n    ssl_stapling on;\n    ssl_stapling_verify on;\n    ssl_trusted_certificate /etc/ssl/certs/ca-bundle.crt;\n    \n    # HSTS\n    add_header Strict-Transport-Security \"max-age=63072000\" always;\n    \n    # セッション再利用\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Let's Encrypt 自動証明書",
+      "language": "bash",
+      "code": "# certbotインストール\nsudo apt install certbot python3-certbot-nginx\n\n# 証明書申請\nsudo certbot --nginx -d example.com -d www.example.com\n\n# 自動更新（crontab）\n0 0 1 * * certbot renew --quiet\n\n# 手動更新\nsudo certbot renew\n\n# 証明書情報確認\nopenssl x509 -in /etc/letsencrypt/live/example.com/fullchain.pem -text -noout"
+    },
+    {
+      "type": "table",
+      "title": "TLSバージョン比較",
+      "highlightFirst": true,
+      "headers": [
+        "バージョン",
+        "状態",
+        "ハンドシェイク",
+        "説明"
+      ],
+      "rows": [
+        [
+          "TLS 1.3",
+          "推奨",
+          "1-RTT",
+          "2018年リリース、最も安全"
+        ],
+        [
+          "TLS 1.2",
+          "使用可",
+          "2-RTT",
+          "適切な設定が必要"
+        ],
+        [
+          "TLS 1.1",
+          "廃止",
+          "2-RTT",
+          "2021年廃止"
+        ],
+        [
+          "TLS 1.0",
+          "廃止",
+          "2-RTT",
+          "2021年廃止"
+        ],
+        [
+          "SSL 3.0",
+          "禁止",
+          "-",
+          "POODLE脆弱性"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "設定チェック",
+      "style": "check",
+      "items": [
+        {
+          "label": "旧バージョンを無効化",
+          "description": "TLS 1.2以上のみ許可"
+        },
+        {
+          "label": "HSTS",
+          "description": "HTTPSアクセスを強制"
+        },
+        {
+          "label": "OCSP Stapling",
+          "description": "証明書検証を高速化"
+        },
+        {
+          "label": "証明書透明性",
+          "description": "CT Logで証明書発行を監視"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "証明書",
+    "HTTPS",
+    "鍵交換"
+  ]
+}

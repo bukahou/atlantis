@@ -5,11 +5,180 @@
     "description": "Prometheus 監視システム、メトリクス収集とアラート設定",
     "order": 1,
     "tags": [
-      "toolchain",
-      "monitoring",
-      "prometheus",
-      "metrics"
+      "Prometheus",
+      "監視",
+      "メトリクス",
+      "アラート"
     ]
   },
-  "content": "<h1>Prometheus</h1>\n<h2>Prometheus 概要</h2>\n<p>Prometheus はオープンソースの監視・アラートシステムで、プルモデルで時系列データを収集し、クラウドネイティブ監視の標準ソリューションです。</p>\n<pre><code>Prometheus アーキテクチャ\n├── Prometheus Server - データ収集とストレージ\n├── Exporter - メトリクス公開\n├── Pushgateway - 短期ジョブメトリクス\n├── Alertmanager - アラート管理\n└── PromQL - クエリ言語\n</code></pre>\n<h2>メトリクスタイプ</h2>\n<h3>4 つのメトリクスタイプ</h3>\n<pre><code class=\"language-go\">import \"github.com/prometheus/client_golang/prometheus\"\n\n// Counter - 増加のみ\nvar requestsTotal = prometheus.NewCounterVec(\n    prometheus.CounterOpts{\n        Name: \"http_requests_total\",\n        Help: \"Total number of HTTP requests\",\n    },\n    []string{\"method\", \"path\", \"status\"},\n)\n\n// Gauge - 増減可能\nvar activeConnections = prometheus.NewGauge(\n    prometheus.GaugeOpts{\n        Name: \"active_connections\",\n        Help: \"Number of active connections\",\n    },\n)\n\n// Histogram - 分布統計\nvar requestDuration = prometheus.NewHistogramVec(\n    prometheus.HistogramOpts{\n        Name:    \"http_request_duration_seconds\",\n        Help:    \"HTTP request duration in seconds\",\n        Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10},\n    },\n    []string{\"method\", \"path\"},\n)\n\n// Summary - パーセンタイル\nvar requestLatency = prometheus.NewSummaryVec(\n    prometheus.SummaryOpts{\n        Name:       \"http_request_latency_seconds\",\n        Help:       \"HTTP request latency in seconds\",\n        Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},\n    },\n    []string{\"method\"},\n)\n</code></pre>\n<h3>Go アプリケーション統合</h3>\n<pre><code class=\"language-go\">import (\n    \"github.com/prometheus/client_golang/prometheus\"\n    \"github.com/prometheus/client_golang/prometheus/promhttp\"\n)\n\nfunc init() {\n    prometheus.MustRegister(requestsTotal)\n    prometheus.MustRegister(activeConnections)\n    prometheus.MustRegister(requestDuration)\n}\n\nfunc main() {\n    // メトリクスエンドポイント公開\n    http.Handle(\"/metrics\", promhttp.Handler())\n\n    // ビジネス処理\n    http.HandleFunc(\"/api/users\", func(w http.ResponseWriter, r *http.Request) {\n        timer := prometheus.NewTimer(requestDuration.WithLabelValues(r.Method, r.URL.Path))\n        defer timer.ObserveDuration()\n\n        // リクエスト処理\n        requestsTotal.WithLabelValues(r.Method, r.URL.Path, \"200\").Inc()\n    })\n\n    http.ListenAndServe(\":8080\", nil)\n}\n</code></pre>\n<h2>設定ファイル</h2>\n<h3>prometheus.yml</h3>\n<pre><code class=\"language-yaml\">global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n  external_labels:\n    cluster: 'production'\n\nalerting:\n  alertmanagers:\n    - static_configs:\n        - targets:\n            - alertmanager:9093\n\nrule_files:\n  - \"rules/*.yml\"\n\nscrape_configs:\n  # Prometheus 自身\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  # アプリケーションサービス\n  - job_name: 'app'\n    static_configs:\n      - targets: ['app1:8080', 'app2:8080']\n    relabel_configs:\n      - source_labels: [__address__]\n        target_label: instance\n        regex: '([^:]+):\\d+'\n        replacement: '${1}'\n\n  # Kubernetes サービスディスカバリ\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]\n        action: replace\n        target_label: __metrics_path__\n        regex: (.+)\n      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]\n        action: replace\n        regex: ([^:]+)(?::\\d+)?;(\\d+)\n        replacement: $1:$2\n        target_label: __address__\n</code></pre>\n<h2>PromQL クエリ</h2>\n<h3>基本クエリ</h3>\n<pre><code class=\"language-promql\"># インスタントベクター\nhttp_requests_total{method=\"GET\", status=\"200\"}\n\n# レンジベクター (直近 5 分)\nhttp_requests_total[5m]\n\n# オフセット\nhttp_requests_total offset 1h\n\n# ラベルマッチング\nhttp_requests_total{path=~\"/api/.*\"}\nhttp_requests_total{status!=\"200\"}\n</code></pre>\n<h3>集約操作</h3>\n<pre><code class=\"language-promql\"># 合計\nsum(http_requests_total) by (method)\n\n# 平均\navg(http_request_duration_seconds) by (path)\n\n# カウント\ncount(up == 1)\n\n# 最大/最小\nmax(memory_usage_bytes) by (instance)\nmin(cpu_usage) by (instance)\n\n# パーセンタイル\nhistogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))\n</code></pre>\n<h3>一般的な関数</h3>\n<pre><code class=\"language-promql\"># 増加率\nrate(http_requests_total[5m])\nirate(http_requests_total[5m])  # 瞬時\n\n# 増分\nincrease(http_requests_total[1h])\n\n# 予測\npredict_linear(disk_usage_bytes[1h], 4*3600)\n\n# 差分\ndelta(temperature[1h])\n\n# ソート\ntopk(5, sum(rate(http_requests_total[5m])) by (path))\nbottomk(5, avg(response_time) by (service))\n</code></pre>\n<h2>アラートルール</h2>\n<h3>rules/alerts.yml</h3>\n<pre><code class=\"language-yaml\">groups:\n  - name: app-alerts\n    rules:\n      # 高エラー率\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (service)\n          /\n          sum(rate(http_requests_total[5m])) by (service)\n          > 0.05\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate on {{ $labels.service }}\"\n          description: \"Error rate is {{ $value | humanizePercentage }}\"\n\n      # 高レイテンシ\n      - alert: HighLatency\n        expr: |\n          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))\n          > 1\n        for: 5m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"High latency on {{ $labels.service }}\"\n          description: \"P95 latency is {{ $value | humanizeDuration }}\"\n\n      # インスタンスダウン\n      - alert: InstanceDown\n        expr: up == 0\n        for: 1m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"Instance {{ $labels.instance }} down\"\n          description: \"{{ $labels.instance }} has been down for more than 1 minute\"\n\n      # ディスク容量不足\n      - alert: DiskSpaceLow\n        expr: |\n          (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 &#x3C; 10\n        for: 5m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"Low disk space on {{ $labels.instance }}\"\n          description: \"Disk space is {{ $value | humanizePercentage }}\"\n</code></pre>\n<h2>Alertmanager</h2>\n<h3>alertmanager.yml</h3>\n<pre><code class=\"language-yaml\">global:\n  resolve_timeout: 5m\n  smtp_smarthost: 'smtp.example.com:587'\n  smtp_from: 'alertmanager@example.com'\n\nroute:\n  group_by: ['alertname', 'service']\n  group_wait: 10s\n  group_interval: 10s\n  repeat_interval: 1h\n  receiver: 'default'\n  routes:\n    - match:\n        severity: critical\n      receiver: 'pagerduty'\n    - match:\n        severity: warning\n      receiver: 'slack'\n\nreceivers:\n  - name: 'default'\n    email_configs:\n      - to: 'team@example.com'\n\n  - name: 'slack'\n    slack_configs:\n      - api_url: 'https://hooks.slack.com/services/xxx'\n        channel: '#alerts'\n        send_resolved: true\n\n  - name: 'pagerduty'\n    pagerduty_configs:\n      - service_key: 'xxx'\n\ninhibit_rules:\n  - source_match:\n      severity: 'critical'\n    target_match:\n      severity: 'warning'\n    equal: ['alertname', 'instance']\n</code></pre>\n<h2>まとめ</h2>\n<p>Prometheus のポイント：</p>\n<ol>\n<li><strong>メトリクスタイプ</strong> - Counter, Gauge, Histogram, Summary</li>\n<li><strong>PromQL</strong> - 強力なクエリ言語</li>\n<li><strong>サービスディスカバリ</strong> - 静的設定、Kubernetes SD</li>\n<li><strong>アラート</strong> - ルール定義、Alertmanager ルーティング</li>\n<li><strong>エコシステム</strong> - 豊富な Exporter、Grafana 統合</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Prometheus はオープンソースの監視とアラートシステム",
+        "Pull モードで主動的にメトリクスデータを収集",
+        "時系列データベースに保存、効率的なクエリ",
+        "PromQL 強力なクエリ言語"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "アーキテクチャコンポーネント",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Targets",
+          "description": "アプリ/Exporter",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Prometheus",
+          "description": "収集・保存",
+          "color": "bg-orange-500"
+        },
+        {
+          "label": "Alertmanager",
+          "description": "アラート管理",
+          "color": "bg-red-500"
+        },
+        {
+          "label": "Grafana",
+          "description": "可視化",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "メトリクスタイプ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Counter",
+          "badge": "カウンター",
+          "badgeColor": "blue",
+          "points": [
+            "増加のみ",
+            "リクエスト数、エラー数",
+            "rate() で増加率を計算"
+          ]
+        },
+        {
+          "title": "Gauge",
+          "badge": "ゲージ",
+          "badgeColor": "green",
+          "points": [
+            "増減可能",
+            "CPU、メモリ使用量",
+            "現在値クエリ"
+          ]
+        },
+        {
+          "title": "Histogram",
+          "badge": "ヒストグラム",
+          "badgeColor": "purple",
+          "points": [
+            "分布統計",
+            "リクエストレイテンシ分布",
+            "histogram_quantile()"
+          ]
+        },
+        {
+          "title": "Summary",
+          "badge": "サマリー",
+          "badgeColor": "amber",
+          "points": [
+            "クライアント側で分位数計算",
+            "事前定義パーセンタイル",
+            "集約不可"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "prometheus.yml 設定",
+      "language": "yaml",
+      "code": "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\nalerting:\n  alertmanagers:\n    - static_configs:\n        - targets: ['alertmanager:9093']\n\nrule_files:\n  - \"alerts/*.yml\"\n\nscrape_configs:\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n\n  - job_name: 'node'\n    static_configs:\n      - targets: ['node-exporter:9100']\n\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true"
+    },
+    {
+      "type": "codeBlock",
+      "title": "PromQL クエリ",
+      "language": "promql",
+      "code": "# リクエストレート (毎秒)\nrate(http_requests_total[5m])\n\n# エラー率\nsum(rate(http_requests_total{status=~\"5..\"}[5m])) \n/ sum(rate(http_requests_total[5m]))\n\n# P99 レイテンシ\nhistogram_quantile(0.99, \n  sum(rate(http_request_duration_seconds_bucket[5m])) by (le)\n)\n\n# CPU 使用率\n100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)\n\n# メモリ使用率\n(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"
+    },
+    {
+      "type": "codeBlock",
+      "title": "アラートルール",
+      "language": "yaml",
+      "code": "groups:\n  - name: application\n    rules:\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m])) \n          / sum(rate(http_requests_total[5m])) > 0.05\n        for: 5m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"High error rate detected\"\n          description: \"Error rate is {{ $value | humanizePercentage }}\"\n\n      - alert: HighLatency\n        expr: |\n          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1\n        for: 10m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"High latency detected\""
+    },
+    {
+      "type": "table",
+      "title": "よく使う Exporter",
+      "highlightFirst": true,
+      "headers": [
+        "Exporter",
+        "用途",
+        "ポート"
+      ],
+      "rows": [
+        [
+          "node_exporter",
+          "ホストメトリクス",
+          "9100"
+        ],
+        [
+          "blackbox_exporter",
+          "プローブ検出",
+          "9115"
+        ],
+        [
+          "mysql_exporter",
+          "MySQL メトリクス",
+          "9104"
+        ],
+        [
+          "redis_exporter",
+          "Redis メトリクス",
+          "9121"
+        ],
+        [
+          "nginx_exporter",
+          "Nginx メトリクス",
+          "9113"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "適切なラベル",
+          "description": "高カーディナリティラベルによる性能問題を回避"
+        },
+        {
+          "label": "Recording Rules",
+          "description": "よく使うクエリを事前計算し、性能向上"
+        },
+        {
+          "label": "フェデレーション",
+          "description": "大規模デプロイには階層アーキテクチャを使用"
+        },
+        {
+          "label": "永続化ストレージ",
+          "description": "長期メトリクスデータをリモートストレージに保存"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Grafana",
+    "Kubernetes",
+    "アラート"
+  ]
 }

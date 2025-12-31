@@ -1,0 +1,129 @@
+{
+  "slug": "aggregate",
+  "meta": {
+    "title": "聚合根",
+    "description": "聚合设计原则与一致性保证",
+    "order": 2,
+    "tags": [
+      "DDD",
+      "聚合",
+      "一致性"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "聚合是一组相关对象的集合，作为数据修改的单元",
+        "聚合根是聚合的入口，外部只能引用聚合根",
+        "聚合内保证强一致性，聚合间保证最终一致性",
+        "聚合边界也是事务边界"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "为什么需要聚合",
+      "content": "在复杂领域模型中，对象间存在大量关联。如果允许任意对象间直接引用和修改，会导致数据不一致和难以维护。聚合通过划定边界，控制对象访问和修改规则，保证数据一致性。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "订单聚合示例",
+      "language": "typescript",
+      "code": "// 聚合根：Order\nclass Order {\n  private readonly id: OrderId;\n  private items: OrderItem[] = [];\n  private status: OrderStatus;\n  private totalAmount: Money;\n  \n  // 只能通过聚合根修改内部对象\n  addItem(product: ProductSnapshot, quantity: number): void {\n    // 业务规则校验\n    if (this.status !== OrderStatus.Draft) {\n      throw new Error('Cannot modify confirmed order');\n    }\n    if (quantity <= 0) {\n      throw new Error('Invalid quantity');\n    }\n    \n    // 添加订单项\n    const item = new OrderItem(product, quantity);\n    this.items.push(item);\n    \n    // 重新计算总金额（保证一致性）\n    this.recalculateTotal();\n  }\n  \n  removeItem(itemId: OrderItemId): void {\n    this.items = this.items.filter(i => !i.id.equals(itemId));\n    this.recalculateTotal();\n  }\n  \n  confirm(): void {\n    if (this.items.length === 0) {\n      throw new Error('Cannot confirm empty order');\n    }\n    this.status = OrderStatus.Confirmed;\n    \n    // 发布领域事件\n    this.addDomainEvent(new OrderConfirmedEvent(this.id));\n  }\n  \n  private recalculateTotal(): void {\n    this.totalAmount = this.items.reduce(\n      (sum, item) => sum.add(item.subtotal),\n      Money.zero()\n    );\n  }\n}\n\n// 值对象：OrderItem（不能独立存在）\nclass OrderItem {\n  readonly id: OrderItemId;\n  readonly productSnapshot: ProductSnapshot;\n  readonly quantity: number;\n  readonly unitPrice: Money;\n  \n  get subtotal(): Money {\n    return this.unitPrice.multiply(this.quantity);\n  }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "聚合设计原则",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "小聚合",
+          "badge": "原则1",
+          "badgeColor": "blue",
+          "points": [
+            "聚合尽可能小",
+            "只包含必须一致的对象",
+            "大聚合导致并发冲突"
+          ]
+        },
+        {
+          "title": "ID引用",
+          "badge": "原则2",
+          "badgeColor": "green",
+          "points": [
+            "聚合间通过ID引用",
+            "不直接持有对象引用",
+            "保持边界清晰"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "聚合间协作",
+      "language": "typescript",
+      "code": "// 错误：聚合间直接引用\nclass Order {\n  customer: Customer;  // ❌ 直接引用另一个聚合\n}\n\n// 正确：通过ID引用\nclass Order {\n  customerId: CustomerId;  // ✅ 只持有ID\n}\n\n// 需要Customer信息时，通过应用服务获取\nclass OrderApplicationService {\n  async createOrder(command: CreateOrderCommand): Promise<OrderId> {\n    // 获取客户信息\n    const customer = await this.customerRepository.findById(command.customerId);\n    if (!customer) {\n      throw new CustomerNotFoundError();\n    }\n    \n    // 创建订单（只传递必要信息）\n    const order = Order.create({\n      customerId: customer.id,\n      shippingAddress: customer.defaultAddress,  // 快照\n    });\n    \n    await this.orderRepository.save(order);\n    return order.id;\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "聚合 vs 实体 vs 值对象",
+      "highlightFirst": true,
+      "headers": [
+        "概念",
+        "标识",
+        "可变性",
+        "生命周期"
+      ],
+      "rows": [
+        [
+          "聚合根",
+          "有唯一标识",
+          "可变",
+          "独立生命周期"
+        ],
+        [
+          "实体",
+          "有唯一标识",
+          "可变",
+          "依附于聚合"
+        ],
+        [
+          "值对象",
+          "无标识（值相等）",
+          "不可变",
+          "可替换"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "设计检查清单",
+      "style": "check",
+      "items": [
+        {
+          "label": "业务不变量",
+          "description": "聚合边界应包含必须一起变化的数据"
+        },
+        {
+          "label": "事务边界",
+          "description": "一个事务只修改一个聚合"
+        },
+        {
+          "label": "最终一致性",
+          "description": "聚合间通过领域事件保持最终一致"
+        },
+        {
+          "label": "并发控制",
+          "description": "使用乐观锁（版本号）处理并发"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "实体",
+    "值对象",
+    "领域事件"
+  ]
+}

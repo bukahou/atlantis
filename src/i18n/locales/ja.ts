@@ -9,6 +9,8 @@ export const ja: Translations = {
     subcategories: "個のサブカテゴリ",
     viewMore: "もっと見る",
     noContent: "コンテンツがありません",
+    moreItems: "件以上",
+    footer: "Atlantis ナレッジベース",
   },
   nav: {
     infrastructure: {
@@ -20,11 +22,13 @@ export const ja: Translations = {
           label: "ネットワーク",
           href: "/infrastructure/network",
           children: [
-            { key: "tcp-ip", label: "TCP/IP", href: "/infrastructure/network/tcp-ip" },
-            { key: "dns", label: "DNS", href: "/infrastructure/network/dns" },
-            { key: "http", label: "HTTP/HTTPS", href: "/infrastructure/network/http" },
+            { key: "osi-model", label: "OSI モデル", href: "/infrastructure/network/osi-model" },
+            { key: "l1-physical", label: "L1 物理層", href: "/infrastructure/network/l1-physical" },
+            { key: "l2-datalink", label: "L2 データリンク層", href: "/infrastructure/network/l2-datalink" },
+            { key: "l3-network", label: "L3 ネットワーク層", href: "/infrastructure/network/l3-network" },
+            { key: "l4-transport", label: "L4 トランスポート層", href: "/infrastructure/network/l4-transport" },
+            { key: "l7-application", label: "L7 アプリケーション層", href: "/infrastructure/network/l7-application" },
             { key: "load-balancer", label: "ロードバランサー", href: "/infrastructure/network/load-balancer" },
-            { key: "cdn", label: "CDN", href: "/infrastructure/network/cdn" },
           ],
         },
         {
@@ -32,10 +36,13 @@ export const ja: Translations = {
           label: "Linux",
           href: "/infrastructure/linux",
           children: [
+            { key: "kernel", label: "カーネル", href: "/infrastructure/linux/kernel" },
+            { key: "process", label: "プロセス・スレッド", href: "/infrastructure/linux/process" },
+            { key: "memory", label: "メモリ管理", href: "/infrastructure/linux/memory" },
+            { key: "storage", label: "ストレージ", href: "/infrastructure/linux/storage" },
+            { key: "network", label: "ネットワーク", href: "/infrastructure/linux/network" },
+            { key: "service", label: "サービス管理", href: "/infrastructure/linux/service" },
             { key: "shell", label: "シェルスクリプト", href: "/infrastructure/linux/shell" },
-            { key: "system", label: "システム管理", href: "/infrastructure/linux/system" },
-            { key: "performance", label: "パフォーマンス", href: "/infrastructure/linux/performance" },
-            { key: "security", label: "セキュリティ", href: "/infrastructure/linux/security" },
           ],
         },
         {
@@ -55,14 +62,24 @@ export const ja: Translations = {
       label: "コンテナ",
       children: [
         {
+          key: "basics",
+          label: "コンテナ基礎",
+          href: "/container/basics",
+          children: [
+            { key: "vm-vs-container", label: "VM vs コンテナ", href: "/container/basics/vm-vs-container" },
+            { key: "image", label: "コンテナイメージ", href: "/container/basics/image" },
+          ],
+        },
+        {
           key: "docker",
           label: "Docker",
           href: "/container/docker",
           children: [
-            { key: "image", label: "イメージ管理", href: "/container/docker/image" },
-            { key: "container", label: "コンテナ操作", href: "/container/docker/container" },
-            { key: "compose", label: "Docker Compose", href: "/container/docker/compose" },
-            { key: "network", label: "ネットワーク", href: "/container/docker/network" },
+            { key: "basics", label: "基礎", href: "/container/docker/basics" },
+            { key: "networking", label: "ネットワーク", href: "/container/docker/networking" },
+            { key: "storage", label: "ストレージ", href: "/container/docker/storage" },
+            { key: "compose", label: "Compose", href: "/container/docker/compose" },
+            { key: "multistage", label: "マルチステージ", href: "/container/docker/multistage" },
           ],
         },
         {
@@ -73,6 +90,11 @@ export const ja: Translations = {
             { key: "pod", label: "Pod", href: "/container/kubernetes/pod" },
             { key: "service", label: "Service", href: "/container/kubernetes/service" },
             { key: "deployment", label: "Deployment", href: "/container/kubernetes/deployment" },
+            { key: "workloads", label: "ワークロード", href: "/container/kubernetes/workloads" },
+            { key: "config", label: "設定管理", href: "/container/kubernetes/config" },
+            { key: "storage", label: "ストレージ", href: "/container/kubernetes/storage" },
+            { key: "scheduling", label: "スケジューリング", href: "/container/kubernetes/scheduling" },
+            { key: "operations", label: "運用", href: "/container/kubernetes/operations" },
             { key: "helm", label: "Helm", href: "/container/kubernetes/helm" },
           ],
         },
@@ -96,8 +118,10 @@ export const ja: Translations = {
           label: "コンパイル型",
           href: "/languages/compiled",
           children: [
+            { key: "java", label: "Java", href: "/languages/compiled/java" },
             { key: "go", label: "Go", href: "/languages/compiled/go" },
             { key: "rust", label: "Rust", href: "/languages/compiled/rust" },
+            { key: "typescript", label: "TypeScript", href: "/languages/compiled/typescript" },
           ],
         },
         {
@@ -106,51 +130,20 @@ export const ja: Translations = {
           href: "/languages/scripting",
           children: [
             { key: "python", label: "Python", href: "/languages/scripting/python" },
+            { key: "php", label: "PHP", href: "/languages/scripting/php" },
             { key: "shell", label: "Shell", href: "/languages/scripting/shell" },
           ],
         },
         {
           key: "web",
-          label: "Web 開発",
+          label: "Web フロントエンド",
           href: "/languages/web",
           children: [
-            { key: "typescript", label: "TypeScript", href: "/languages/web/typescript" },
+            { key: "html", label: "HTML", href: "/languages/web/html" },
+            { key: "css", label: "CSS", href: "/languages/web/css" },
             { key: "javascript", label: "JavaScript", href: "/languages/web/javascript" },
-          ],
-        },
-      ],
-    },
-    frontend: {
-      key: "frontend",
-      label: "フロントエンド",
-      children: [
-        {
-          key: "react",
-          label: "React/Next.js",
-          href: "/frontend/react",
-          children: [
-            { key: "components", label: "コンポーネント", href: "/frontend/react/components" },
-            { key: "hooks", label: "Hooks", href: "/frontend/react/hooks" },
-            { key: "ssr", label: "SSR/SSG", href: "/frontend/react/ssr" },
-          ],
-        },
-        {
-          key: "vue",
-          label: "Vue",
-          href: "/frontend/vue",
-          children: [
-            { key: "composition", label: "Composition API", href: "/frontend/vue/composition" },
-            { key: "pinia", label: "Pinia", href: "/frontend/vue/pinia" },
-          ],
-        },
-        {
-          key: "css",
-          label: "CSS",
-          href: "/frontend/css",
-          children: [
-            { key: "tailwind", label: "Tailwind", href: "/frontend/css/tailwind" },
-            { key: "animation", label: "アニメーション", href: "/frontend/css/animation" },
-            { key: "responsive", label: "レスポンシブ", href: "/frontend/css/responsive" },
+            { key: "react", label: "React", href: "/languages/web/react" },
+            { key: "vue", label: "Vue", href: "/languages/web/vue" },
           ],
         },
       ],
@@ -189,6 +182,35 @@ export const ja: Translations = {
             { key: "redis-mq", label: "Redis", href: "/backend/mq/redis" },
           ],
         },
+        {
+          key: "webserver",
+          label: "Web サーバー",
+          href: "/backend/webserver",
+          children: [
+            { key: "nginx", label: "Nginx", href: "/backend/webserver/nginx" },
+            { key: "apache", label: "Apache", href: "/backend/webserver/apache" },
+            { key: "caddy", label: "Caddy", href: "/backend/webserver/caddy" },
+          ],
+        },
+        {
+          key: "proxy",
+          label: "プロキシ・ゲートウェイ",
+          href: "/backend/proxy",
+          children: [
+            { key: "haproxy", label: "HAProxy", href: "/backend/proxy/haproxy" },
+            { key: "traefik", label: "Traefik", href: "/backend/proxy/traefik" },
+            { key: "envoy", label: "Envoy", href: "/backend/proxy/envoy" },
+          ],
+        },
+        {
+          key: "cache",
+          label: "キャッシュ",
+          href: "/backend/cache",
+          children: [
+            { key: "varnish", label: "Varnish", href: "/backend/cache/varnish" },
+            { key: "cdn", label: "CDN", href: "/backend/cache/cdn" },
+          ],
+        },
       ],
     },
     database: {
@@ -212,6 +234,15 @@ export const ja: Translations = {
             { key: "mongodb", label: "MongoDB", href: "/database/nosql/mongodb" },
             { key: "redis", label: "Redis", href: "/database/nosql/redis" },
             { key: "elasticsearch", label: "Elasticsearch", href: "/database/nosql/elasticsearch" },
+            { key: "dynamodb", label: "DynamoDB", href: "/database/nosql/dynamodb" },
+          ],
+        },
+        {
+          key: "distributed",
+          label: "分散型",
+          href: "/database/distributed",
+          children: [
+            { key: "tidb", label: "TiDB", href: "/database/distributed/tidb" },
           ],
         },
         {
@@ -222,6 +253,98 @@ export const ja: Translations = {
             { key: "normalization", label: "正規化", href: "/database/modeling/normalization" },
             { key: "indexing", label: "インデックス", href: "/database/modeling/indexing" },
             { key: "sharding", label: "シャーディング", href: "/database/modeling/sharding" },
+          ],
+        },
+      ],
+    },
+    architecture: {
+      key: "architecture",
+      label: "アーキテクチャ",
+      children: [
+        {
+          key: "patterns",
+          label: "デザインパターン",
+          href: "/architecture/patterns",
+          children: [
+            { key: "creational", label: "生成パターン", href: "/architecture/patterns/creational" },
+            { key: "structural", label: "構造パターン", href: "/architecture/patterns/structural" },
+            { key: "behavioral", label: "振る舞いパターン", href: "/architecture/patterns/behavioral" },
+          ],
+        },
+        {
+          key: "distributed",
+          label: "分散システム",
+          href: "/architecture/distributed",
+          children: [
+            { key: "cap", label: "CAP 定理", href: "/architecture/distributed/cap" },
+            { key: "consistency", label: "一貫性モデル", href: "/architecture/distributed/consistency" },
+            { key: "transaction", label: "分散トランザクション", href: "/architecture/distributed/transaction" },
+          ],
+        },
+        {
+          key: "high-availability",
+          label: "高可用性",
+          href: "/architecture/high-availability",
+          children: [
+            { key: "redundancy", label: "冗長化設計", href: "/architecture/high-availability/redundancy" },
+            { key: "failover", label: "フェイルオーバー", href: "/architecture/high-availability/failover" },
+            { key: "disaster-recovery", label: "災害復旧", href: "/architecture/high-availability/disaster-recovery" },
+          ],
+        },
+        {
+          key: "ddd",
+          label: "ドメイン駆動",
+          href: "/architecture/ddd",
+          children: [
+            { key: "bounded-context", label: "境界づけられたコンテキスト", href: "/architecture/ddd/bounded-context" },
+            { key: "aggregate", label: "集約ルート", href: "/architecture/ddd/aggregate" },
+            { key: "event-sourcing", label: "イベントソーシング", href: "/architecture/ddd/event-sourcing" },
+          ],
+        },
+      ],
+    },
+    security: {
+      key: "security",
+      label: "セキュリティ",
+      children: [
+        {
+          key: "auth",
+          label: "認証・認可",
+          href: "/security/auth",
+          children: [
+            { key: "oauth", label: "OAuth 2.0", href: "/security/auth/oauth" },
+            { key: "jwt", label: "JWT", href: "/security/auth/jwt" },
+            { key: "rbac", label: "RBAC", href: "/security/auth/rbac" },
+          ],
+        },
+        {
+          key: "encryption",
+          label: "暗号化技術",
+          href: "/security/encryption",
+          children: [
+            { key: "symmetric", label: "共通鍵暗号", href: "/security/encryption/symmetric" },
+            { key: "asymmetric", label: "公開鍵暗号", href: "/security/encryption/asymmetric" },
+            { key: "hash", label: "ハッシュアルゴリズム", href: "/security/encryption/hash" },
+          ],
+        },
+        {
+          key: "network-security",
+          label: "ネットワークセキュリティ",
+          href: "/security/network-security",
+          children: [
+            { key: "tls", label: "TLS/SSL", href: "/security/network-security/tls" },
+            { key: "firewall", label: "ファイアウォール", href: "/security/network-security/firewall" },
+            { key: "waf", label: "WAF", href: "/security/network-security/waf" },
+          ],
+        },
+        {
+          key: "audit",
+          label: "セキュリティ監査",
+          href: "/security/audit",
+          children: [
+            { key: "logging", label: "監査ログ", href: "/security/audit/logging" },
+            { key: "vulnerability", label: "脆弱性スキャン", href: "/security/audit/vulnerability" },
+            { key: "compliance", label: "コンプライアンス", href: "/security/audit/compliance" },
           ],
         },
       ],
@@ -256,6 +379,8 @@ export const ja: Translations = {
             { key: "prometheus", label: "Prometheus", href: "/toolchain/monitoring/prometheus" },
             { key: "grafana", label: "Grafana", href: "/toolchain/monitoring/grafana" },
             { key: "logging", label: "ログ管理", href: "/toolchain/monitoring/logging" },
+            { key: "elk", label: "ELK スタック", href: "/toolchain/monitoring/elk" },
+            { key: "netdata", label: "Netdata", href: "/toolchain/monitoring/netdata" },
           ],
         },
       ],
@@ -265,6 +390,7 @@ export const ja: Translations = {
     title: "Atlantis ナレッジベース",
     subtitle: "運用・開発ナレッジシステム",
     description: "インフラ、コンテナ、プログラミング言語、フロントエンド・バックエンド開発を網羅した体系的な技術知識ベース",
+    philosophy: "技術に優劣はなく、最適解があるのみ——新しさより、状況に応じた選択を",
     getStarted: "はじめる",
     categories: "カテゴリ",
   },

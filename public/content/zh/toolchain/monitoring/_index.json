@@ -3,23 +3,37 @@
     {
       "slug": "prometheus",
       "title": "Prometheus",
-      "description": "Prometheus 监控系统、指标收集与告警配置",
+      "description": "Prometheus 监控系统、指标采集与告警配置",
       "href": "/toolchain/monitoring/prometheus",
       "order": 1
     },
     {
       "slug": "grafana",
       "title": "Grafana",
-      "description": "Grafana 可视化平台、仪表盘设计与告警配置",
+      "description": "Grafana 可视化仪表盘、数据源配置与告警",
       "href": "/toolchain/monitoring/grafana",
       "order": 2
     },
     {
       "slug": "logging",
       "title": "日志系统",
-      "description": "日志收集、ELK Stack 与分布式追踪",
+      "description": "日志采集、处理与分析：ELK/Loki 日志栈",
       "href": "/toolchain/monitoring/logging",
       "order": 3
+    },
+    {
+      "slug": "elk",
+      "title": "ELK 全栈",
+      "description": "Elasticsearch + Logstash + Kibana 日志分析平台",
+      "href": "/toolchain/monitoring/elk",
+      "order": 4
+    },
+    {
+      "slug": "netdata",
+      "title": "Netdata",
+      "description": "Netdata 实时性能监控与可视化平台",
+      "href": "/toolchain/monitoring/netdata",
+      "order": 5
     }
   ]
 }

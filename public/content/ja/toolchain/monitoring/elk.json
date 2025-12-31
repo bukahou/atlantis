@@ -1,0 +1,265 @@
+{
+  "slug": "elk",
+  "meta": {
+    "title": "ELK スタック",
+    "description": "Elasticsearch + Logstash + Kibana ログ分析プラットフォーム",
+    "order": 4,
+    "tags": [
+      "ELK",
+      "Elasticsearch",
+      "Logstash",
+      "Kibana",
+      "ログ"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コア概念",
+      "items": [
+        "ELK はオープンソースのログ収集・保存・分析・可視化プラットフォーム",
+        "Elasticsearch がストレージと検索を担当",
+        "Logstash がログ収集と処理を担当",
+        "Kibana が可視化インターフェースを提供"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "データフロー",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "データソース",
+          "description": "アプリ/システムログ",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "Beats",
+          "description": "軽量コレクター",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Logstash",
+          "description": "処理・変換",
+          "color": "bg-yellow-500"
+        },
+        {
+          "label": "Elasticsearch",
+          "description": "保存・インデックス",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "Kibana",
+          "description": "可視化",
+          "color": "bg-purple-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コアコンポーネント",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Elasticsearch",
+          "badge": "ストレージ",
+          "badgeColor": "green",
+          "points": [
+            "分散検索エンジン",
+            "転置インデックス、全文検索",
+            "RESTful API",
+            "水平スケール"
+          ]
+        },
+        {
+          "title": "Logstash",
+          "badge": "処理",
+          "badgeColor": "yellow",
+          "points": [
+            "データ収集パイプライン",
+            "Input → Filter → Output",
+            "豊富なプラグイン",
+            "データ変換・クレンジング"
+          ]
+        },
+        {
+          "title": "Kibana",
+          "badge": "可視化",
+          "badgeColor": "purple",
+          "points": [
+            "データ可視化プラットフォーム",
+            "ダッシュボード",
+            "Discover ログ探索",
+            "Lens ドラッグ&ドロップ"
+          ]
+        },
+        {
+          "title": "Beats",
+          "badge": "収集",
+          "badgeColor": "blue",
+          "points": [
+            "軽量データシッパー",
+            "Filebeat ファイルログ",
+            "Metricbeat メトリクス",
+            "Packetbeat ネットワーク"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Docker Compose デプロイ",
+      "language": "yaml",
+      "code": "version: '3.8'\nservices:\n  elasticsearch:\n    image: elasticsearch:8.11.0\n    environment:\n      - discovery.type=single-node\n      - xpack.security.enabled=false\n      - \"ES_JAVA_OPTS=-Xms512m -Xmx512m\"\n    ports:\n      - \"9200:9200\"\n    volumes:\n      - es-data:/usr/share/elasticsearch/data\n\n  logstash:\n    image: logstash:8.11.0\n    volumes:\n      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf\n    depends_on:\n      - elasticsearch\n\n  kibana:\n    image: kibana:8.11.0\n    ports:\n      - \"5601:5601\"\n    environment:\n      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200\n    depends_on:\n      - elasticsearch\n\nvolumes:\n  es-data:"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Logstash 設定",
+      "language": "ruby",
+      "code": "input {\n  beats {\n    port => 5044\n  }\n  # または直接ファイル読み取り\n  file {\n    path => \"/var/log/app/*.log\"\n    start_position => \"beginning\"\n  }\n}\n\nfilter {\n  # JSON ログ解析\n  json {\n    source => \"message\"\n  }\n  # タイムスタンプ解析\n  date {\n    match => [\"timestamp\", \"ISO8601\"]\n    target => \"@timestamp\"\n  }\n  # Grok 非構造化ログ解析\n  grok {\n    match => { \"message\" => \"%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:msg}\" }\n  }\n  # 地理情報追加\n  geoip {\n    source => \"client_ip\"\n  }\n}\n\noutput {\n  elasticsearch {\n    hosts => [\"elasticsearch:9200\"]\n    index => \"logs-%{+YYYY.MM.dd}\"\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Filebeat 設定",
+      "language": "yaml",
+      "code": "filebeat.inputs:\n  - type: log\n    enabled: true\n    paths:\n      - /var/log/app/*.log\n    json.keys_under_root: true\n    json.add_error_key: true\n\n  - type: container\n    paths:\n      - /var/lib/docker/containers/*/*.log\n    processors:\n      - add_docker_metadata: ~\n\noutput.elasticsearch:\n  hosts: [\"elasticsearch:9200\"]\n  index: \"filebeat-%{+yyyy.MM.dd}\"\n\n# または Logstash へ出力\noutput.logstash:\n  hosts: [\"logstash:5044\"]"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Elasticsearch クエリ",
+      "language": "json",
+      "code": "// ログ検索\nGET /logs-*/_search\n{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        { \"match\": { \"level\": \"ERROR\" } },\n        { \"range\": { \"@timestamp\": { \"gte\": \"now-1h\" } } }\n      ]\n    }\n  },\n  \"sort\": [{ \"@timestamp\": \"desc\" }],\n  \"size\": 100\n}\n\n// 集計統計\nGET /logs-*/_search\n{\n  \"size\": 0,\n  \"aggs\": {\n    \"errors_over_time\": {\n      \"date_histogram\": {\n        \"field\": \"@timestamp\",\n        \"fixed_interval\": \"5m\"\n      },\n      \"aggs\": {\n        \"error_count\": {\n          \"filter\": { \"term\": { \"level\": \"ERROR\" } }\n        }\n      }\n    }\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "Beats ファミリー",
+      "highlightFirst": true,
+      "headers": [
+        "Beat",
+        "用途",
+        "データソース"
+      ],
+      "rows": [
+        [
+          "Filebeat",
+          "ログファイル",
+          "ファイル、コンテナログ"
+        ],
+        [
+          "Metricbeat",
+          "システムメトリクス",
+          "CPU、メモリ、ディスク"
+        ],
+        [
+          "Packetbeat",
+          "ネットワークデータ",
+          "HTTP、MySQL、Redis"
+        ],
+        [
+          "Heartbeat",
+          "可用性監視",
+          "URL、TCP、ICMP"
+        ],
+        [
+          "Auditbeat",
+          "監査データ",
+          "システム監査ログ"
+        ]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "インデックスライフサイクル",
+      "columns": [
+        {
+          "title": "Hot",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "アクティブな書き込み/クエリ"
+            },
+            {
+              "label": "ストレージ",
+              "description": "SSD 高性能"
+            },
+            {
+              "label": "保持",
+              "description": "1-7 日"
+            }
+          ]
+        },
+        {
+          "title": "Warm",
+          "color": "from-amber-500 to-yellow-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "まれなクエリ"
+            },
+            {
+              "label": "ストレージ",
+              "description": "HDD"
+            },
+            {
+              "label": "保持",
+              "description": "7-30 日"
+            }
+          ]
+        },
+        {
+          "title": "Cold/Delete",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "アーカイブ/削除"
+            },
+            {
+              "label": "ストレージ",
+              "description": "オブジェクトストレージ"
+            },
+            {
+              "label": "保持",
+              "description": ">30 日"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "インデックステンプレート",
+          "description": "mapping と settings のテンプレート定義"
+        },
+        {
+          "label": "ILM ポリシー",
+          "description": "インデックスライフサイクル管理、自動ローテーション/削除"
+        },
+        {
+          "label": "シャード計画",
+          "description": "シャードあたり 10-50GB、過剰なシャード回避"
+        },
+        {
+          "label": "構造化ログ",
+          "description": "JSON 形式で解析を容易に"
+        },
+        {
+          "label": "セキュリティ強化",
+          "description": "TLS と RBAC 認証を有効化"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Prometheus",
+    "Grafana",
+    "ログ管理",
+    "オブザーバビリティ"
+  ]
+}

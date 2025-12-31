@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "Apache Kafka",
+    "description": "分散ストリーム処理プラットフォーム",
+    "order": 1,
+    "tags": ["メッセージキュー", "Kafka", "ストリーム処理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "Kafka は分散ストリーム処理プラットフォーム",
+        "高スループット、低レイテンシ、永続化",
+        "Topic + Partition 分散ストレージ",
+        "Consumer Group で負荷分散を実現"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コアコンポーネント",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Topic",
+          "badge": "トピック",
+          "badgeColor": "blue",
+          "points": [
+            "メッセージ分類の論理概念",
+            "複数の Partition を含む",
+            "名前で購読"
+          ]
+        },
+        {
+          "title": "Partition",
+          "badge": "パーティション",
+          "badgeColor": "green",
+          "points": [
+            "物理ストレージ単位",
+            "パーティション内順序保証",
+            "並列処理の基盤"
+          ]
+        },
+        {
+          "title": "Producer",
+          "badge": "プロデューサー",
+          "badgeColor": "amber",
+          "points": [
+            "Topic にメッセージを送信",
+            "パーティション戦略を選択",
+            "確認レベルを設定可能"
+          ]
+        },
+        {
+          "title": "Consumer",
+          "badge": "コンシューマー",
+          "badgeColor": "purple",
+          "points": [
+            "Topic を購読して消費",
+            "Group 内で負荷分散",
+            "Offset 管理"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "メッセージフロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Producer", "description": "メッセージ生成", "color": "bg-blue-500" },
+        { "label": "Broker", "description": "メッセージ保存", "color": "bg-purple-500" },
+        { "label": "Partition", "description": "パーティション書き込み", "color": "bg-cyan-500" },
+        { "label": "Consumer", "description": "プル消費", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Kafka 設定",
+      "highlightFirst": true,
+      "headers": ["設定", "説明", "推奨値"],
+      "rows": [
+        ["replication.factor", "レプリカ数", "3"],
+        ["min.insync.replicas", "最小同期レプリカ", "2"],
+        ["acks", "確認レベル", "all"],
+        ["retention.ms", "メッセージ保持期間", "7日"],
+        ["num.partitions", "デフォルトパーティション数", "スループットに応じて"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "消費モード",
+      "columns": [
+        {
+          "title": "At Most Once",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "特徴", "description": "ロスの可能性" },
+            { "label": "方式", "description": "先にコミット後に処理" }
+          ]
+        },
+        {
+          "title": "At Least Once",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "特徴", "description": "重複の可能性" },
+            { "label": "方式", "description": "先に処理後にコミット" }
+          ]
+        },
+        {
+          "title": "Exactly Once",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "特徴", "description": "厳密に1回" },
+            { "label": "方式", "description": "トランザクション + べき等" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "適切なパーティション数", "description": "パーティション数 = 想定スループット / 単一パーティションスループット" },
+        { "label": "コンシューマーべき等", "description": "重複メッセージを処理する能力" },
+        { "label": "Lag 監視", "description": "消費遅延を監視し、適時スケールアウト" },
+        { "label": "データ圧縮", "description": "lz4/snappy 圧縮で帯域幅節約" }
+      ]
+    }
+  ],
+  "relatedTopics": ["メッセージキュー", "ストリーム処理", "マイクロサービス"]
+}

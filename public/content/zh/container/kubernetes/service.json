@@ -1,15 +1,245 @@
 {
   "slug": "service",
   "meta": {
-    "title": "Kubernetes Service 详解",
-    "description": "Service 类型、服务发现与负载均衡配置",
+    "title": "Service 与网络",
+    "description": "Kubernetes 网络：Service、Ingress 与 NetworkPolicy",
     "order": 2,
     "tags": [
-      "kubernetes",
-      "service",
-      "networking",
-      "load-balancer"
+      "Kubernetes",
+      "Service",
+      "Ingress",
+      "NetworkPolicy"
     ]
   },
-  "content": "<h1>Kubernetes Service 详解</h1>\n<h2>Service 概念</h2>\n<p>Service 是 Kubernetes 中定义一组 Pod 访问策略的抽象，提供稳定的网络端点和负载均衡。</p>\n<pre><code>Service 工作原理\n                      ┌─────────────────┐\n                      │     Service     │\n                      │  ClusterIP:     │\n                      │  10.96.100.1    │\n                      └────────┬────────┘\n                               │\n              ┌────────────────┼────────────────┐\n              │                │                │\n        ┌─────▼─────┐   ┌─────▼─────┐   ┌─────▼─────┐\n        │   Pod 1   │   │   Pod 2   │   │   Pod 3   │\n        │ 10.244.1.5│   │ 10.244.2.3│   │ 10.244.3.7│\n        │  app:web  │   │  app:web  │   │  app:web  │\n        └───────────┘   └───────────┘   └───────────┘\n</code></pre>\n<h2>Service 类型</h2>\n<h3>ClusterIP (默认)</h3>\n<p>集群内部访问，不对外暴露。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp-service\nspec:\n  type: ClusterIP  # 默认类型\n  selector:\n    app: webapp\n  ports:\n    - name: http\n      port: 80        # Service 端口\n      targetPort: 8080 # Pod 端口\n      protocol: TCP\n</code></pre>\n<h3>NodePort</h3>\n<p>通过节点端口对外暴露服务。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp-nodeport\nspec:\n  type: NodePort\n  selector:\n    app: webapp\n  ports:\n    - name: http\n      port: 80\n      targetPort: 8080\n      nodePort: 30080  # 范围: 30000-32767\n</code></pre>\n<pre><code>NodePort 访问流程\n外部请求 → NodeIP:30080 → Service:80 → Pod:8080\n\n任意节点 IP + NodePort 都可访问\n</code></pre>\n<h3>LoadBalancer</h3>\n<p>使用云提供商的负载均衡器。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp-lb\n  annotations:\n    # AWS 注解\n    service.beta.kubernetes.io/aws-load-balancer-type: nlb\n    service.beta.kubernetes.io/aws-load-balancer-internal: \"true\"\n    # GCP 注解\n    # cloud.google.com/load-balancer-type: Internal\nspec:\n  type: LoadBalancer\n  selector:\n    app: webapp\n  ports:\n    - name: http\n      port: 80\n      targetPort: 8080\n  # 仅允许特定 IP 访问\n  loadBalancerSourceRanges:\n    - 10.0.0.0/8\n    - 192.168.0.0/16\n</code></pre>\n<h3>ExternalName</h3>\n<p>将服务映射到外部 DNS 名称。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: external-db\nspec:\n  type: ExternalName\n  externalName: db.example.com\n</code></pre>\n<pre><code class=\"language-bash\"># 集群内访问 external-db 会解析到 db.example.com\nnslookup external-db.default.svc.cluster.local\n# → db.example.com\n</code></pre>\n<h2>Headless Service</h2>\n<p>不分配 ClusterIP，直接返回 Pod IP。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp-headless\nspec:\n  clusterIP: None  # Headless\n  selector:\n    app: webapp\n  ports:\n    - port: 80\n      targetPort: 8080\n</code></pre>\n<pre><code class=\"language-bash\"># DNS 查询返回所有 Pod IP\nnslookup webapp-headless.default.svc.cluster.local\n# → 10.244.1.5\n# → 10.244.2.3\n# → 10.244.3.7\n</code></pre>\n<h3>StatefulSet 配合使用</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: mysql\nspec:\n  clusterIP: None\n  selector:\n    app: mysql\n  ports:\n    - port: 3306\n---\napiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: mysql\nspec:\n  serviceName: mysql  # 关联 Headless Service\n  replicas: 3\n  selector:\n    matchLabels:\n      app: mysql\n  template:\n    metadata:\n      labels:\n        app: mysql\n    spec:\n      containers:\n        - name: mysql\n          image: mysql:8.0\n</code></pre>\n<pre><code class=\"language-bash\"># 可通过稳定的 DNS 名称访问特定 Pod\nmysql-0.mysql.default.svc.cluster.local\nmysql-1.mysql.default.svc.cluster.local\nmysql-2.mysql.default.svc.cluster.local\n</code></pre>\n<h2>服务发现</h2>\n<h3>DNS 解析</h3>\n<pre><code>Service DNS 格式\n├── &#x3C;service>.&#x3C;namespace>.svc.cluster.local (完整)\n├── &#x3C;service>.&#x3C;namespace>.svc\n├── &#x3C;service>.&#x3C;namespace>\n└── &#x3C;service> (同 namespace)\n</code></pre>\n<pre><code class=\"language-yaml\"># 应用中使用 DNS\nenv:\n  - name: DB_HOST\n    value: \"mysql.database.svc.cluster.local\"\n  - name: CACHE_HOST\n    value: \"redis.cache\"  # 简写\n</code></pre>\n<h3>环境变量</h3>\n<pre><code class=\"language-bash\"># Kubernetes 自动注入环境变量\nWEBAPP_SERVICE_HOST=10.96.100.1\nWEBAPP_SERVICE_PORT=80\nWEBAPP_SERVICE_PORT_HTTP=80\n</code></pre>\n<h2>多端口 Service</h2>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp\n  ports:\n    - name: http\n      port: 80\n      targetPort: 8080\n    - name: https\n      port: 443\n      targetPort: 8443\n    - name: metrics\n      port: 9090\n      targetPort: 9090\n</code></pre>\n<h2>Session Affinity</h2>\n<p>保持客户端请求到同一 Pod。</p>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp\n  sessionAffinity: ClientIP\n  sessionAffinityConfig:\n    clientIP:\n      timeoutSeconds: 3600  # 1小时\n  ports:\n    - port: 80\n      targetPort: 8080\n</code></pre>\n<h2>Endpoint 与 EndpointSlice</h2>\n<h3>手动管理 Endpoint</h3>\n<pre><code class=\"language-yaml\"># 没有 selector 的 Service\napiVersion: v1\nkind: Service\nmetadata:\n  name: external-service\nspec:\n  ports:\n    - port: 80\n      targetPort: 80\n---\n# 手动创建 Endpoints\napiVersion: v1\nkind: Endpoints\nmetadata:\n  name: external-service  # 必须与 Service 同名\nsubsets:\n  - addresses:\n      - ip: 192.168.1.100\n      - ip: 192.168.1.101\n    ports:\n      - port: 80\n</code></pre>\n<h3>查看 EndpointSlice</h3>\n<pre><code class=\"language-bash\">kubectl get endpointslices -l kubernetes.io/service-name=webapp\nkubectl describe endpointslice webapp-xxxxx\n</code></pre>\n<h2>Ingress 对比</h2>\n<pre><code>Service vs Ingress\n\nService (L4):\n├── NodePort: Node IP + 端口\n├── LoadBalancer: 云负载均衡器\n└── 每个服务一个外部 IP\n\nIngress (L7):\n├── 单一入口点\n├── 基于 Host/Path 路由\n├── SSL 终止\n└── 多个服务共享一个 IP\n</code></pre>\n<pre><code class=\"language-yaml\"># Ingress 示例\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: webapp-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rewrite-target: /\nspec:\n  ingressClassName: nginx\n  tls:\n    - hosts:\n        - example.com\n      secretName: tls-secret\n  rules:\n    - host: example.com\n      http:\n        paths:\n          - path: /api\n            pathType: Prefix\n            backend:\n              service:\n                name: api-service\n                port:\n                  number: 80\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend-service\n                port:\n                  number: 80\n</code></pre>\n<h2>Service 拓扑</h2>\n<h3>流量策略</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp\n  ports:\n    - port: 80\n  # 内部流量策略\n  internalTrafficPolicy: Local  # 优先本地 Pod\n  # 外部流量策略 (NodePort/LoadBalancer)\n  externalTrafficPolicy: Local  # 保留客户端 IP\n</code></pre>\n<h3>拓扑感知提示</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\n  annotations:\n    service.kubernetes.io/topology-mode: Auto\nspec:\n  selector:\n    app: webapp\n  ports:\n    - port: 80\n</code></pre>\n<h2>实战示例</h2>\n<h3>完整的微服务配置</h3>\n<pre><code class=\"language-yaml\"># Frontend Service\napiVersion: v1\nkind: Service\nmetadata:\n  name: frontend\n  labels:\n    app: frontend\nspec:\n  type: ClusterIP\n  selector:\n    app: frontend\n  ports:\n    - port: 80\n      targetPort: 3000\n---\n# API Service\napiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  type: ClusterIP\n  selector:\n    app: api\n  ports:\n    - name: http\n      port: 80\n      targetPort: 8080\n    - name: grpc\n      port: 9090\n      targetPort: 9090\n---\n# Database Service (Headless)\napiVersion: v1\nkind: Service\nmetadata:\n  name: postgres\nspec:\n  clusterIP: None\n  selector:\n    app: postgres\n  ports:\n    - port: 5432\n---\n# Redis Service\napiVersion: v1\nkind: Service\nmetadata:\n  name: redis\nspec:\n  type: ClusterIP\n  selector:\n    app: redis\n  ports:\n    - port: 6379\n</code></pre>\n<h2>常用命令</h2>\n<pre><code class=\"language-bash\"># 查看 Service\nkubectl get svc\nkubectl get svc -o wide\nkubectl describe svc webapp\n\n# 查看 Endpoints\nkubectl get endpoints webapp\nkubectl get endpointslices\n\n# 测试服务连通性\nkubectl run test --rm -it --image=busybox -- wget -qO- http://webapp\n\n# 端口转发\nkubectl port-forward svc/webapp 8080:80\n\n# 暴露 Deployment 为 Service\nkubectl expose deployment webapp --port=80 --target-port=8080\n\n# 编辑 Service\nkubectl edit svc webapp\n\n# 删除 Service\nkubectl delete svc webapp\n</code></pre>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>使用有意义的名称</strong> - 名称即 DNS，保持简洁</li>\n<li><strong>定义端口名称</strong> - 便于 Istio 等识别协议</li>\n<li><strong>使用 Headless</strong> - StatefulSet 和服务发现场景</li>\n<li><strong>配置健康检查</strong> - 确保只路由到健康 Pod</li>\n<li><strong>考虑流量策略</strong> - 根据需求选择 Local/Cluster</li>\n<li><strong>使用 Ingress</strong> - 多服务共享入口</li>\n<li><strong>合理使用 ExternalName</strong> - 抽象外部依赖</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Service 提供稳定的访问入口和负载均衡",
+        "Ingress 实现 HTTP/HTTPS 路由和 TLS 终止",
+        "NetworkPolicy 控制 Pod 间的网络流量",
+        "CoreDNS 提供集群内服务发现"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "Service 类型",
+      "columns": [
+        {
+          "title": "ClusterIP",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "范围",
+              "description": "集群内部访问"
+            },
+            {
+              "label": "IP",
+              "description": "虚拟 ClusterIP"
+            },
+            {
+              "label": "场景",
+              "description": "内部服务通信"
+            }
+          ]
+        },
+        {
+          "title": "NodePort",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "范围",
+              "description": "节点 IP + 端口"
+            },
+            {
+              "label": "端口",
+              "description": "30000-32767"
+            },
+            {
+              "label": "场景",
+              "description": "开发测试环境"
+            }
+          ]
+        },
+        {
+          "title": "LoadBalancer",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "范围",
+              "description": "外部负载均衡器"
+            },
+            {
+              "label": "IP",
+              "description": "云厂商分配"
+            },
+            {
+              "label": "场景",
+              "description": "生产环境暴露服务"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Service 配置示例",
+      "language": "yaml",
+      "code": "# ClusterIP (默认)\napiVersion: v1\nkind: Service\nmetadata:\n  name: web-service\nspec:\n  type: ClusterIP\n  selector:\n    app: web\n  ports:\n  - name: http\n    port: 80          # Service 端口\n    targetPort: 8080  # Pod 端口\n---\n# Headless Service (用于 StatefulSet)\napiVersion: v1\nkind: Service\nmetadata:\n  name: mysql\nspec:\n  clusterIP: None  # Headless\n  selector:\n    app: mysql\n  ports:\n  - port: 3306\n# DNS: mysql-0.mysql.namespace.svc.cluster.local\n---\n# ExternalName (外部服务代理)\napiVersion: v1\nkind: Service\nmetadata:\n  name: external-db\nspec:\n  type: ExternalName\n  externalName: db.example.com"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Ingress 配置",
+      "language": "yaml",
+      "code": "# 需要安装 Ingress Controller (nginx/traefik/等)\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: app-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/proxy-body-size: \"50m\"\nspec:\n  ingressClassName: nginx\n  tls:\n  - hosts:\n    - api.example.com\n    - web.example.com\n    secretName: tls-secret\n  rules:\n  # 基于 Host 路由\n  - host: api.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: api-service\n            port:\n              number: 80\n  - host: web.example.com\n    http:\n      paths:\n      # 基于 Path 路由\n      - path: /api\n        pathType: Prefix\n        backend:\n          service:\n            name: api-service\n            port:\n              number: 80\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: frontend\n            port:\n              number: 80"
+    },
+    {
+      "type": "table",
+      "title": "Ingress Path 类型",
+      "highlightFirst": true,
+      "headers": [
+        "类型",
+        "匹配规则",
+        "示例"
+      ],
+      "rows": [
+        [
+          "Exact",
+          "精确匹配",
+          "/api 只匹配 /api"
+        ],
+        [
+          "Prefix",
+          "前缀匹配",
+          "/api 匹配 /api, /api/v1"
+        ],
+        [
+          "ImplementationSpecific",
+          "控制器特定",
+          "取决于 Ingress 实现"
+        ]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "NetworkPolicy 网络策略",
+      "language": "yaml",
+      "code": "# 默认拒绝所有入站流量\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-ingress\n  namespace: production\nspec:\n  podSelector: {}  # 选择所有 Pod\n  policyTypes:\n  - Ingress\n---\n# 允许特定流量\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: api-policy\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: api\n  policyTypes:\n  - Ingress\n  - Egress\n  ingress:\n  # 允许来自 frontend 的流量\n  - from:\n    - podSelector:\n        matchLabels:\n          app: frontend\n    ports:\n    - protocol: TCP\n      port: 8080\n  # 允许来自 monitoring 命名空间\n  - from:\n    - namespaceSelector:\n        matchLabels:\n          name: monitoring\n  egress:\n  # 允许访问数据库\n  - to:\n    - podSelector:\n        matchLabels:\n          app: database\n    ports:\n    - protocol: TCP\n      port: 5432\n  # 允许 DNS 查询\n  - to:\n    - namespaceSelector: {}\n    ports:\n    - protocol: UDP\n      port: 53"
+    },
+    {
+      "type": "cards",
+      "title": "网络功能",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "服务发现 (DNS)",
+          "badge": "CoreDNS",
+          "badgeColor": "blue",
+          "points": [
+            "<service>.<ns>.svc.cluster.local",
+            "<pod-ip>.<ns>.pod.cluster.local",
+            "自动 A/AAAA/SRV 记录"
+          ]
+        },
+        {
+          "title": "负载均衡",
+          "badge": "kube-proxy",
+          "badgeColor": "green",
+          "points": [
+            "iptables 模式 (默认)",
+            "IPVS 模式 (高性能)",
+            "轮询/最少连接等策略"
+          ]
+        },
+        {
+          "title": "Ingress Controller",
+          "badge": "HTTP",
+          "badgeColor": "amber",
+          "points": [
+            "Nginx Ingress (最流行)",
+            "Traefik (云原生)",
+            "AWS ALB / GCE"
+          ]
+        },
+        {
+          "title": "CNI 网络插件",
+          "badge": "CNI",
+          "badgeColor": "purple",
+          "points": [
+            "Calico (NetworkPolicy)",
+            "Cilium (eBPF)",
+            "Flannel (简单)"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "流量路径",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Client",
+          "description": "外部请求",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "Ingress",
+          "description": "HTTP 路由",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Service",
+          "description": "负载均衡",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "Pod",
+          "description": "目标容器",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "网络调试",
+      "language": "bash",
+      "code": "# 检查 Service\nkubectl get svc\nkubectl describe svc <service-name>\nkubectl get endpoints <service-name>\n\n# 检查 Ingress\nkubectl get ingress\nkubectl describe ingress <ingress-name>\n\n# 检查 NetworkPolicy\nkubectl get networkpolicy -A\n\n# DNS 调试\nkubectl run tmp --image=busybox -it --rm -- nslookup <service-name>\n\n# 网络连通性测试\nkubectl run tmp --image=curlimages/curl -it --rm -- curl <service-name>:80"
+    },
+    {
+      "type": "list",
+      "title": "网络最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 Ingress",
+          "description": "统一管理 HTTP 路由，减少 LoadBalancer 成本"
+        },
+        {
+          "label": "启用 NetworkPolicy",
+          "description": "实施零信任网络，限制 Pod 间通信"
+        },
+        {
+          "label": "Headless Service",
+          "description": "StatefulSet 场景使用 clusterIP: None"
+        },
+        {
+          "label": "TLS 终止",
+          "description": "在 Ingress 层统一管理 TLS 证书"
+        },
+        {
+          "label": "使用支持 NetworkPolicy 的 CNI",
+          "description": "如 Calico/Cilium"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Pod",
+    "Ingress Controller",
+    "Service Mesh",
+    "安全"
+  ]
 }

@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "title": "分布式事务",
+    "description": "2PC、Saga、TCC 事务模式",
+    "order": 3,
+    "tags": ["分布式", "事务", "ACID"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "分布式事务保证跨多个服务的数据一致性",
+        "2PC/3PC：强一致性，协调者模式",
+        "Saga：最终一致性，补偿事务",
+        "TCC：两阶段业务层面实现"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "事务模式",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "2PC/XA",
+          "badge": "强一致",
+          "badgeColor": "blue",
+          "points": [
+            "准备-提交两阶段",
+            "协调者单点",
+            "同步阻塞"
+          ]
+        },
+        {
+          "title": "Saga",
+          "badge": "最终一致",
+          "badgeColor": "green",
+          "points": [
+            "本地事务序列",
+            "补偿回滚",
+            "高可用"
+          ]
+        },
+        {
+          "title": "TCC",
+          "badge": "最终一致",
+          "badgeColor": "purple",
+          "points": [
+            "Try-Confirm-Cancel",
+            "资源预留",
+            "业务侵入"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "2PC 流程",
+      "language": "text",
+      "code": "阶段一：准备 (Prepare)\n┌───────────┐     ┌───────────┐     ┌───────────┐\n│ 协调者    │────►│ 参与者A   │────►│ 参与者B   │\n│           │     │ 准备OK    │     │ 准备OK    │\n└───────────┘     └───────────┘     └───────────┘\n\n阶段二：提交 (Commit)\n┌───────────┐     ┌───────────┐     ┌───────────┐\n│ 协调者    │────►│ 参与者A   │────►│ 参与者B   │\n│ Commit    │     │ 已提交    │     │ 已提交    │\n└───────────┘     └───────────┘     └───────────┘\n\n问题：\n1. 同步阻塞：准备后等待提交指令\n2. 单点故障：协调者宕机全局阻塞\n3. 网络分区：可能数据不一致"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Saga 模式实现",
+      "language": "typescript",
+      "code": "// 订单创建 Saga\nconst orderSaga = [\n  {\n    name: 'createOrder',\n    action: (ctx) => orderService.create(ctx.order),\n    compensate: (ctx) => orderService.cancel(ctx.orderId),\n  },\n  {\n    name: 'reserveInventory',\n    action: (ctx) => inventoryService.reserve(ctx.items),\n    compensate: (ctx) => inventoryService.release(ctx.items),\n  },\n  {\n    name: 'processPayment',\n    action: (ctx) => paymentService.charge(ctx.payment),\n    compensate: (ctx) => paymentService.refund(ctx.paymentId),\n  },\n];\n\n// Saga 执行器\nasync function executeSaga(saga, context) {\n  const completed = [];\n  \n  for (const step of saga) {\n    try {\n      await step.action(context);\n      completed.push(step);\n    } catch (error) {\n      // 逆序执行补偿\n      for (const s of completed.reverse()) {\n        await s.compensate(context);\n      }\n      throw error;\n    }\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "TCC 模式实现",
+      "language": "java",
+      "code": "// TCC 接口\npublic interface AccountTccService {\n    // Try: 冻结金额\n    @TwoPhaseBusinessAction(name = \"debit\")\n    boolean tryDebit(\n        @BusinessActionContextParameter(paramName = \"accountId\") String accountId,\n        @BusinessActionContextParameter(paramName = \"amount\") BigDecimal amount\n    );\n    \n    // Confirm: 扣减冻结金额\n    boolean confirmDebit(BusinessActionContext context);\n    \n    // Cancel: 解冻金额\n    boolean cancelDebit(BusinessActionContext context);\n}\n\n// 实现\n@Service\npublic class AccountTccServiceImpl implements AccountTccService {\n    \n    @Override\n    public boolean tryDebit(String accountId, BigDecimal amount) {\n        // 检查余额并冻结\n        Account account = accountRepository.findById(accountId);\n        if (account.getBalance().compareTo(amount) < 0) {\n            return false;\n        }\n        account.freeze(amount);  // 冻结，不实际扣减\n        return true;\n    }\n    \n    @Override\n    public boolean confirmDebit(BusinessActionContext context) {\n        // 实际扣减冻结金额\n        String accountId = context.getActionContext(\"accountId\");\n        BigDecimal amount = context.getActionContext(\"amount\");\n        accountRepository.confirmDebit(accountId, amount);\n        return true;\n    }\n    \n    @Override\n    public boolean cancelDebit(BusinessActionContext context) {\n        // 解冻金额\n        accountRepository.unfreeze(context.getActionContext(\"accountId\"));\n        return true;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "方案对比",
+      "highlightFirst": true,
+      "headers": ["方案", "一致性", "性能", "复杂度", "适用场景"],
+      "rows": [
+        ["2PC/XA", "强一致", "低", "中", "传统数据库事务"],
+        ["3PC", "强一致", "低", "高", "减少阻塞的 2PC"],
+        ["Saga", "最终一致", "高", "中", "长事务、微服务"],
+        ["TCC", "最终一致", "中", "高", "高并发、资源预留"],
+        ["本地消息表", "最终一致", "高", "低", "异步解耦场景"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "选型建议",
+      "style": "check",
+      "items": [
+        { "label": "优先单库事务", "description": "能用单库事务就不用分布式事务" },
+        { "label": "Saga 优先", "description": "微服务架构首选，性能好、实现简单" },
+        { "label": "TCC 场景", "description": "需要资源预留、高并发场景" },
+        { "label": "幂等设计", "description": "所有操作都要保证幂等" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CAP 理论", "微服务", "消息队列"]
+}

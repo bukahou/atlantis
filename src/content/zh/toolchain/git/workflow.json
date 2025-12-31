@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "title": "Git 工作流",
+    "description": "Git 分支策略与团队协作工作流",
+    "order": 1,
+    "tags": ["Git", "工作流", "协作"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Git 是分布式版本控制系统",
+        "工作目录 -> 暂存区 -> 本地仓库",
+        "分支策略决定团队协作效率",
+        "提交规范保证历史清晰可追溯"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "工作区域",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "工作目录", "description": "git add", "color": "bg-blue-500" },
+        { "label": "暂存区", "description": "git commit", "color": "bg-purple-500" },
+        { "label": "本地仓库", "description": "git push", "color": "bg-cyan-500" },
+        { "label": "远程仓库", "description": "origin", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "工作流对比",
+      "columns": [
+        {
+          "title": "Git Flow",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "分支", "description": "main/develop/feature/release" },
+            { "label": "适用", "description": "版本发布、多环境" },
+            { "label": "复杂度", "description": "较高" }
+          ]
+        },
+        {
+          "title": "GitHub Flow",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "分支", "description": "main + feature" },
+            { "label": "适用", "description": "持续部署、快速迭代" },
+            { "label": "复杂度", "description": "简单" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "常用命令",
+      "language": "bash",
+      "code": "# 分支操作\ngit checkout -b feature/login    # 创建并切换\ngit switch -c feature/login       # Git 2.23+\ngit branch -d feature/login       # 删除分支\n\n# 合并\ngit merge --no-ff feature/login   # 保留合并记录\ngit rebase main                   # 变基（线性历史）\n\n# 远程\ngit push -u origin feature/login  # 推送并设置上游\ngit pull origin main              # 拉取合并"
+    },
+    {
+      "type": "table",
+      "title": "Conventional Commits",
+      "highlightFirst": true,
+      "headers": ["Type", "说明", "示例"],
+      "rows": [
+        ["feat", "新功能", "feat(auth): add OAuth login"],
+        ["fix", "Bug 修复", "fix(api): handle null response"],
+        ["docs", "文档更新", "docs: update README"],
+        ["refactor", "重构", "refactor: extract helper"],
+        ["chore", "构建/工具", "chore: update deps"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "实用技巧",
+      "language": "bash",
+      "code": "# 暂存工作\ngit stash           # 保存当前修改\ngit stash pop       # 恢复修改\n\n# 撤销操作\ngit restore file.txt           # 撤销工作区修改\ngit restore --staged file.txt  # 撤销暂存\ngit reset --soft HEAD~1        # 撤销提交保留修改\n\n# 修改提交\ngit commit --amend             # 修改最后一次提交"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "频繁提交", "description": "小步提交，便于追踪和回滚" },
+        { "label": "清晰信息", "description": "遵循 Conventional Commits" },
+        { "label": "分支隔离", "description": "功能独立开发，避免冲突" },
+        { "label": "Code Review", "description": "通过 PR 保证代码质量" }
+      ]
+    }
+  ],
+  "relatedTopics": ["GitHub Actions", "CI/CD", "团队协作"]
+}

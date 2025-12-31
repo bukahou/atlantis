@@ -5,11 +5,210 @@
     "description": "データベース正規化理論、非正規化設計とデータモデリング",
     "order": 1,
     "tags": [
-      "database",
-      "modeling",
-      "normalization",
-      "design"
+      "データベース設計",
+      "正規化",
+      "モデリング"
     ]
   },
-  "content": "<h1>データベース正規化</h1>\n<h2>正規化概要</h2>\n<p>データベース正規化はリレーショナルデータベース設計時に冗長性を排除し、データ整合性を保証する指針です。</p>\n<pre><code>正規化レベル\n├── 1NF - 原子性 (属性分割不可)\n├── 2NF - 完全関数従属 (部分従属排除)\n├── 3NF - 推移的従属排除\n├── BCNF - 主属性従属排除\n├── 4NF - 多値従属排除\n└── 5NF - 結合従属排除\n</code></pre>\n<h2>第一正規形 (1NF)</h2>\n<h3>定義</h3>\n<p>すべての属性が原子的で分割不可能。</p>\n<pre><code class=\"language-sql\">-- 1NF 違反\nCREATE TABLE orders_bad (\n    id INT,\n    products VARCHAR(500)  -- \"iPhone,MacBook,AirPods\"\n);\n\n-- 1NF 準拠\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    customer_id INT\n);\n\nCREATE TABLE order_items (\n    order_id INT,\n    product_id INT,\n    quantity INT,\n    PRIMARY KEY (order_id, product_id)\n);\n</code></pre>\n<h2>第二正規形 (2NF)</h2>\n<h3>定義</h3>\n<p>1NF を満たし、非キー属性が主キーに完全関数従属。</p>\n<pre><code class=\"language-sql\">-- 2NF 違反 (部分従属)\n-- 主キー: (student_id, course_id)\n-- student_name は student_id のみに従属\nCREATE TABLE enrollment_bad (\n    student_id INT,\n    course_id INT,\n    student_name VARCHAR(100),  -- 部分従属\n    grade DECIMAL(3,1),\n    PRIMARY KEY (student_id, course_id)\n);\n\n-- 2NF 準拠\nCREATE TABLE students (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE enrollments (\n    student_id INT,\n    course_id INT,\n    grade DECIMAL(3,1),\n    PRIMARY KEY (student_id, course_id),\n    FOREIGN KEY (student_id) REFERENCES students(id)\n);\n</code></pre>\n<h2>第三正規形 (3NF)</h2>\n<h3>定義</h3>\n<p>2NF を満たし、非キー属性が主キーに推移的従属しない。</p>\n<pre><code class=\"language-sql\">-- 3NF 違反 (推移的従属)\n-- department_name は department_id に従属、id に直接従属しない\nCREATE TABLE employees_bad (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    department_name VARCHAR(100)  -- 推移的従属\n);\n\n-- 3NF 準拠\nCREATE TABLE departments (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    FOREIGN KEY (department_id) REFERENCES departments(id)\n);\n</code></pre>\n<h2>BCNF (ボイス-コッド正規形)</h2>\n<h3>定義</h3>\n<p>3NF を満たし、すべての決定子が候補キー。</p>\n<pre><code class=\"language-sql\">-- BCNF 違反\n-- 仮定: 学生は一人の教師の授業のみ選択可能\n-- 教師は一科目のみ担当\nCREATE TABLE student_course_bad (\n    student_id INT,\n    course_id INT,\n    teacher_id INT,\n    PRIMARY KEY (student_id, course_id)\n    -- teacher_id -> course_id だが teacher_id は候補キーでない\n);\n\n-- BCNF 準拠\nCREATE TABLE teacher_courses (\n    teacher_id INT PRIMARY KEY,\n    course_id INT\n);\n\nCREATE TABLE student_teachers (\n    student_id INT,\n    teacher_id INT,\n    PRIMARY KEY (student_id, teacher_id)\n);\n</code></pre>\n<h2>非正規化設計</h2>\n<h3>非正規化の適用場面</h3>\n<pre><code>適用シナリオ\n├── 読み取り多/書き込み少 - JOIN 削減\n├── レポートクエリ - 事前集計データ\n├── 高性能要件 - 空間と引き換えに時間\n└── データウェアハウス - スター/スノーフレークモデル\n</code></pre>\n<h3>非正規化テクニック</h3>\n<pre><code class=\"language-sql\">-- 1. 冗長フィールド\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    user_id INT,\n    user_name VARCHAR(100),  -- 冗長、JOIN 回避\n    total_amount DECIMAL(10,2)\n);\n\n-- 2. 事前計算フィールド\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    price DECIMAL(10,2),\n    review_count INT DEFAULT 0,  -- 事前計算\n    avg_rating DECIMAL(2,1) DEFAULT 0\n);\n\n-- 3. サマリーテーブル\nCREATE TABLE daily_sales (\n    date DATE PRIMARY KEY,\n    total_orders INT,\n    total_revenue DECIMAL(12,2),\n    avg_order_value DECIMAL(10,2)\n);\n</code></pre>\n<h2>データモデリング実践</h2>\n<h3>エンティティリレーション設計</h3>\n<pre><code class=\"language-sql\">-- 一対多\nCREATE TABLE categories (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    category_id INT,\n    FOREIGN KEY (category_id) REFERENCES categories(id)\n);\n\n-- 多対多\nCREATE TABLE tags (\n    id INT PRIMARY KEY,\n    name VARCHAR(50)\n);\n\nCREATE TABLE product_tags (\n    product_id INT,\n    tag_id INT,\n    PRIMARY KEY (product_id, tag_id),\n    FOREIGN KEY (product_id) REFERENCES products(id),\n    FOREIGN KEY (tag_id) REFERENCES tags(id)\n);\n\n-- 自己参照\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    manager_id INT,\n    FOREIGN KEY (manager_id) REFERENCES employees(id)\n);\n</code></pre>\n<h3>継承パターン</h3>\n<pre><code class=\"language-sql\">-- 単一テーブル継承\nCREATE TABLE vehicles (\n    id INT PRIMARY KEY,\n    type ENUM('car', 'motorcycle', 'truck'),\n    brand VARCHAR(50),\n    -- Car フィールド\n    num_doors INT,\n    -- Motorcycle フィールド\n    engine_cc INT,\n    -- Truck フィールド\n    payload_capacity DECIMAL(10,2)\n);\n\n-- クラステーブル継承\nCREATE TABLE vehicles (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50)\n);\n\nCREATE TABLE cars (\n    vehicle_id INT PRIMARY KEY,\n    num_doors INT,\n    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)\n);\n\nCREATE TABLE motorcycles (\n    vehicle_id INT PRIMARY KEY,\n    engine_cc INT,\n    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)\n);\n\n-- 具象テーブル継承\nCREATE TABLE cars (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50),\n    num_doors INT\n);\n\nCREATE TABLE motorcycles (\n    id INT PRIMARY KEY,\n    brand VARCHAR(50),\n    engine_cc INT\n);\n</code></pre>\n<h2>設計原則</h2>\n<pre><code class=\"language-yaml\">正規化優先:\n  - 高い正規形から開始\n  - 性能要件に応じて適切に非正規化\n  - 非正規化決定の理由を記録\n\n命名規則:\n  - テーブル名: 複数形 (users, orders)\n  - 主キー: id または table_id\n  - 外部キー: referenced_table_id\n  - タイムスタンプ: created_at, updated_at\n\n制約使用:\n  - 主キー制約\n  - 外部キー制約 (性能影響考慮)\n  - ユニーク制約\n  - チェック制約\n</code></pre>\n<h2>まとめ</h2>\n<p>データベース正規化のポイント：</p>\n<ol>\n<li><strong>1NF</strong> - 原子性、属性分割不可</li>\n<li><strong>2NF</strong> - 部分従属排除</li>\n<li><strong>3NF</strong> - 推移的従属排除</li>\n<li><strong>非正規化</strong> - 性能最適化、適切な冗長性</li>\n<li><strong>実践</strong> - 正規化と性能のバランス</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "正規化はリレーショナルデータベースの冗長性を排除するための設計指針",
+        "低から高へ：1NF -> 2NF -> 3NF -> BCNF",
+        "高い正規化は冗長性を減らすが、クエリ性能に影響する可能性",
+        "実際の設計では正規化と性能のバランスが必要"
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "正規化レベル",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "1NF",
+          "description": "原子性",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "2NF",
+          "description": "部分従属の排除",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "3NF",
+          "description": "推移的従属の排除",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "BCNF",
+          "description": "主属性従属の排除",
+          "color": "bg-purple-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "正規化詳解",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "第一正規形 (1NF)",
+          "badge": "原子性",
+          "badgeColor": "blue",
+          "points": [
+            "各属性は分割不可",
+            "配列/リストを保存できない",
+            "例：products に \"A,B,C\" は保存不可"
+          ]
+        },
+        {
+          "title": "第二正規形 (2NF)",
+          "badge": "完全従属",
+          "badgeColor": "green",
+          "points": [
+            "1NF を満たす",
+            "非キー属性が主キーに完全従属",
+            "部分従属を排除"
+          ]
+        },
+        {
+          "title": "第三正規形 (3NF)",
+          "badge": "直接従属",
+          "badgeColor": "amber",
+          "points": [
+            "2NF を満たす",
+            "非キー属性が主キーに推移的に従属しない",
+            "推移的従属を排除"
+          ]
+        },
+        {
+          "title": "BCNF",
+          "badge": "決定因子",
+          "badgeColor": "purple",
+          "points": [
+            "3NF を満たす",
+            "すべての決定因子が候補キー",
+            "より厳格な 3NF"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "3NF 例",
+      "language": "sql",
+      "code": "-- 3NF 違反 (推移的従属)\n-- department_name は department_id に従属\nCREATE TABLE employees_bad (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT,\n    department_name VARCHAR(100)  -- 推移的従属\n);\n\n-- 3NF 準拠\nCREATE TABLE departments (\n    id INT PRIMARY KEY,\n    name VARCHAR(100)\n);\n\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    department_id INT REFERENCES departments(id)\n);"
+    },
+    {
+      "type": "comparison",
+      "title": "正規化 vs 非正規化",
+      "columns": [
+        {
+          "title": "正規化",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "メリット",
+              "description": "冗長性削減、データ一貫性"
+            },
+            {
+              "label": "デメリット",
+              "description": "複数テーブル JOIN、クエリ複雑"
+            },
+            {
+              "label": "適用",
+              "description": "OLTP、書き込み多め"
+            }
+          ]
+        },
+        {
+          "title": "非正規化",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "メリット",
+              "description": "クエリ高速、JOIN 削減"
+            },
+            {
+              "label": "デメリット",
+              "description": "データ冗長、更新複雑"
+            },
+            {
+              "label": "適用",
+              "description": "OLAP、読み取り多め"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "非正規化テクニック",
+      "language": "sql",
+      "code": "-- 1. 冗長フィールド (JOIN 回避)\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    user_id INT,\n    user_name VARCHAR(100),  -- 冗長\n    total_amount DECIMAL(10,2)\n);\n\n-- 2. 事前計算フィールド\nCREATE TABLE products (\n    id INT PRIMARY KEY,\n    name VARCHAR(100),\n    review_count INT DEFAULT 0,\n    avg_rating DECIMAL(2,1) DEFAULT 0\n);\n\n-- 3. サマリーテーブル\nCREATE TABLE daily_sales (\n    date DATE PRIMARY KEY,\n    total_orders INT,\n    total_revenue DECIMAL(12,2)\n);"
+    },
+    {
+      "type": "table",
+      "title": "エンティティ関係",
+      "highlightFirst": true,
+      "headers": [
+        "関係タイプ",
+        "実装方法",
+        "例"
+      ],
+      "rows": [
+        [
+          "一対一",
+          "主キー関連/同一テーブル",
+          "ユーザー-詳細"
+        ],
+        [
+          "一対多",
+          "外部キー関連",
+          "カテゴリ-商品"
+        ],
+        [
+          "多対多",
+          "中間テーブル",
+          "商品-タグ"
+        ],
+        [
+          "自己参照",
+          "自己参照外部キー",
+          "従業員-上司"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "設計原則",
+      "style": "check",
+      "items": [
+        {
+          "label": "高正規化から開始",
+          "description": "性能要件に応じて適宜非正規化"
+        },
+        {
+          "label": "命名規約",
+          "description": "テーブル名は複数形、外部キーは table_id"
+        },
+        {
+          "label": "主キー設計",
+          "description": "自動採番 ID または分散 ID"
+        },
+        {
+          "label": "決定を記録",
+          "description": "非正規化の理由をドキュメント化"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "インデックス設計",
+    "シャーディング",
+    "データモデリング"
+  ]
 }

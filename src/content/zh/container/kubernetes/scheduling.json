@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "title": "调度策略",
+    "description": "Kubernetes 调度：Label/Selector、Affinity、Taint/Toleration",
+    "order": 6,
+    "tags": ["Kubernetes", "调度", "Affinity", "Taint", "Toleration"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Label/Selector 用于资源分类和选择",
+        "Node Affinity 控制 Pod 调度到特定节点",
+        "Pod Affinity/Anti-Affinity 控制 Pod 间的亲和性",
+        "Taint/Toleration 阻止或允许 Pod 调度到节点"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "调度机制",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Label & Selector",
+          "badge": "基础",
+          "badgeColor": "blue",
+          "points": [
+            "键值对标签",
+            "资源分类和过滤",
+            "Service 选择 Pod",
+            "Deployment 管理 Pod"
+          ]
+        },
+        {
+          "title": "Node Affinity",
+          "badge": "节点亲和",
+          "badgeColor": "green",
+          "points": [
+            "Pod 调度到特定节点",
+            "required: 必须满足",
+            "preferred: 优先满足",
+            "取代 nodeSelector"
+          ]
+        },
+        {
+          "title": "Pod Affinity",
+          "badge": "Pod 亲和",
+          "badgeColor": "amber",
+          "points": [
+            "Pod 间的亲和性",
+            "同一节点/区域部署",
+            "Anti-Affinity 分散部署",
+            "高可用和性能优化"
+          ]
+        },
+        {
+          "title": "Taint & Toleration",
+          "badge": "污点容忍",
+          "badgeColor": "red",
+          "points": [
+            "节点排斥 Pod",
+            "Toleration 允许调度",
+            "专用节点隔离",
+            "GPU/SSD 节点保护"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Label 和 Selector",
+      "language": "yaml",
+      "code": "# 为节点添加 Label\n# kubectl label nodes node-1 disktype=ssd\n# kubectl label nodes node-2 gpu=nvidia\n\n# Pod 使用 nodeSelector (简单方式)\napiVersion: v1\nkind: Pod\nmetadata:\n  name: gpu-pod\nspec:\n  nodeSelector:\n    gpu: nvidia\n  containers:\n  - name: cuda-app\n    image: cuda-app:v1\n---\n# Service 使用 Selector\napiVersion: v1\nkind: Service\nmetadata:\n  name: web-service\nspec:\n  selector:\n    app: web\n    tier: frontend\n  ports:\n  - port: 80"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Node Affinity",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx\nspec:\n  affinity:\n    nodeAffinity:\n      # 必须满足\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n        - matchExpressions:\n          - key: disktype\n            operator: In\n            values:\n            - ssd\n            - nvme\n      # 优先满足\n      preferredDuringSchedulingIgnoredDuringExecution:\n      - weight: 80\n        preference:\n          matchExpressions:\n          - key: zone\n            operator: In\n            values:\n            - zone-a\n      - weight: 20\n        preference:\n          matchExpressions:\n          - key: zone\n            operator: In\n            values:\n            - zone-b\n  containers:\n  - name: nginx\n    image: nginx\n\n# 操作符: In, NotIn, Exists, DoesNotExist, Gt, Lt"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Pod Affinity / Anti-Affinity",
+      "language": "yaml",
+      "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-server\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      affinity:\n        # Pod 亲和: 与 cache Pod 部署在同一节点\n        podAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n          - labelSelector:\n              matchLabels:\n                app: cache\n            topologyKey: kubernetes.io/hostname\n        # Pod 反亲和: 避免 web Pod 在同一节点\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n          - weight: 100\n            podAffinityTerm:\n              labelSelector:\n                matchLabels:\n                  app: web\n              topologyKey: kubernetes.io/hostname\n      containers:\n      - name: web\n        image: nginx\n\n# topologyKey 常用值:\n# kubernetes.io/hostname  - 节点级别\n# topology.kubernetes.io/zone - 可用区级别\n# topology.kubernetes.io/region - 区域级别"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Taint 和 Toleration",
+      "language": "yaml",
+      "code": "# 为节点添加 Taint\n# kubectl taint nodes node-1 dedicated=gpu:NoSchedule\n# kubectl taint nodes node-2 maintenance=true:NoExecute\n\n# Taint 效果:\n# NoSchedule     - 不调度新 Pod\n# PreferNoSchedule - 尽量不调度\n# NoExecute      - 驱逐现有 Pod\n\n# Pod 添加 Toleration\napiVersion: v1\nkind: Pod\nmetadata:\n  name: gpu-pod\nspec:\n  tolerations:\n  - key: \"dedicated\"\n    operator: \"Equal\"\n    value: \"gpu\"\n    effect: \"NoSchedule\"\n  # 容忍所有 NoSchedule\n  - operator: \"Exists\"\n    effect: \"NoSchedule\"\n  # 容忍 NoExecute 并设置容忍时间\n  - key: \"maintenance\"\n    operator: \"Exists\"\n    effect: \"NoExecute\"\n    tolerationSeconds: 3600  # 1小时后驱逐\n  containers:\n  - name: cuda-app\n    image: cuda-app:v1\n\n# 删除 Taint\n# kubectl taint nodes node-1 dedicated=gpu:NoSchedule-"
+    },
+    {
+      "type": "table",
+      "title": "Taint Effect 效果",
+      "highlightFirst": true,
+      "headers": ["Effect", "说明", "使用场景"],
+      "rows": [
+        ["NoSchedule", "禁止新 Pod 调度", "专用节点 (GPU/SSD)"],
+        ["PreferNoSchedule", "尽量避免调度", "非关键隔离"],
+        ["NoExecute", "驱逐已运行的 Pod", "节点维护/故障"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "拓扑分布约束",
+      "language": "yaml",
+      "code": "# 确保 Pod 均匀分布在不同区域/节点\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 6\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      topologySpreadConstraints:\n      - maxSkew: 1  # 最大不平衡数\n        topologyKey: topology.kubernetes.io/zone\n        whenUnsatisfiable: DoNotSchedule\n        labelSelector:\n          matchLabels:\n            app: web\n      - maxSkew: 1\n        topologyKey: kubernetes.io/hostname\n        whenUnsatisfiable: ScheduleAnyway\n        labelSelector:\n          matchLabels:\n            app: web\n      containers:\n      - name: web\n        image: nginx"
+    },
+    {
+      "type": "list",
+      "title": "调度最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用 Anti-Affinity", "description": "高可用服务分散部署到不同节点/区域" },
+        { "label": "GPU 节点用 Taint", "description": "防止普通 Pod 占用 GPU 资源" },
+        { "label": "生产用 requiredDuring", "description": "关键调度规则使用硬约束" },
+        { "label": "合理使用 weight", "description": "preferredDuring 设置优先级权重" },
+        { "label": "拓扑分布约束", "description": "跨区域高可用部署" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Pod", "节点管理", "高可用", "资源管理"]
+}

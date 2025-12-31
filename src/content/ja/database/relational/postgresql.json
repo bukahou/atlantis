@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "title": "PostgreSQL",
+    "description": "PostgreSQL 高度な機能、JSON サポートと拡張機能",
+    "order": 2,
+    "tags": ["PostgreSQL", "SQL", "リレーショナルデータベース"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "PostgreSQL は強力なオープンソースオブジェクトリレーショナルデータベース",
+        "豊富なデータ型をサポート：JSON、Array、Range 型",
+        "強力な SQL サポート：CTE、ウィンドウ関数",
+        "高度に拡張可能：カスタム型、関数、インデックス"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "特色データ型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "JSONB",
+          "badge": "半構造化",
+          "badgeColor": "blue",
+          "points": [
+            "バイナリ保存",
+            "インデックスサポート",
+            "豊富な演算子"
+          ]
+        },
+        {
+          "title": "Array",
+          "badge": "コレクション",
+          "badgeColor": "green",
+          "points": [
+            "ネイティブ配列サポート",
+            "ANY/ALL クエリ",
+            "配列関数"
+          ]
+        },
+        {
+          "title": "Range",
+          "badge": "範囲",
+          "badgeColor": "purple",
+          "points": [
+            "時間/数値範囲",
+            "オーバーラップ検出",
+            "排他制約"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JSONB 操作",
+      "language": "sql",
+      "code": "-- JSONB を持つテーブル作成\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    attributes JSONB\n);\n\n-- JSON フィールドのクエリ\nSELECT name, attributes->>'brand' as brand FROM products;\nSELECT * FROM products WHERE attributes @> '{\"brand\": \"Apple\"}';\n\n-- JSON 演算子\n->  オブジェクトフィールド取得 (JSON 返却)\n->> オブジェクトフィールド取得 (テキスト返却)\n@>  包含\n?   キー存在"
+    },
+    {
+      "type": "comparison",
+      "title": "インデックスタイプ",
+      "columns": [
+        {
+          "title": "B-Tree",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "用途", "description": "デフォルトインデックス" },
+            { "label": "適用", "description": "等値、範囲クエリ" }
+          ]
+        },
+        {
+          "title": "GIN",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "用途", "description": "転置インデックス" },
+            { "label": "適用", "description": "JSONB、全文検索" }
+          ]
+        },
+        {
+          "title": "GiST",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "用途", "description": "汎用検索ツリー" },
+            { "label": "適用", "description": "地理データ、範囲" }
+          ]
+        },
+        {
+          "title": "BRIN",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            { "label": "用途", "description": "ブロック範囲インデックス" },
+            { "label": "適用", "description": "時系列データ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ウィンドウ関数",
+      "language": "sql",
+      "code": "-- ランキング関数\nSELECT name, department, salary,\n    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as rank\nFROM employees;\n\n-- 累積計算\nSELECT date, amount,\n    SUM(amount) OVER (ORDER BY date) as running_total\nFROM sales;\n\n-- 前後行\nSELECT date, value,\n    LAG(value) OVER (ORDER BY date) as prev_value,\n    LEAD(value) OVER (ORDER BY date) as next_value\nFROM metrics;"
+    },
+    {
+      "type": "codeBlock",
+      "title": "再帰 CTE",
+      "language": "sql",
+      "code": "-- 組織階層の再帰クエリ\nWITH RECURSIVE subordinates AS (\n    SELECT id, name, manager_id, 1 as level\n    FROM employees WHERE id = 1\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, s.level + 1\n    FROM employees e\n    JOIN subordinates s ON e.manager_id = s.id\n)\nSELECT * FROM subordinates;"
+    },
+    {
+      "type": "table",
+      "title": "よく使う拡張",
+      "highlightFirst": true,
+      "headers": ["拡張", "機能", "用途"],
+      "rows": [
+        ["uuid-ossp", "UUID 生成", "分散 ID"],
+        ["pg_trgm", "類似度検索", "あいまいマッチ"],
+        ["PostGIS", "地理空間", "GIS アプリ"],
+        ["pg_stat_statements", "クエリ統計", "性能分析"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "JSONB を使用", "description": "JSON 型より高性能、インデックスサポート" },
+        { "label": "部分インデックス", "description": "よく使う条件のデータサブセットのみインデックス" },
+        { "label": "EXPLAIN ANALYZE", "description": "実際の実行計画を分析" },
+        { "label": "コネクションプール", "description": "PgBouncer で接続管理" }
+      ]
+    }
+  ],
+  "relatedTopics": ["MySQL", "JSONB", "全文検索"]
+}

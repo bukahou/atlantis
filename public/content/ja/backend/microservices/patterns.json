@@ -1,15 +1,188 @@
 {
   "slug": "patterns",
   "meta": {
-    "title": "マイクロサービスアーキテクチャパターン",
-    "description": "マイクロサービス設計パターン、アーキテクチャ原則とベストプラクティス",
+    "title": "マイクロサービス設計パターン",
+    "description": "マイクロサービスアーキテクチャのコアパターンと実践",
     "order": 1,
     "tags": [
-      "microservices",
-      "architecture",
-      "patterns",
-      "distributed"
+      "マイクロサービス",
+      "アーキテクチャ",
+      "設計パターン"
     ]
   },
-  "content": "<h1>マイクロサービスアーキテクチャパターン</h1>\n<h2>マイクロサービス概要</h2>\n<p>マイクロサービスアーキテクチャは、アプリケーションを小さく独立してデプロイ可能なサービスに分割し、各サービスが特定のビジネス機能を中心に構築されます。</p>\n<pre><code>マイクロサービスの特徴\n├── 単一責任 - 各サービスは 1 つのビジネスドメインに専念\n├── 独立デプロイ - サービスは独立してリリース可能\n├── 技術多様性 - サービスは異なる技術スタックを使用可能\n├── 分散化 - 分散データ管理\n└── 障害分離 - サービス障害が全体に影響しない\n</code></pre>\n<h2>サービス分割</h2>\n<h3>分割戦略</h3>\n<pre><code>ドメイン駆動設計 (DDD)\n├── 境界付けられたコンテキスト - ビジネス境界の分割\n├── 集約ルート - データ整合性境界\n├── ドメインイベント - サービス間通信\n└── ユビキタス言語 - 統一されたビジネス用語\n\n分割の観点\n├── ビジネス機能 - 業務機能で分割\n├── サブドメイン - DDD サブドメインで分割\n├── データ - データ所有権で分割\n└── チーム - コンウェイの法則で分割\n</code></pre>\n<h3>サービス分割例</h3>\n<pre><code>EC システム\n├── user-service         # ユーザーサービス\n├── product-service      # 商品サービス\n├── order-service        # 注文サービス\n├── payment-service      # 決済サービス\n├── inventory-service    # 在庫サービス\n├── notification-service # 通知サービス\n└── shipping-service     # 配送サービス\n</code></pre>\n<h2>通信パターン</h2>\n<h3>同期通信</h3>\n<pre><code>REST/HTTP\n├── シンプル直接\n├── ブラウザ互換\n└── CRUD 操作に適している\n\ngRPC\n├── 高性能\n├── 強い型付け\n└── 内部サービス通信に適している\n\nGraphQL\n├── 柔軟なクエリ\n├── リクエスト削減\n└── BFF 層に適している\n</code></pre>\n<h3>非同期通信</h3>\n<pre><code>メッセージキュー\n├── サービス疎結合\n├── ピーク時の負荷平準化\n├── 最終的な一貫性を保証\n└── パブリッシュ/サブスクライブサポート\n\nイベント駆動\n├── イベントソーシング\n├── CQRS パターン\n└── ドメインイベント\n</code></pre>\n<h2>API ゲートウェイ</h2>\n<h3>ゲートウェイの責務</h3>\n<pre><code class=\"language-yaml\"># コア機能\n認証認可:\n  - JWT 検証\n  - OAuth2 統合\n  - API Key 管理\n\nルーティング:\n  - リクエストルーティング\n  - ロードバランシング\n  - プロトコル変換\n\nトラフィック制御:\n  - レート制限\n  - サーキットブレーカー\n  - フォールバック\n\nオブザーバビリティ:\n  - リクエストログ\n  - 分散トレーシング\n  - メトリクス収集\n</code></pre>\n<h3>ゲートウェイ実装</h3>\n<pre><code class=\"language-yaml\"># Kong 設定例\nservices:\n  - name: user-service\n    url: http://user-service:8080\n    routes:\n      - name: user-route\n        paths:\n          - /api/users\n\nplugins:\n  - name: rate-limiting\n    config:\n      minute: 100\n  - name: jwt\n    config:\n      secret_is_base64: false\n</code></pre>\n<h2>サービスディスカバリ</h2>\n<h3>クライアントサイドディスカバリ</h3>\n<pre><code>1. サービスがレジストリに登録\n2. クライアントがレジストリに問い合わせ\n3. クライアントがインスタンスを選択\n4. クライアントが直接呼び出し\n\n利点: 柔軟、カスタマイズ可能\n欠点: クライアントが複雑\n</code></pre>\n<h3>サーバーサイドディスカバリ</h3>\n<pre><code>1. サービスがレジストリに登録\n2. クライアントがロードバランサーにリクエスト\n3. ロードバランサーがレジストリに問い合わせ\n4. ロードバランサーがリクエスト転送\n\n利点: クライアントがシンプル\n欠点: 追加のホップ\n</code></pre>\n<h3>サービスレジストリ</h3>\n<pre><code>Consul\n├── ヘルスチェック\n├── KV ストア\n├── マルチデータセンター\n\netcd\n├── 強い一貫性\n├── 高可用性\n├── Kubernetes 統合\n\nNacos\n├── 設定管理\n├── サービスディスカバリ\n├── 動的 DNS\n</code></pre>\n<h2>データ管理</h2>\n<h3>データベースパターン</h3>\n<pre><code>サービスごとのデータベース (推奨)\n├── データ独立\n├── 技術の自由\n└── 障害分離\n\n共有データベース\n├── 実装がシンプル\n├── 強い一貫性\n└── 結合度が高い\n\nハイブリッド\n├── コアデータは独立\n└── 読み取り専用データは共有\n</code></pre>\n<h3>分散トランザクション</h3>\n<pre><code>Saga パターン\n├── オーケストレーション Saga\n│   └── 中央コーディネーターが制御\n└── コレオグラフィ Saga\n    └── イベント駆動の調整\n\n2 フェーズコミット (2PC)\n├── 準備フェーズ\n└── コミットフェーズ\n(非推奨、性能が悪い)\n\n最終的な一貫性\n├── 非同期メッセージ\n├── 補償トランザクション\n└── 冪等操作\n</code></pre>\n<h2>フォールトトレランスパターン</h2>\n<h3>サーキットブレーカー</h3>\n<pre><code class=\"language-go\">// サーキットブレーカー状態\ntype CircuitBreaker struct {\n    state         State  // CLOSED, OPEN, HALF_OPEN\n    failureCount  int\n    successCount  int\n    lastFailure   time.Time\n    threshold     int\n    timeout       time.Duration\n}\n\nfunc (cb *CircuitBreaker) Call(fn func() error) error {\n    if cb.state == OPEN {\n        if time.Since(cb.lastFailure) > cb.timeout {\n            cb.state = HALF_OPEN\n        } else {\n            return ErrCircuitOpen\n        }\n    }\n\n    err := fn()\n    if err != nil {\n        cb.recordFailure()\n        return err\n    }\n\n    cb.recordSuccess()\n    return nil\n}\n</code></pre>\n<h3>リトライとタイムアウト</h3>\n<pre><code class=\"language-go\">// 指数バックオフリトライ\nfunc RetryWithBackoff(fn func() error, maxRetries int) error {\n    for i := 0; i &#x3C; maxRetries; i++ {\n        err := fn()\n        if err == nil {\n            return nil\n        }\n\n        backoff := time.Duration(math.Pow(2, float64(i))) * time.Second\n        time.Sleep(backoff)\n    }\n    return ErrMaxRetriesExceeded\n}\n\n// タイムアウト制御\nctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\ndefer cancel()\n\nresult, err := service.Call(ctx, request)\n</code></pre>\n<h3>バルクヘッド分離</h3>\n<pre><code class=\"language-go\">// 並行性制限\ntype Bulkhead struct {\n    semaphore chan struct{}\n}\n\nfunc NewBulkhead(maxConcurrent int) *Bulkhead {\n    return &#x26;Bulkhead{\n        semaphore: make(chan struct{}, maxConcurrent),\n    }\n}\n\nfunc (b *Bulkhead) Execute(fn func() error) error {\n    select {\n    case b.semaphore &#x3C;- struct{}{}:\n        defer func() { &#x3C;-b.semaphore }()\n        return fn()\n    default:\n        return ErrBulkheadFull\n    }\n}\n</code></pre>\n<h2>設定管理</h2>\n<pre><code class=\"language-yaml\"># 集中設定\n設定センター:\n  - Consul KV\n  - etcd\n  - Apollo\n  - Nacos\n\n機能:\n  - 環境分離\n  - バージョン管理\n  - 動的更新\n  - 機密情報の暗号化\n</code></pre>\n<h2>まとめ</h2>\n<p>マイクロサービスアーキテクチャのポイント：</p>\n<ol>\n<li><strong>サービス分割</strong> - DDD 駆動、単一責任</li>\n<li><strong>通信パターン</strong> - 同期 REST/gRPC、非同期メッセージ</li>\n<li><strong>サービスガバナンス</strong> - ディスカバリ、ゲートウェイ、LB</li>\n<li><strong>データ管理</strong> - サービスごとの DB、Saga トランザクション</li>\n<li><strong>フォールトトレランス</strong> - サーキットブレーカー、リトライ、バルクヘッド</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "マイクロサービスはモノリスを独立したサービスに分割",
+        "各サービスは独立してデプロイ、スケール、イテレーション",
+        "サービス間は API またはメッセージで通信",
+        "分散システムの複雑性への対処が必要"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "コアパターン",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "API ゲートウェイ",
+          "badge": "Gateway",
+          "badgeColor": "blue",
+          "points": [
+            "統一エントリポイント",
+            "ルーティング、認証、レート制限",
+            "複数サービスの集約"
+          ]
+        },
+        {
+          "title": "サービスディスカバリ",
+          "badge": "Discovery",
+          "badgeColor": "green",
+          "points": [
+            "サービス登録と発見",
+            "ヘルスチェック",
+            "ロードバランシング"
+          ]
+        },
+        {
+          "title": "設定センター",
+          "badge": "Config",
+          "badgeColor": "amber",
+          "points": [
+            "集中設定管理",
+            "動的更新",
+            "環境分離"
+          ]
+        },
+        {
+          "title": "分散トレーシング",
+          "badge": "Tracing",
+          "badgeColor": "purple",
+          "points": [
+            "分散追跡",
+            "パフォーマンス分析",
+            "問題特定"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "モノリス vs マイクロサービス",
+      "columns": [
+        {
+          "title": "モノリスアーキテクチャ",
+          "color": "from-gray-500 to-gray-700",
+          "items": [
+            {
+              "label": "デプロイ",
+              "description": "全体デプロイ"
+            },
+            {
+              "label": "スケール",
+              "description": "全体スケール"
+            },
+            {
+              "label": "技術スタック",
+              "description": "統一"
+            },
+            {
+              "label": "複雑性",
+              "description": "コード複雑"
+            }
+          ]
+        },
+        {
+          "title": "マイクロサービスアーキテクチャ",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "デプロイ",
+              "description": "独立デプロイ"
+            },
+            {
+              "label": "スケール",
+              "description": "オンデマンドスケール"
+            },
+            {
+              "label": "技術スタック",
+              "description": "異種混在可能"
+            },
+            {
+              "label": "複雑性",
+              "description": "運用複雑"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "サービス分割戦略",
+      "subtitle": "ビジネスドメイン別に分割",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "ユーザーサービス",
+          "description": "認証/認可",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "注文サービス",
+          "description": "注文管理",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "決済サービス",
+          "description": "決済処理",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "在庫サービス",
+          "description": "在庫管理",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "通知サービス",
+          "description": "メッセージ配信",
+          "color": "bg-red-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "明確なビジネス境界",
+          "description": "ドメイン駆動設計（DDD）に基づいてサービスを分割"
+        },
+        {
+          "label": "データベース分離",
+          "description": "各サービスが独立したデータベースを所有"
+        },
+        {
+          "label": "API バージョン管理",
+          "description": "後方互換性、スムーズなアップグレード"
+        },
+        {
+          "label": "非同期通信",
+          "description": "メッセージキューでサービスをデカップリング"
+        },
+        {
+          "label": "フォールトトレラント設計",
+          "description": "サーキットブレーカー、リトライ、タイムアウト機構"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "サービスディスカバリ",
+    "サーキットブレーカー",
+    "メッセージキュー"
+  ]
 }

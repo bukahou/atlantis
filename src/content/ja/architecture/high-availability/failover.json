@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "title": "フェイルオーバー",
+    "description": "主待機切替、クラスタリーダー選出とトラフィック制御",
+    "order": 2,
+    "tags": ["高可用性", "フェイルオーバー", "リーダー選出"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "障害検出：ハートビート、ヘルスチェック、タイムアウト判定",
+        "フェイルオーバー：自動的に待機ノードへ切替",
+        "スプリットブレイン：ネットワーク分断による複数マスター",
+        "アービトレーション：多数派または外部仲裁でスプリットブレインを回避"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "フェイルオーバーモード",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "主待機切替",
+          "badge": "Active-Passive",
+          "badgeColor": "blue",
+          "points": [
+            "一主一待機/複数待機",
+            "VIPフローティング",
+            "DNS切替"
+          ]
+        },
+        {
+          "title": "クラスタリーダー選出",
+          "badge": "Leader Election",
+          "badgeColor": "green",
+          "points": [
+            "Raft/Paxos",
+            "多数派選挙",
+            "リースメカニズム"
+          ]
+        },
+        {
+          "title": "トラフィック制御",
+          "badge": "Load Balancer",
+          "badgeColor": "purple",
+          "points": [
+            "ヘルスチェックによる除外",
+            "重み調整",
+            "カナリアリリース"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ヘルスチェック設定",
+      "language": "yaml",
+      "code": "# Kubernetes LivenessProbe\napiVersion: v1\nkind: Pod\nspec:\n  containers:\n  - name: app\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 8080\n      initialDelaySeconds: 10\n      periodSeconds: 5\n      timeoutSeconds: 3\n      failureThreshold: 3  # 3回失敗で再起動\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 8080\n      periodSeconds: 3\n      failureThreshold: 1  # 1回失敗でサービスから除外\n\n# Nginx ヘルスチェック\nupstream backend {\n    server 10.0.0.1:8080 weight=5;\n    server 10.0.0.2:8080 weight=5;\n    server 10.0.0.3:8080 backup;  # バックアップノード\n    \n    check interval=3000 rise=2 fall=3 timeout=1000;\n    check_http_send \"GET /health HTTP/1.0\\r\\n\\r\\n\";\n    check_http_expect_alive http_2xx http_3xx;\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "分散ロックによるリーダー選出",
+      "language": "go",
+      "code": "// Redisベースのシンプルなリーダー選出\nfunc TryBecomeLeader(ctx context.Context, redis *redis.Client) (bool, error) {\n    leaderKey := \"service:leader\"\n    nodeID := getNodeID()\n    ttl := 10 * time.Second\n    \n    // リーダー権限の取得を試行\n    ok, err := redis.SetNX(ctx, leaderKey, nodeID, ttl).Result()\n    if err != nil || !ok {\n        return false, err\n    }\n    \n    // 取得成功、更新用ゴルーチンを起動\n    go func() {\n        ticker := time.NewTicker(ttl / 3)\n        for {\n            select {\n            case <-ticker.C:\n                // リース更新\n                redis.Expire(ctx, leaderKey, ttl)\n            case <-ctx.Done():\n                // 明示的に解放\n                redis.Del(ctx, leaderKey)\n                return\n            }\n        }\n    }()\n    \n    return true, nil\n}\n\n// etcdベースのリーダー選出（本番推奨）\nfunc ElectLeader(client *clientv3.Client) {\n    session, _ := concurrency.NewSession(client, concurrency.WithTTL(10))\n    election := concurrency.NewElection(session, \"/leader\")\n    \n    // 選挙に参加（リーダーになるまでブロック）\n    election.Campaign(ctx, nodeID)\n    \n    // リーダーになった後のタスク実行\n    doLeaderWork()\n    \n    // 明示的に退位\n    election.Resign(ctx)\n}"
+    },
+    {
+      "type": "comparison",
+      "title": "リーダー選出方式の比較",
+      "columns": [
+        {
+          "title": "Raft/Paxos",
+          "color": "from-blue-500 to-indigo-500",
+          "items": [
+            { "label": "メカニズム", "description": "多数派コンセンサス" },
+            { "label": "利点", "description": "強整合、外部依存なし" },
+            { "label": "代表例", "description": "etcd、Consul" }
+          ]
+        },
+        {
+          "title": "外部調整",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "メカニズム", "description": "分散ロック/リース" },
+            { "label": "利点", "description": "実装が簡単" },
+            { "label": "代表例", "description": "Redis、ZooKeeper" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "スプリットブレイン回避",
+      "style": "check",
+      "items": [
+        { "label": "多数派仲裁", "description": "多数ノードの同意を得た場合のみマスターになれる" },
+        { "label": "フェンシングトークン", "description": "選出毎に単調増加のトークンを生成" },
+        { "label": "STONITH", "description": "障害ノードを隔離し、マスターが1つだけになるよう保証" },
+        { "label": "手動介入", "description": "複雑なシナリオでは手動介入メカニズムを用意" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Raft", "分散ロック", "ロードバランシング"]
+}

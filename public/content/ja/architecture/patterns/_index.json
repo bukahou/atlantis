@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "creational",
+      "title": "生成パターン",
+      "description": "シングルトン、ファクトリー、ビルダーなどのオブジェクト生成パターン",
+      "href": "/architecture/patterns/creational",
+      "order": 1
+    },
+    {
+      "slug": "structural",
+      "title": "構造パターン",
+      "description": "アダプター、デコレーター、プロキシなどの構造組合せパターン",
+      "href": "/architecture/patterns/structural",
+      "order": 2
+    },
+    {
+      "slug": "behavioral",
+      "title": "振る舞いパターン",
+      "description": "ストラテジー、オブザーバー、責任連鎖などの振る舞い相互作用パターン",
+      "href": "/architecture/patterns/behavioral",
+      "order": 3
+    }
+  ]
+}

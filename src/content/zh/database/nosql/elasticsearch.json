@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "title": "Elasticsearch",
+    "description": "Elasticsearch 全文搜索引擎、索引与查询 DSL",
+    "order": 3,
+    "tags": ["Elasticsearch", "搜索引擎", "NoSQL"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Elasticsearch 是分布式搜索和分析引擎",
+        "基于 Lucene，倒排索引实现全文搜索",
+        "近实时搜索，秒级延迟",
+        "RESTful API，JSON 格式交互"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心术语",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "Index",
+          "badge": "索引",
+          "badgeColor": "blue",
+          "points": [
+            "类似数据库",
+            "包含多个文档",
+            "定义 Mapping"
+          ]
+        },
+        {
+          "title": "Document",
+          "badge": "文档",
+          "badgeColor": "green",
+          "points": [
+            "类似数据行",
+            "JSON 格式",
+            "唯一 _id"
+          ]
+        },
+        {
+          "title": "Shard",
+          "badge": "分片",
+          "badgeColor": "purple",
+          "points": [
+            "数据水平切分",
+            "并行处理",
+            "Replica 副本"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "索引与文档操作",
+      "language": "json",
+      "code": "// 创建索引\nPUT /products\n{\n  \"settings\": { \"number_of_shards\": 3 },\n  \"mappings\": {\n    \"properties\": {\n      \"name\": { \"type\": \"text\" },\n      \"price\": { \"type\": \"float\" },\n      \"category\": { \"type\": \"keyword\" }\n    }\n  }\n}\n\n// 索引文档\nPUT /products/_doc/1\n{ \"name\": \"iPhone\", \"price\": 999.99, \"category\": \"electronics\" }\n\n// 批量操作\nPOST /_bulk\n{\"index\": {\"_index\": \"products\", \"_id\": \"1\"}}\n{\"name\": \"Product 1\"}"
+    },
+    {
+      "type": "comparison",
+      "title": "查询类型",
+      "columns": [
+        {
+          "title": "Match",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "用途", "description": "全文搜索" },
+            { "label": "特点", "description": "分词匹配" }
+          ]
+        },
+        {
+          "title": "Term",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "用途", "description": "精确匹配" },
+            { "label": "特点", "description": "不分词" }
+          ]
+        },
+        {
+          "title": "Bool",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "用途", "description": "组合查询" },
+            { "label": "特点", "description": "must/should/filter" }
+          ]
+        },
+        {
+          "title": "Range",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            { "label": "用途", "description": "范围查询" },
+            { "label": "特点", "description": "gte/lte" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Bool 查询示例",
+      "language": "json",
+      "code": "GET /products/_search\n{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        { \"match\": { \"name\": \"phone\" } }\n      ],\n      \"filter\": [\n        { \"term\": { \"category\": \"electronics\" } },\n        { \"range\": { \"price\": { \"lte\": 1000 } } }\n      ],\n      \"should\": [\n        { \"term\": { \"tags\": \"5g\" } }\n      ]\n    }\n  },\n  \"highlight\": { \"fields\": { \"name\": {} } }\n}"
+    },
+    {
+      "type": "table",
+      "title": "聚合类型",
+      "highlightFirst": true,
+      "headers": ["类型", "用途", "示例"],
+      "rows": [
+        ["Terms", "分组统计", "按类别统计数量"],
+        ["Range", "范围分组", "按价格区间分组"],
+        ["Date Histogram", "时间分组", "按月统计订单"],
+        ["Stats", "统计指标", "平均值/最大/最小"],
+        ["Nested", "嵌套聚合", "分组后再聚合"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "聚合示例",
+      "language": "json",
+      "code": "GET /orders/_search\n{\n  \"size\": 0,\n  \"aggs\": {\n    \"by_category\": {\n      \"terms\": { \"field\": \"category\" },\n      \"aggs\": {\n        \"avg_price\": { \"avg\": { \"field\": \"price\" } },\n        \"total_sales\": { \"sum\": { \"field\": \"amount\" } }\n      }\n    }\n  }\n}"
+    },
+    {
+      "type": "list",
+      "title": "性能优化",
+      "style": "check",
+      "items": [
+        { "label": "合理分片", "description": "单分片 10-50GB，避免过多分片" },
+        { "label": "使用 Filter", "description": "Filter 可缓存，比 Query 更快" },
+        { "label": "批量操作", "description": "使用 _bulk API 批量索引" },
+        { "label": "避免深分页", "description": "使用 search_after 替代 from/size" }
+      ]
+    }
+  ],
+  "relatedTopics": ["全文搜索", "日志分析", "ELK Stack"]
+}

@@ -2,14 +2,162 @@
   "slug": "graphql",
   "meta": {
     "title": "GraphQL",
-    "description": "GraphQL 查询语言、Schema 设计与最佳实践",
+    "description": "GraphQL 查询语言与 Schema 设计",
     "order": 2,
     "tags": [
-      "api",
-      "graphql",
-      "query",
-      "backend"
+      "API",
+      "GraphQL",
+      "后端"
     ]
   },
-  "content": "<h1>GraphQL</h1>\n<h2>GraphQL 概述</h2>\n<p>GraphQL 是一种用于 API 的查询语言，允许客户端精确请求所需数据，避免过度获取或不足获取。</p>\n<pre><code>GraphQL 特点\n├── 精确查询 - 客户端指定返回字段\n├── 单一端点 - 所有请求通过一个端点\n├── 强类型 - Schema 定义类型系统\n├── 内省 - API 自描述能力\n└── 实时订阅 - 支持实时数据推送\n</code></pre>\n<h2>Schema 定义</h2>\n<h3>类型系统</h3>\n<pre><code class=\"language-graphql\"># 标量类型\nscalar DateTime\nscalar JSON\n\n# 枚举类型\nenum UserRole {\n  ADMIN\n  USER\n  GUEST\n}\n\nenum PostStatus {\n  DRAFT\n  PUBLISHED\n  ARCHIVED\n}\n\n# 对象类型\ntype User {\n  id: ID!\n  name: String!\n  email: String!\n  role: UserRole!\n  posts: [Post!]!\n  createdAt: DateTime!\n}\n\ntype Post {\n  id: ID!\n  title: String!\n  content: String!\n  status: PostStatus!\n  author: User!\n  comments: [Comment!]!\n  createdAt: DateTime!\n  updatedAt: DateTime!\n}\n\ntype Comment {\n  id: ID!\n  content: String!\n  author: User!\n  post: Post!\n  createdAt: DateTime!\n}\n\n# 接口类型\ninterface Node {\n  id: ID!\n}\n\ntype User implements Node {\n  id: ID!\n  name: String!\n}\n\n# 联合类型\nunion SearchResult = User | Post | Comment\n</code></pre>\n<h3>输入类型</h3>\n<pre><code class=\"language-graphql\"># 输入类型\ninput CreateUserInput {\n  name: String!\n  email: String!\n  password: String!\n  role: UserRole = USER\n}\n\ninput UpdateUserInput {\n  name: String\n  email: String\n}\n\ninput PostFilterInput {\n  status: PostStatus\n  authorId: ID\n  search: String\n}\n\ninput PaginationInput {\n  page: Int = 1\n  limit: Int = 20\n}\n</code></pre>\n<h3>Query 和 Mutation</h3>\n<pre><code class=\"language-graphql\">type Query {\n  # 单个资源\n  user(id: ID!): User\n  post(id: ID!): Post\n\n  # 列表查询\n  users(filter: UserFilterInput, pagination: PaginationInput): UserConnection!\n  posts(filter: PostFilterInput, pagination: PaginationInput): PostConnection!\n\n  # 搜索\n  search(query: String!): [SearchResult!]!\n\n  # 当前用户\n  me: User\n}\n\ntype Mutation {\n  # 用户操作\n  createUser(input: CreateUserInput!): User!\n  updateUser(id: ID!, input: UpdateUserInput!): User!\n  deleteUser(id: ID!): Boolean!\n\n  # 文章操作\n  createPost(input: CreatePostInput!): Post!\n  updatePost(id: ID!, input: UpdatePostInput!): Post!\n  deletePost(id: ID!): Boolean!\n  publishPost(id: ID!): Post!\n}\n\ntype Subscription {\n  postCreated: Post!\n  commentAdded(postId: ID!): Comment!\n}\n</code></pre>\n<h2>查询示例</h2>\n<h3>基本查询</h3>\n<pre><code class=\"language-graphql\"># 简单查询\nquery GetUser {\n  user(id: \"123\") {\n    id\n    name\n    email\n  }\n}\n\n# 嵌套查询\nquery GetUserWithPosts {\n  user(id: \"123\") {\n    name\n    posts {\n      title\n      status\n      comments {\n        content\n        author {\n          name\n        }\n      }\n    }\n  }\n}\n\n# 别名\nquery GetUsers {\n  admin: user(id: \"1\") { name }\n  guest: user(id: \"2\") { name }\n}\n\n# 片段\nfragment UserFields on User {\n  id\n  name\n  email\n}\n\nquery GetUsers {\n  user1: user(id: \"1\") { ...UserFields }\n  user2: user(id: \"2\") { ...UserFields }\n}\n</code></pre>\n<h3>变量</h3>\n<pre><code class=\"language-graphql\"># 带变量的查询\nquery GetUser($id: ID!) {\n  user(id: $id) {\n    id\n    name\n    email\n  }\n}\n\n# 变量\n{\n  \"id\": \"123\"\n}\n\n# 带默认值\nquery GetPosts($status: PostStatus = PUBLISHED, $limit: Int = 10) {\n  posts(filter: { status: $status }, pagination: { limit: $limit }) {\n    edges {\n      node {\n        title\n      }\n    }\n  }\n}\n</code></pre>\n<h3>Mutation</h3>\n<pre><code class=\"language-graphql\">mutation CreateUser($input: CreateUserInput!) {\n  createUser(input: $input) {\n    id\n    name\n    email\n  }\n}\n\n# 变量\n{\n  \"input\": {\n    \"name\": \"Alice\",\n    \"email\": \"alice@example.com\",\n    \"password\": \"secret123\"\n  }\n}\n</code></pre>\n<h2>分页</h2>\n<h3>Relay 风格分页</h3>\n<pre><code class=\"language-graphql\">type UserConnection {\n  edges: [UserEdge!]!\n  pageInfo: PageInfo!\n  totalCount: Int!\n}\n\ntype UserEdge {\n  node: User!\n  cursor: String!\n}\n\ntype PageInfo {\n  hasNextPage: Boolean!\n  hasPreviousPage: Boolean!\n  startCursor: String\n  endCursor: String\n}\n\n# 查询\nquery GetUsers($first: Int!, $after: String) {\n  users(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        name\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    totalCount\n  }\n}\n</code></pre>\n<h2>Resolver 实现</h2>\n<pre><code class=\"language-typescript\">// TypeScript + Apollo Server\nconst resolvers = {\n  Query: {\n    user: async (_, { id }, context) => {\n      return context.dataSources.userAPI.getUser(id);\n    },\n\n    users: async (_, { filter, pagination }, context) => {\n      return context.dataSources.userAPI.getUsers(filter, pagination);\n    },\n  },\n\n  Mutation: {\n    createUser: async (_, { input }, context) => {\n      return context.dataSources.userAPI.createUser(input);\n    },\n  },\n\n  User: {\n    posts: async (parent, _, context) => {\n      return context.dataSources.postAPI.getPostsByAuthor(parent.id);\n    },\n  },\n\n  Subscription: {\n    postCreated: {\n      subscribe: (_, __, { pubsub }) => {\n        return pubsub.asyncIterator(['POST_CREATED']);\n      },\n    },\n  },\n};\n</code></pre>\n<h2>N+1 问题解决</h2>\n<pre><code class=\"language-typescript\">// DataLoader 解决 N+1\nimport DataLoader from 'dataloader';\n\nconst userLoader = new DataLoader(async (ids) => {\n  const users = await User.findByIds(ids);\n  return ids.map(id => users.find(u => u.id === id));\n});\n\nconst resolvers = {\n  Post: {\n    author: (post) => userLoader.load(post.authorId),\n  },\n};\n</code></pre>\n<h2>错误处理</h2>\n<pre><code class=\"language-graphql\"># 错误响应\n{\n  \"data\": null,\n  \"errors\": [\n    {\n      \"message\": \"User not found\",\n      \"locations\": [{ \"line\": 2, \"column\": 3 }],\n      \"path\": [\"user\"],\n      \"extensions\": {\n        \"code\": \"NOT_FOUND\",\n        \"timestamp\": \"2024-01-15T10:30:00Z\"\n      }\n    }\n  ]\n}\n</code></pre>\n<h2>总结</h2>\n<p>GraphQL 要点：</p>\n<ol>\n<li><strong>类型系统</strong> - 强类型 Schema 定义</li>\n<li><strong>精确查询</strong> - 客户端控制返回数据</li>\n<li><strong>单一端点</strong> - 所有操作通过一个 URL</li>\n<li><strong>N+1 解决</strong> - DataLoader 批量加载</li>\n<li><strong>实时订阅</strong> - Subscription 支持</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "GraphQL 是 API 查询语言",
+        "客户端精确指定需要的数据",
+        "单一端点，类型系统",
+        "避免过度获取和不足获取"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "GraphQL vs REST",
+      "columns": [
+        {
+          "title": "GraphQL",
+          "color": "from-pink-500 to-purple-500",
+          "items": [
+            {
+              "label": "端点",
+              "description": "单一端点 /graphql"
+            },
+            {
+              "label": "数据获取",
+              "description": "客户端指定字段"
+            },
+            {
+              "label": "版本",
+              "description": "Schema 演进"
+            },
+            {
+              "label": "缓存",
+              "description": "需要额外处理"
+            }
+          ]
+        },
+        {
+          "title": "REST",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "端点",
+              "description": "多个端点"
+            },
+            {
+              "label": "数据获取",
+              "description": "服务端决定"
+            },
+            {
+              "label": "版本",
+              "description": "URL 版本号"
+            },
+            {
+              "label": "缓存",
+              "description": "HTTP 缓存"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Schema 定义",
+      "language": "graphql",
+      "code": "type User {\n  id: ID!\n  name: String!\n  email: String!\n  posts: [Post!]!\n  createdAt: DateTime!\n}\n\ntype Post {\n  id: ID!\n  title: String!\n  content: String!\n  author: User!\n}\n\ntype Query {\n  user(id: ID!): User\n  users(limit: Int, offset: Int): [User!]!\n  post(id: ID!): Post\n}\n\ntype Mutation {\n  createUser(input: CreateUserInput!): User!\n  updateUser(id: ID!, input: UpdateUserInput!): User!\n  deleteUser(id: ID!): Boolean!\n}\n\ninput CreateUserInput {\n  name: String!\n  email: String!\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "查询示例",
+      "language": "graphql",
+      "code": "# 查询用户及其帖子\nquery GetUser($id: ID!) {\n  user(id: $id) {\n    id\n    name\n    email\n    posts {\n      id\n      title\n    }\n  }\n}\n\n# 创建用户\nmutation CreateUser($input: CreateUserInput!) {\n  createUser(input: $input) {\n    id\n    name\n    email\n  }\n}\n\n# 片段复用\nfragment UserFields on User {\n  id\n  name\n  email\n}\n\nquery {\n  user(id: \"1\") {\n    ...UserFields\n  }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "核心特性",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "类型系统",
+          "badge": "Schema",
+          "badgeColor": "purple",
+          "points": [
+            "强类型定义",
+            "自动文档生成",
+            "编辑器智能提示"
+          ]
+        },
+        {
+          "title": "Resolver",
+          "badge": "执行",
+          "badgeColor": "blue",
+          "points": [
+            "字段级数据获取",
+            "DataLoader 批量加载",
+            "N+1 问题解决"
+          ]
+        },
+        {
+          "title": "订阅",
+          "badge": "实时",
+          "badgeColor": "green",
+          "points": [
+            "WebSocket 推送",
+            "实时数据更新",
+            "Subscription 类型"
+          ]
+        },
+        {
+          "title": "工具生态",
+          "badge": "工具",
+          "badgeColor": "amber",
+          "points": [
+            "Apollo Client/Server",
+            "GraphQL Playground",
+            "Code Generator"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 DataLoader",
+          "description": "批量加载避免 N+1 查询问题"
+        },
+        {
+          "label": "查询复杂度限制",
+          "description": "防止恶意深度嵌套查询"
+        },
+        {
+          "label": "持久化查询",
+          "description": "生产环境使用预定义查询"
+        },
+        {
+          "label": "错误处理",
+          "description": "返回部分数据和错误信息"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "REST API",
+    "Apollo",
+    "实时应用"
+  ]
 }

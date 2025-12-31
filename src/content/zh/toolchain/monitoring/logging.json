@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "title": "日志系统",
+    "description": "日志采集、处理与分析：ELK/Loki 日志栈",
+    "order": 3,
+    "tags": ["日志", "ELK", "Loki", "可观测性"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "日志是可观测性三大支柱之一",
+        "结构化日志便于查询和分析",
+        "集中式日志管理提升排障效率",
+        "日志级别：DEBUG/INFO/WARN/ERROR"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "日志栈对比",
+      "columns": [
+        {
+          "title": "ELK Stack",
+          "color": "from-green-500 to-teal-500",
+          "items": [
+            { "label": "组件", "description": "ES + Logstash + Kibana" },
+            { "label": "特点", "description": "全文搜索强大" },
+            { "label": "资源", "description": "较高" }
+          ]
+        },
+        {
+          "title": "Loki + Grafana",
+          "color": "from-orange-500 to-amber-500",
+          "items": [
+            { "label": "组件", "description": "Loki + Promtail + Grafana" },
+            { "label": "特点", "description": "标签索引，轻量" },
+            { "label": "资源", "description": "较低" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "ELK 架构",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "应用", "description": "产生日志", "color": "bg-blue-500" },
+        { "label": "Filebeat", "description": "采集转发", "color": "bg-purple-500" },
+        { "label": "Logstash", "description": "解析处理", "color": "bg-orange-500" },
+        { "label": "Elasticsearch", "description": "存储索引", "color": "bg-green-500" },
+        { "label": "Kibana", "description": "可视化", "color": "bg-cyan-500" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "结构化日志 (JSON)",
+      "language": "json",
+      "code": "{\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\",\n  \"level\": \"INFO\",\n  \"service\": \"api-gateway\",\n  \"trace_id\": \"abc123\",\n  \"span_id\": \"def456\",\n  \"message\": \"Request processed\",\n  \"http\": {\n    \"method\": \"POST\",\n    \"path\": \"/api/users\",\n    \"status_code\": 200,\n    \"duration_ms\": 45\n  },\n  \"user_id\": \"user_789\"\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Logstash 配置",
+      "language": "ruby",
+      "code": "input {\n  beats {\n    port => 5044\n  }\n}\n\nfilter {\n  json {\n    source => \"message\"\n  }\n  \n  date {\n    match => [\"timestamp\", \"ISO8601\"]\n    target => \"@timestamp\"\n  }\n  \n  geoip {\n    source => \"client_ip\"\n  }\n  \n  mutate {\n    remove_field => [\"agent\", \"host\", \"ecs\"]\n  }\n}\n\noutput {\n  elasticsearch {\n    hosts => [\"elasticsearch:9200\"]\n    index => \"logs-%{[service]}-%{+YYYY.MM.dd}\"\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Loki + Promtail 配置",
+      "language": "yaml",
+      "code": "# promtail-config.yaml\nserver:\n  http_listen_port: 9080\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: http://loki:3100/loki/api/v1/push\n\nscrape_configs:\n  - job_name: kubernetes-pods\n    kubernetes_sd_configs:\n      - role: pod\n    pipeline_stages:\n      - json:\n          expressions:\n            level: level\n            message: message\n      - labels:\n          level:\n      - timestamp:\n          source: timestamp\n          format: RFC3339"
+    },
+    {
+      "type": "codeBlock",
+      "title": "LogQL 查询 (Loki)",
+      "language": "logql",
+      "code": "# 基本查询\n{namespace=\"production\", app=\"api\"}\n\n# 过滤日志内容\n{app=\"api\"} |= \"error\"\n{app=\"api\"} |~ \"status_code=(4|5)\\\\d{2}\"\n\n# JSON 解析\n{app=\"api\"} | json | level=\"ERROR\"\n\n# 聚合统计\nsum(rate({app=\"api\"} |= \"error\" [5m])) by (service)\n\n# 日志计数\ncount_over_time({app=\"api\", level=\"ERROR\"}[1h])"
+    },
+    {
+      "type": "table",
+      "title": "日志级别",
+      "highlightFirst": true,
+      "headers": ["级别", "用途", "生产环境"],
+      "rows": [
+        ["DEBUG", "调试信息", "关闭"],
+        ["INFO", "正常操作", "开启"],
+        ["WARN", "潜在问题", "开启"],
+        ["ERROR", "错误信息", "开启 + 告警"],
+        ["FATAL", "致命错误", "开启 + 告警"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "结构化日志", "description": "使用 JSON 格式，便于解析查询" },
+        { "label": "统一格式", "description": "团队统一日志字段和命名规范" },
+        { "label": "关联追踪", "description": "包含 trace_id 实现链路追踪" },
+        { "label": "日志轮转", "description": "配置保留策略，避免存储溢出" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Prometheus", "Grafana", "可观测性"]
+}

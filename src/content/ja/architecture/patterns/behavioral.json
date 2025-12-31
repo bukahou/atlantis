@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "title": "振る舞いパターン",
+    "description": "ストラテジー、オブザーバー、責任連鎖などの振る舞い相互作用パターン",
+    "order": 3,
+    "tags": ["デザインパターン", "GoF", "オブジェクト相互作用"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "振る舞いパターンはオブジェクト間の責任分配とコミュニケーションに焦点を当てる",
+        "組み合わせにより柔軟な振る舞い変更を実現",
+        "11の古典的パターン：ストラテジー、オブザーバー、責任連鎖、コマンド、ステートなど"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "よく使うパターン",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ストラテジー",
+          "badge": "Strategy",
+          "badgeColor": "blue",
+          "points": [
+            "アルゴリズム族をカプセル化",
+            "実行時に切り替え可能",
+            "if-elseを排除"
+          ]
+        },
+        {
+          "title": "オブザーバー",
+          "badge": "Observer",
+          "badgeColor": "green",
+          "points": [
+            "一対多の依存関係",
+            "イベント通知",
+            "Pub-Sub"
+          ]
+        },
+        {
+          "title": "責任連鎖",
+          "badge": "Chain",
+          "badgeColor": "purple",
+          "points": [
+            "リクエストを受け渡し",
+            "送信者を分離",
+            "ミドルウェアパターン"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ストラテジーパターン - TypeScript 実装",
+      "language": "typescript",
+      "code": "// ストラテジーインターフェース\ninterface PaymentStrategy {\n  pay(amount: number): void;\n}\n\n// 具体ストラテジー\nclass PayPayStrategy implements PaymentStrategy {\n  pay(amount: number) {\n    console.log(`PayPayで¥${amount}を支払い`);\n  }\n}\n\nclass CreditCardStrategy implements PaymentStrategy {\n  pay(amount: number) {\n    console.log(`クレジットカードで¥${amount}を支払い`);\n  }\n}\n\n// コンテキスト\nclass PaymentContext {\n  constructor(private strategy: PaymentStrategy) {}\n  \n  setStrategy(strategy: PaymentStrategy) {\n    this.strategy = strategy;\n  }\n  \n  executePayment(amount: number) {\n    this.strategy.pay(amount);\n  }\n}\n\n// 使用例\nconst payment = new PaymentContext(new PayPayStrategy());\npayment.executePayment(100); // PayPayで支払い\npayment.setStrategy(new CreditCardStrategy());\npayment.executePayment(200); // クレジットカードで支払い"
+    },
+    {
+      "type": "codeBlock",
+      "title": "オブザーバーパターン - Go 実装",
+      "language": "go",
+      "code": "// オブザーバーインターフェース\ntype Observer interface {\n    Update(event string, data interface{})\n}\n\n// サブジェクト\ntype EventEmitter struct {\n    observers map[string][]Observer\n    mu        sync.RWMutex\n}\n\nfunc (e *EventEmitter) Subscribe(event string, observer Observer) {\n    e.mu.Lock()\n    defer e.mu.Unlock()\n    e.observers[event] = append(e.observers[event], observer)\n}\n\nfunc (e *EventEmitter) Emit(event string, data interface{}) {\n    e.mu.RLock()\n    defer e.mu.RUnlock()\n    for _, observer := range e.observers[event] {\n        go observer.Update(event, data)\n    }\n}\n\n// 具体オブザーバー\ntype Logger struct{}\n\nfunc (l *Logger) Update(event string, data interface{}) {\n    log.Printf(\"Event: %s, Data: %v\", event, data)\n}\n\n// 使用例\nemitter := NewEventEmitter()\nemitter.Subscribe(\"user.created\", &Logger{})\nemitter.Emit(\"user.created\", user)"
+    },
+    {
+      "type": "codeBlock",
+      "title": "責任連鎖パターン - ミドルウェア実装",
+      "language": "go",
+      "code": "// Handler ハンドラーインターフェース\ntype Handler interface {\n    Handle(ctx *Context) error\n    SetNext(handler Handler)\n}\n\n// 基底ハンドラー\ntype BaseHandler struct {\n    next Handler\n}\n\nfunc (b *BaseHandler) SetNext(handler Handler) {\n    b.next = handler\n}\n\nfunc (b *BaseHandler) HandleNext(ctx *Context) error {\n    if b.next != nil {\n        return b.next.Handle(ctx)\n    }\n    return nil\n}\n\n// 認証ミドルウェア\ntype AuthHandler struct {\n    BaseHandler\n}\n\nfunc (a *AuthHandler) Handle(ctx *Context) error {\n    if ctx.Token == \"\" {\n        return errors.New(\"unauthorized\")\n    }\n    return a.HandleNext(ctx)\n}\n\n// ログミドルウェア\ntype LogHandler struct {\n    BaseHandler\n}\n\nfunc (l *LogHandler) Handle(ctx *Context) error {\n    log.Printf(\"Request: %s\", ctx.Path)\n    err := l.HandleNext(ctx)\n    log.Printf(\"Response: %v\", err)\n    return err\n}\n\n// チェーン組立\nauth := &AuthHandler{}\nlogger := &LogHandler{}\nlogger.SetNext(auth)"
+    },
+    {
+      "type": "table",
+      "title": "振る舞いパターンまとめ",
+      "highlightFirst": true,
+      "headers": ["パターン", "目的", "典型的な適用例"],
+      "rows": [
+        ["ストラテジー", "アルゴリズム交換可能", "支払い方法、ソートアルゴリズム"],
+        ["オブザーバー", "イベント通知", "イベントシステム、リアクティブ"],
+        ["責任連鎖", "リクエスト受け渡し", "ミドルウェア、フィルター"],
+        ["コマンド", "リクエストカプセル化", "Undo/Redo、タスクキュー"],
+        ["ステート", "状態駆動の振る舞い", "ワークフロー、ゲーム状態"],
+        ["テンプレートメソッド", "骨格アルゴリズム", "フレームワークフック"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "モダンな適用例",
+      "style": "check",
+      "items": [
+        { "label": "ストラテジー + DI", "description": "Spring/Nest.jsでのストラテジー選択" },
+        { "label": "オブザーバー → リアクティブ", "description": "RxJS、Vueリアクティブシステム" },
+        { "label": "責任連鎖 → ミドルウェア", "description": "Koa、Gin、Expressミドルウェア" },
+        { "label": "コマンド → CQRS", "description": "コマンドクエリ責任分離" }
+      ]
+    }
+  ],
+  "relatedTopics": ["ミドルウェア", "イベント駆動", "リアクティブプログラミング"]
+}

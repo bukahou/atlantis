@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "title": "加密技术",
+    "description": "对称加密、非对称加密与哈希算法",
+    "icon": "lock"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "对称加密：加解密使用相同密钥",
+        "非对称加密：公钥加密、私钥解密",
+        "哈希算法：不可逆的单向函数",
+        "密钥管理：密钥生成、存储与轮换"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "加密是保护数据机密性和完整性的核心技术。对称加密速度快但密钥分发困难，非对称加密解决密钥分发问题但速度较慢，实际应用中通常结合使用。哈希算法用于验证数据完整性和存储密码。"
+    },
+    {
+      "type": "cards",
+      "title": "加密算法分类",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "对称加密",
+          "badge": "快速",
+          "badgeColor": "blue",
+          "points": [
+            "AES-256-GCM",
+            "ChaCha20-Poly1305",
+            "SM4（国密）"
+          ]
+        },
+        {
+          "title": "非对称加密",
+          "badge": "安全",
+          "badgeColor": "green",
+          "points": [
+            "RSA-2048+",
+            "ECDSA",
+            "SM2（国密）"
+          ]
+        },
+        {
+          "title": "哈希算法",
+          "badge": "完整性",
+          "badgeColor": "purple",
+          "points": [
+            "SHA-256/384/512",
+            "BLAKE3",
+            "SM3（国密）"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "算法选择指南",
+      "highlightFirst": true,
+      "headers": ["场景", "推荐算法", "说明"],
+      "rows": [
+        ["数据加密", "AES-256-GCM", "认证加密，防篡改"],
+        ["密码存储", "Argon2id", "抗 GPU/ASIC 破解"],
+        ["数字签名", "Ed25519", "高性能椭圆曲线"],
+        ["密钥交换", "X25519", "现代 DH 协议"],
+        ["数据完整性", "SHA-256", "通用哈希"]
+      ]
+    }
+  ],
+  "relatedTopics": ["TLS", "PKI", "密钥管理"],
+  "articles": [
+    {
+      "slug": "symmetric",
+      "title": "对称加密",
+      "description": "AES、ChaCha20 与加密模式",
+      "priority": "essential"
+    },
+    {
+      "slug": "asymmetric",
+      "title": "非对称加密",
+      "description": "RSA、椭圆曲线与数字签名",
+      "priority": "essential"
+    },
+    {
+      "slug": "hash",
+      "title": "哈希算法",
+      "description": "SHA 系列、密码哈希与 HMAC",
+      "priority": "recommended"
+    }
+  ]
+}

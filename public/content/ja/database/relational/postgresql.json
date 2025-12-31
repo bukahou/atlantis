@@ -5,11 +5,199 @@
     "description": "PostgreSQL 高度な機能、JSON サポートと拡張機能",
     "order": 2,
     "tags": [
-      "database",
-      "postgresql",
-      "sql",
-      "relational"
+      "PostgreSQL",
+      "SQL",
+      "リレーショナルデータベース"
     ]
   },
-  "content": "<h1>PostgreSQL</h1>\n<h2>PostgreSQL 概要</h2>\n<p>PostgreSQL は強力なオープンソースオブジェクトリレーショナルデータベースで、信頼性、機能の豊富さ、拡張性で知られています。</p>\n<pre><code>PostgreSQL 特性\n├── ACID トランザクション\n├── MVCC 並行制御\n├── 豊富なデータ型 (JSON、Array、Range)\n├── 全文検索\n├── 拡張可能 (カスタム型、関数、インデックス)\n└── 強力な SQL サポート (CTE、ウィンドウ関数)\n</code></pre>\n<h2>データ型</h2>\n<h3>JSON/JSONB</h3>\n<pre><code class=\"language-sql\">-- JSONB 型 (推奨)\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    attributes JSONB\n);\n\n-- JSON 挿入\nINSERT INTO products (name, attributes) VALUES\n('iPhone', '{\"brand\": \"Apple\", \"storage\": 128, \"colors\": [\"black\", \"white\"]}');\n\n-- JSON フィールドクエリ\nSELECT name, attributes->>'brand' as brand FROM products;\nSELECT * FROM products WHERE attributes->>'brand' = 'Apple';\nSELECT * FROM products WHERE attributes @> '{\"brand\": \"Apple\"}';\n\n-- JSON 演算子\n-> : JSON オブジェクトフィールド取得 (JSON 返却)\n->> : JSON オブジェクトフィールド取得 (テキスト返却)\n#> : パスで取得 (JSON 返却)\n#>> : パスで取得 (テキスト返却)\n@> : 包含\n&#x3C;@ : 被包含\n? : キー存在\n</code></pre>\n<h3>配列型</h3>\n<pre><code class=\"language-sql\">-- 配列型\nCREATE TABLE users (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    tags TEXT[]\n);\n\n-- 配列操作\nINSERT INTO users (name, tags) VALUES ('Alice', ARRAY['developer', 'golang']);\n\n-- クエリ\nSELECT * FROM users WHERE 'developer' = ANY(tags);\nSELECT * FROM users WHERE tags @> ARRAY['developer'];\n\n-- 配列関数\nSELECT array_agg(name) FROM users;\nSELECT unnest(tags) FROM users WHERE id = 1;\n</code></pre>\n<h3>範囲型</h3>\n<pre><code class=\"language-sql\">-- 範囲型\nCREATE TABLE reservations (\n    id SERIAL PRIMARY KEY,\n    room_id INT,\n    during TSTZRANGE\n);\n\n-- 範囲使用\nINSERT INTO reservations (room_id, during) VALUES\n(1, '[2024-01-01 14:00, 2024-01-01 16:00)');\n\n-- 範囲クエリ\nSELECT * FROM reservations WHERE during &#x26;&#x26; '[2024-01-01 15:00, 2024-01-01 17:00)';\n\n-- 範囲演算子\n&#x26;&#x26; : オーバーラップ\n@> : 包含\n&#x3C;@ : 被包含\n-|- : 隣接\n</code></pre>\n<h2>インデックス</h2>\n<h3>インデックスタイプ</h3>\n<pre><code class=\"language-sql\">-- B-Tree (デフォルト)\nCREATE INDEX idx_name ON users(name);\n\n-- Hash\nCREATE INDEX idx_email_hash ON users USING HASH(email);\n\n-- GiST (汎用検索ツリー)\nCREATE INDEX idx_location ON places USING GIST(location);\n\n-- GIN (転置インデックス)\nCREATE INDEX idx_tags ON users USING GIN(tags);\nCREATE INDEX idx_attributes ON products USING GIN(attributes);\n\n-- BRIN (ブロック範囲)\nCREATE INDEX idx_created ON logs USING BRIN(created_at);\n</code></pre>\n<h3>部分インデックス</h3>\n<pre><code class=\"language-sql\">-- 部分インデックス\nCREATE INDEX idx_active_users ON users(email) WHERE status = 'active';\n\n-- 式インデックス\nCREATE INDEX idx_lower_email ON users(LOWER(email));\n\n-- 並行作成\nCREATE INDEX CONCURRENTLY idx_name ON users(name);\n</code></pre>\n<h2>高度なクエリ</h2>\n<h3>ウィンドウ関数</h3>\n<pre><code class=\"language-sql\">-- ランキング\nSELECT name, department, salary,\n    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as rank\nFROM employees;\n\n-- 累計\nSELECT date, amount,\n    SUM(amount) OVER (ORDER BY date) as running_total\nFROM sales;\n\n-- 前後行\nSELECT date, value,\n    LAG(value) OVER (ORDER BY date) as prev_value,\n    LEAD(value) OVER (ORDER BY date) as next_value\nFROM metrics;\n</code></pre>\n<h3>CTE (共通テーブル式)</h3>\n<pre><code class=\"language-sql\">-- 基本 CTE\nWITH active_users AS (\n    SELECT * FROM users WHERE status = 'active'\n)\nSELECT * FROM active_users WHERE created_at > '2024-01-01';\n\n-- 再帰 CTE\nWITH RECURSIVE subordinates AS (\n    SELECT id, name, manager_id, 1 as level\n    FROM employees WHERE id = 1\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, s.level + 1\n    FROM employees e\n    JOIN subordinates s ON e.manager_id = s.id\n)\nSELECT * FROM subordinates;\n</code></pre>\n<h3>全文検索</h3>\n<pre><code class=\"language-sql\">-- 全文検索\nCREATE TABLE articles (\n    id SERIAL PRIMARY KEY,\n    title TEXT,\n    content TEXT,\n    search_vector TSVECTOR\n);\n\n-- 検索ベクトル作成\nUPDATE articles SET search_vector =\n    setweight(to_tsvector('english', title), 'A') ||\n    setweight(to_tsvector('english', content), 'B');\n\n-- GIN インデックス\nCREATE INDEX idx_search ON articles USING GIN(search_vector);\n\n-- 検索\nSELECT * FROM articles\nWHERE search_vector @@ to_tsquery('english', 'postgresql &#x26; database');\n\n-- ランキング\nSELECT title, ts_rank(search_vector, query) as rank\nFROM articles, to_tsquery('english', 'postgresql') query\nWHERE search_vector @@ query\nORDER BY rank DESC;\n</code></pre>\n<h2>トランザクションと並行性</h2>\n<h3>分離レベル</h3>\n<pre><code class=\"language-sql\">-- PostgreSQL 分離レベル\n-- READ COMMITTED (デフォルト)\n-- REPEATABLE READ\n-- SERIALIZABLE\n\nBEGIN ISOLATION LEVEL SERIALIZABLE;\n-- 操作\nCOMMIT;\n</code></pre>\n<h3>アドバイザリロック</h3>\n<pre><code class=\"language-sql\">-- ロック取得\nSELECT pg_advisory_lock(12345);\n\n-- ロック試行\nSELECT pg_try_advisory_lock(12345);\n\n-- ロック解放\nSELECT pg_advisory_unlock(12345);\n\n-- セッションレベルロック\nSELECT pg_advisory_lock(hashtext('resource_name'));\n</code></pre>\n<h2>拡張</h2>\n<h3>一般的な拡張</h3>\n<pre><code class=\"language-sql\">-- 利用可能な拡張確認\nSELECT * FROM pg_available_extensions;\n\n-- 拡張インストール\nCREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";\nCREATE EXTENSION IF NOT EXISTS \"pg_trgm\";\nCREATE EXTENSION IF NOT EXISTS \"postgis\";\n\n-- uuid 生成\nSELECT uuid_generate_v4();\n\n-- 類似度検索 (pg_trgm)\nSELECT * FROM products\nWHERE name % 'iphon'\nORDER BY similarity(name, 'iphon') DESC;\n</code></pre>\n<h3>カスタム関数</h3>\n<pre><code class=\"language-sql\">-- PL/pgSQL 関数\nCREATE OR REPLACE FUNCTION get_user_orders(user_id INT)\nRETURNS TABLE(order_id INT, total DECIMAL) AS $$\nBEGIN\n    RETURN QUERY\n    SELECT id, amount FROM orders WHERE user_id = user_id;\nEND;\n$$ LANGUAGE plpgsql;\n\n-- 使用\nSELECT * FROM get_user_orders(1);\n</code></pre>\n<h2>パフォーマンス最適化</h2>\n<pre><code class=\"language-sql\">-- クエリプラン分析\nEXPLAIN ANALYZE SELECT * FROM users WHERE name = 'test';\n\n-- テーブル統計確認\nSELECT * FROM pg_stat_user_tables WHERE relname = 'users';\n\n-- 統計更新\nANALYZE users;\n\n-- インデックス使用確認\nSELECT * FROM pg_stat_user_indexes WHERE relname = 'users';\n</code></pre>\n<h2>まとめ</h2>\n<p>PostgreSQL のポイント：</p>\n<ol>\n<li><strong>データ型</strong> - JSON、配列、範囲型</li>\n<li><strong>インデックス</strong> - B-Tree、GIN、GiST、BRIN</li>\n<li><strong>高度なクエリ</strong> - ウィンドウ関数、CTE、全文検索</li>\n<li><strong>拡張</strong> - uuid、postgis、pg_trgm</li>\n<li><strong>信頼性</strong> - ACID、MVCC、アドバイザリロック</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "PostgreSQL は強力なオープンソースオブジェクトリレーショナルデータベース",
+        "豊富なデータ型をサポート：JSON、Array、Range 型",
+        "強力な SQL サポート：CTE、ウィンドウ関数",
+        "高度に拡張可能：カスタム型、関数、インデックス"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "特色データ型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "JSONB",
+          "badge": "半構造化",
+          "badgeColor": "blue",
+          "points": [
+            "バイナリ保存",
+            "インデックスサポート",
+            "豊富な演算子"
+          ]
+        },
+        {
+          "title": "Array",
+          "badge": "コレクション",
+          "badgeColor": "green",
+          "points": [
+            "ネイティブ配列サポート",
+            "ANY/ALL クエリ",
+            "配列関数"
+          ]
+        },
+        {
+          "title": "Range",
+          "badge": "範囲",
+          "badgeColor": "purple",
+          "points": [
+            "時間/数値範囲",
+            "オーバーラップ検出",
+            "排他制約"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JSONB 操作",
+      "language": "sql",
+      "code": "-- JSONB を持つテーブル作成\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100),\n    attributes JSONB\n);\n\n-- JSON フィールドのクエリ\nSELECT name, attributes->>'brand' as brand FROM products;\nSELECT * FROM products WHERE attributes @> '{\"brand\": \"Apple\"}';\n\n-- JSON 演算子\n->  オブジェクトフィールド取得 (JSON 返却)\n->> オブジェクトフィールド取得 (テキスト返却)\n@>  包含\n?   キー存在"
+    },
+    {
+      "type": "comparison",
+      "title": "インデックスタイプ",
+      "columns": [
+        {
+          "title": "B-Tree",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "デフォルトインデックス"
+            },
+            {
+              "label": "適用",
+              "description": "等値、範囲クエリ"
+            }
+          ]
+        },
+        {
+          "title": "GIN",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "転置インデックス"
+            },
+            {
+              "label": "適用",
+              "description": "JSONB、全文検索"
+            }
+          ]
+        },
+        {
+          "title": "GiST",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "汎用検索ツリー"
+            },
+            {
+              "label": "適用",
+              "description": "地理データ、範囲"
+            }
+          ]
+        },
+        {
+          "title": "BRIN",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "ブロック範囲インデックス"
+            },
+            {
+              "label": "適用",
+              "description": "時系列データ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ウィンドウ関数",
+      "language": "sql",
+      "code": "-- ランキング関数\nSELECT name, department, salary,\n    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as rank\nFROM employees;\n\n-- 累積計算\nSELECT date, amount,\n    SUM(amount) OVER (ORDER BY date) as running_total\nFROM sales;\n\n-- 前後行\nSELECT date, value,\n    LAG(value) OVER (ORDER BY date) as prev_value,\n    LEAD(value) OVER (ORDER BY date) as next_value\nFROM metrics;"
+    },
+    {
+      "type": "codeBlock",
+      "title": "再帰 CTE",
+      "language": "sql",
+      "code": "-- 組織階層の再帰クエリ\nWITH RECURSIVE subordinates AS (\n    SELECT id, name, manager_id, 1 as level\n    FROM employees WHERE id = 1\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, s.level + 1\n    FROM employees e\n    JOIN subordinates s ON e.manager_id = s.id\n)\nSELECT * FROM subordinates;"
+    },
+    {
+      "type": "table",
+      "title": "よく使う拡張",
+      "highlightFirst": true,
+      "headers": [
+        "拡張",
+        "機能",
+        "用途"
+      ],
+      "rows": [
+        [
+          "uuid-ossp",
+          "UUID 生成",
+          "分散 ID"
+        ],
+        [
+          "pg_trgm",
+          "類似度検索",
+          "あいまいマッチ"
+        ],
+        [
+          "PostGIS",
+          "地理空間",
+          "GIS アプリ"
+        ],
+        [
+          "pg_stat_statements",
+          "クエリ統計",
+          "性能分析"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "JSONB を使用",
+          "description": "JSON 型より高性能、インデックスサポート"
+        },
+        {
+          "label": "部分インデックス",
+          "description": "よく使う条件のデータサブセットのみインデックス"
+        },
+        {
+          "label": "EXPLAIN ANALYZE",
+          "description": "実際の実行計画を分析"
+        },
+        {
+          "label": "コネクションプール",
+          "description": "PgBouncer で接続管理"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "MySQL",
+    "JSONB",
+    "全文検索"
+  ]
 }

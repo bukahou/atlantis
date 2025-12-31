@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "title": "Java",
+    "description": "企业级应用开发、Spring 生态与 JVM 调优",
+    "order": 1,
+    "tags": ["Java", "JVM", "Spring", "企业级"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "面向对象、跨平台（Write Once, Run Anywhere）",
+        "JVM 虚拟机运行时，GC 自动内存管理",
+        "强大的企业级生态：Spring、Hibernate、MyBatis",
+        "大数据生态：Hadoop、Spark、Flink"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Java 简介",
+      "content": "Java 是一门面向对象的编程语言，由 Sun Microsystems（现 Oracle）于 1995 年发布。凭借「一次编写，到处运行」的理念和强大的企业级生态，Java 成为全球最流行的编程语言之一，广泛应用于企业应用、Android 开发、大数据处理等领域。"
+    },
+    {
+      "type": "cards",
+      "title": "核心特性",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "面向对象",
+          "badge": "核心",
+          "badgeColor": "blue",
+          "points": [
+            "封装、继承、多态",
+            "接口与抽象类",
+            "设计模式"
+          ]
+        },
+        {
+          "title": "JVM",
+          "badge": "运行时",
+          "badgeColor": "green",
+          "points": [
+            "字节码跨平台",
+            "JIT 即时编译",
+            "GC 垃圾回收"
+          ]
+        },
+        {
+          "title": "并发",
+          "badge": "多线程",
+          "badgeColor": "purple",
+          "points": [
+            "Thread/Runnable",
+            "线程池 Executor",
+            "并发包 j.u.c"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基础语法",
+      "language": "java",
+      "code": "public class HelloWorld {\n    public static void main(String[] args) {\n        // 变量声明\n        String name = \"Java\";\n        int version = 21;\n        var message = \"Hello\"; // 类型推断 (Java 10+)\n        \n        // 集合\n        List<String> list = new ArrayList<>();\n        list.add(\"item\");\n        \n        Map<String, Integer> map = new HashMap<>();\n        map.put(\"key\", 1);\n        \n        // Stream API (Java 8+)\n        list.stream()\n            .filter(s -> s.length() > 3)\n            .map(String::toUpperCase)\n            .forEach(System.out::println);\n        \n        // Record (Java 16+)\n        record User(String name, int age) {}\n        var user = new User(\"Alice\", 30);\n    }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "并发编程",
+      "language": "java",
+      "code": "// 线程池\nExecutorService executor = Executors.newFixedThreadPool(10);\nexecutor.submit(() -> {\n    System.out.println(\"异步任务\");\n});\n\n// CompletableFuture\nCompletableFuture.supplyAsync(() -> fetchData())\n    .thenApply(data -> process(data))\n    .thenAccept(result -> save(result))\n    .exceptionally(e -> { log.error(e); return null; });\n\n// 虚拟线程 (Java 21+)\nThread.startVirtualThread(() -> {\n    System.out.println(\"虚拟线程\");\n});"
+    },
+    {
+      "type": "comparison",
+      "title": "Spring Boot vs 传统 Spring",
+      "columns": [
+        {
+          "title": "Spring Boot",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "配置", "description": "约定优于配置" },
+            { "label": "启动", "description": "内嵌 Tomcat" },
+            { "label": "部署", "description": "独立 JAR" }
+          ]
+        },
+        {
+          "title": "传统 Spring",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            { "label": "配置", "description": "大量 XML/注解" },
+            { "label": "启动", "description": "外部容器" },
+            { "label": "部署", "description": "WAR 包" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "JVM 调优参数",
+      "highlightFirst": true,
+      "headers": ["参数", "说明", "示例"],
+      "rows": [
+        ["-Xms", "初始堆大小", "-Xms512m"],
+        ["-Xmx", "最大堆大小", "-Xmx2g"],
+        ["-XX:+UseG1GC", "使用 G1 垃圾回收器", "Java 9+ 默认"],
+        ["-XX:+UseZGC", "使用 ZGC（低延迟）", "Java 15+"],
+        ["-XX:MetaspaceSize", "元空间初始大小", "-XX:MetaspaceSize=256m"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "现代 Java 特性",
+      "style": "check",
+      "items": [
+        { "label": "Record 类 (Java 16)", "description": "不可变数据类的简洁语法" },
+        { "label": "模式匹配 (Java 21)", "description": "switch 表达式与 instanceof 模式" },
+        { "label": "虚拟线程 (Java 21)", "description": "轻量级线程，高并发支持" },
+        { "label": "密封类 (Java 17)", "description": "限制类的继承层次" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Spring Boot", "JVM", "微服务"]
+}

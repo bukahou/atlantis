@@ -1,0 +1,357 @@
+{
+  "slug": "process",
+  "meta": {
+    "title": "进程与线程",
+    "description": "Linux 进程管理、线程模型与进程间通信",
+    "order": 2,
+    "tags": [
+      "Linux",
+      "进程",
+      "线程",
+      "调度"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "进程是资源分配的基本单位",
+        "线程是 CPU 调度的基本单位",
+        "Linux 线程实现为轻量级进程 (LWP)",
+        "CFS 调度器保证公平的 CPU 分配"
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "进程 vs 线程",
+      "columns": [
+        {
+          "title": "进程 (Process)",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "定义",
+              "description": "程序的运行实例"
+            },
+            {
+              "label": "资源",
+              "description": "独立的地址空间"
+            },
+            {
+              "label": "创建",
+              "description": "fork() 开销较大"
+            },
+            {
+              "label": "通信",
+              "description": "需要 IPC 机制"
+            },
+            {
+              "label": "隔离",
+              "description": "相互隔离，更安全"
+            }
+          ]
+        },
+        {
+          "title": "线程 (Thread)",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "定义",
+              "description": "进程内的执行单元"
+            },
+            {
+              "label": "资源",
+              "description": "共享进程地址空间"
+            },
+            {
+              "label": "创建",
+              "description": "clone() 开销较小"
+            },
+            {
+              "label": "通信",
+              "description": "共享内存直接通信"
+            },
+            {
+              "label": "隔离",
+              "description": "共享数据，需同步"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "进程状态转换",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "新建",
+          "description": "fork()",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "就绪",
+          "description": "TASK_RUNNING",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "运行",
+          "description": "获得 CPU",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "阻塞",
+          "description": "等待 I/O",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "终止",
+          "description": "exit()",
+          "color": "bg-red-500"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "进程状态",
+      "highlightFirst": true,
+      "headers": [
+        "状态",
+        "标志",
+        "说明"
+      ],
+      "rows": [
+        [
+          "运行/就绪",
+          "R (Running)",
+          "正在运行或等待 CPU"
+        ],
+        [
+          "可中断睡眠",
+          "S (Sleeping)",
+          "等待事件，可被信号唤醒"
+        ],
+        [
+          "不可中断睡眠",
+          "D (Disk sleep)",
+          "等待 I/O，不可中断"
+        ],
+        [
+          "停止",
+          "T (Stopped)",
+          "收到 SIGSTOP 信号"
+        ],
+        [
+          "僵尸",
+          "Z (Zombie)",
+          "已终止，等待父进程回收"
+        ],
+        [
+          "空闲",
+          "I (Idle)",
+          "内核线程空闲状态"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "进程间通信 (IPC)",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "管道 (Pipe)",
+          "badge": "基础",
+          "badgeColor": "blue",
+          "points": [
+            "单向数据流",
+            "匿名管道 (父子进程)",
+            "命名管道 (FIFO)",
+            "shell 管道符 |"
+          ]
+        },
+        {
+          "title": "信号 (Signal)",
+          "badge": "异步",
+          "badgeColor": "amber",
+          "points": [
+            "异步通知机制",
+            "SIGTERM/SIGKILL",
+            "自定义信号处理",
+            "进程控制"
+          ]
+        },
+        {
+          "title": "共享内存",
+          "badge": "高效",
+          "badgeColor": "green",
+          "points": [
+            "最快的 IPC 方式",
+            "mmap/shm_open",
+            "需要同步机制",
+            "大数据传输"
+          ]
+        },
+        {
+          "title": "消息队列",
+          "badge": "队列",
+          "badgeColor": "purple",
+          "points": [
+            "消息传递模型",
+            "POSIX/System V",
+            "带类型的消息",
+            "异步通信"
+          ]
+        },
+        {
+          "title": "信号量",
+          "badge": "同步",
+          "badgeColor": "red",
+          "points": [
+            "进程同步机制",
+            "P/V 操作",
+            "防止竞态条件",
+            "资源计数"
+          ]
+        },
+        {
+          "title": "Socket",
+          "badge": "网络",
+          "badgeColor": "cyan",
+          "points": [
+            "Unix Domain Socket",
+            "本地进程通信",
+            "跨网络通信",
+            "全双工"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "进程管理命令",
+      "language": "bash",
+      "code": "# 查看进程\nps aux                    # 所有进程\nps -ef                    # 完整格式\nps -eLf                   # 显示线程\npstree -p                 # 进程树\n\n# 实时监控\ntop                       # 经典工具\nhtop                      # 增强版\n\n# 进程详情\ncat /proc/<pid>/status    # 进程状态\ncat /proc/<pid>/maps      # 内存映射\nls -l /proc/<pid>/fd      # 文件描述符\n\n# 进程控制\nkill -SIGTERM <pid>       # 优雅终止\nkill -9 <pid>             # 强制终止\nkillall <name>            # 按名称终止\npkill -f <pattern>        # 按模式终止\n\n# 后台运行\nnohup command &           # 忽略挂断信号\ndisown                    # 脱离终端"
+    },
+    {
+      "type": "cards",
+      "title": "CPU 调度器",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "CFS (完全公平调度)",
+          "badge": "默认",
+          "badgeColor": "green",
+          "points": [
+            "Linux 2.6.23 引入",
+            "基于虚拟运行时间",
+            "红黑树管理进程",
+            "nice 值影响权重"
+          ]
+        },
+        {
+          "title": "实时调度",
+          "badge": "RT",
+          "badgeColor": "red",
+          "points": [
+            "SCHED_FIFO (先进先出)",
+            "SCHED_RR (时间片轮转)",
+            "优先级 1-99",
+            "抢占普通进程"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "进程优先级与调度",
+      "language": "bash",
+      "code": "# 查看优先级\nps -eo pid,ni,pri,comm    # nice 和优先级\n\n# 调整 nice 值 (-20 到 19，越小优先级越高)\nnice -n 10 command        # 启动时设置\nrenice -n 5 -p <pid>      # 运行时调整\n\n# 实时调度\nchrt -f 50 command        # FIFO 优先级 50\nchrt -r 30 command        # RR 优先级 30\nchrt -p <pid>             # 查看调度策略\n\n# CPU 亲和性\ntaskset -c 0,1 command    # 绑定 CPU 0,1\ntaskset -p <pid>          # 查看亲和性"
+    },
+    {
+      "type": "table",
+      "title": "常用信号",
+      "highlightFirst": true,
+      "headers": [
+        "信号",
+        "编号",
+        "默认行为",
+        "用途"
+      ],
+      "rows": [
+        [
+          "SIGHUP",
+          "1",
+          "终止",
+          "终端挂断/重载配置"
+        ],
+        [
+          "SIGINT",
+          "2",
+          "终止",
+          "Ctrl+C 中断"
+        ],
+        [
+          "SIGQUIT",
+          "3",
+          "核心转储",
+          "Ctrl+\\ 退出"
+        ],
+        [
+          "SIGKILL",
+          "9",
+          "终止",
+          "强制杀死 (不可捕获)"
+        ],
+        [
+          "SIGTERM",
+          "15",
+          "终止",
+          "优雅终止"
+        ],
+        [
+          "SIGSTOP",
+          "19",
+          "停止",
+          "暂停进程 (不可捕获)"
+        ],
+        [
+          "SIGCONT",
+          "18",
+          "继续",
+          "恢复暂停的进程"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "优雅终止",
+          "description": "先 SIGTERM，再 SIGKILL"
+        },
+        {
+          "label": "避免僵尸进程",
+          "description": "父进程正确 wait() 子进程"
+        },
+        {
+          "label": "线程池",
+          "description": "复用线程减少创建开销"
+        },
+        {
+          "label": "CPU 绑定",
+          "description": "高性能场景使用亲和性"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Linux 内核",
+    "内存管理",
+    "性能调优"
+  ]
+}

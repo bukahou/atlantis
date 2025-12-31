@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "slug": "redundancy",
+      "title": "冗余设计",
+      "description": "消除单点故障的策略与实践",
+      "href": "/architecture/high-availability/redundancy",
+      "order": 1
+    },
+    {
+      "slug": "failover",
+      "title": "故障转移",
+      "description": "主备切换、集群选主与流量调度",
+      "href": "/architecture/high-availability/failover",
+      "order": 2
+    },
+    {
+      "slug": "disaster-recovery",
+      "title": "容灾备份",
+      "description": "异地多活、数据备份与恢复策略",
+      "href": "/architecture/high-availability/disaster-recovery",
+      "order": 3
+    }
+  ]
+}

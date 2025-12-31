@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "React",
+    "description": "React 框架核心概念、Hooks 与生态系统",
+    "icon": "layout"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心要点",
+      "items": [
+        "组件化开发与 JSX",
+        "Hooks API 与状态管理",
+        "虚拟 DOM 与性能优化",
+        "Next.js 服务端渲染"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "React 是 Facebook 开发的 UI 库，采用组件化和声明式编程范式，是目前最流行的前端框架之一。"
+    },
+    {
+      "type": "flow",
+      "title": "React 数据流",
+      "subtitle": "单向数据流与状态更新",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "State", "description": "状态定义", "color": "bg-blue-500" },
+        { "label": "Render", "description": "渲染 UI", "color": "bg-cyan-500" },
+        { "label": "Event", "description": "用户交互", "color": "bg-green-500" },
+        { "label": "Update", "description": "更新状态", "color": "bg-yellow-500" },
+        { "label": "Re-render", "description": "重新渲染", "color": "bg-orange-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "核心 Hooks",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "useState",
+          "badge": "基础",
+          "badgeColor": "green",
+          "points": [
+            "组件状态管理",
+            "触发重新渲染",
+            "函数式更新"
+          ]
+        },
+        {
+          "title": "useEffect",
+          "badge": "基础",
+          "badgeColor": "green",
+          "points": [
+            "副作用处理",
+            "生命周期替代",
+            "依赖数组控制"
+          ]
+        },
+        {
+          "title": "useContext",
+          "badge": "基础",
+          "badgeColor": "green",
+          "points": [
+            "跨组件传值",
+            "避免 prop drilling",
+            "全局状态共享"
+          ]
+        },
+        {
+          "title": "useMemo",
+          "badge": "优化",
+          "badgeColor": "amber",
+          "points": [
+            "计算值缓存",
+            "避免重复计算",
+            "依赖变化才更新"
+          ]
+        },
+        {
+          "title": "useCallback",
+          "badge": "优化",
+          "badgeColor": "amber",
+          "points": [
+            "函数引用缓存",
+            "避免子组件重渲染",
+            "配合 memo 使用"
+          ]
+        },
+        {
+          "title": "useReducer",
+          "badge": "进阶",
+          "badgeColor": "purple",
+          "points": [
+            "复杂状态逻辑",
+            "Redux 模式",
+            "可预测状态变化"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "生态系统",
+      "highlightFirst": true,
+      "headers": ["类别", "推荐方案", "说明"],
+      "rows": [
+        ["全栈框架", "Next.js", "SSR/SSG/ISR 支持"],
+        ["状态管理", "Zustand / Jotai", "轻量级状态库"],
+        ["数据请求", "TanStack Query", "服务端状态管理"],
+        ["样式方案", "Tailwind CSS", "原子化 CSS"],
+        ["表单处理", "React Hook Form", "高性能表单"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "组件拆分", "description": "保持组件小而专注" },
+        { "label": "状态提升", "description": "将状态放在合适的层级" },
+        { "label": "避免过度渲染", "description": "使用 memo、useMemo" },
+        { "label": "TypeScript", "description": "使用类型提高可维护性" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Next.js", "TypeScript", "状态管理"],
+  "articles": [
+    {
+      "slug": "components",
+      "title": "组件开发",
+      "description": "React 组件设计模式与最佳实践",
+      "priority": "recommended"
+    },
+    {
+      "slug": "hooks",
+      "title": "Hooks 详解",
+      "description": "内置 Hooks 与自定义 Hook 开发",
+      "priority": "essential"
+    },
+    {
+      "slug": "ssr",
+      "title": "服务端渲染",
+      "description": "Next.js SSR/SSG 与性能优化",
+      "priority": "important"
+    }
+  ]
+}

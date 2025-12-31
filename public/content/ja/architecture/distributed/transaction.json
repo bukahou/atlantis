@@ -1,0 +1,158 @@
+{
+  "slug": "transaction",
+  "meta": {
+    "title": "分散トランザクション",
+    "description": "2PC、Saga、TCCトランザクションパターン",
+    "order": 3,
+    "tags": [
+      "分散システム",
+      "トランザクション",
+      "ACID"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "分散トランザクションは複数サービス間のデータ整合性を保証",
+        "2PC/3PC：強整合性、コーディネーターパターン",
+        "Saga：結果整合性、補償トランザクション",
+        "TCC：ビジネスレイヤーでの二段階実装"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "トランザクションパターン",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "2PC/XA",
+          "badge": "強整合",
+          "badgeColor": "blue",
+          "points": [
+            "準備-コミット二段階",
+            "コーディネーター単一障害点",
+            "同期ブロッキング"
+          ]
+        },
+        {
+          "title": "Saga",
+          "badge": "結果整合",
+          "badgeColor": "green",
+          "points": [
+            "ローカルトランザクションの連鎖",
+            "補償によるロールバック",
+            "高可用性"
+          ]
+        },
+        {
+          "title": "TCC",
+          "badge": "結果整合",
+          "badgeColor": "purple",
+          "points": [
+            "Try-Confirm-Cancel",
+            "リソース予約",
+            "ビジネス侵入性あり"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "2PCフロー",
+      "language": "text",
+      "code": "フェーズ1：準備 (Prepare)\n┌───────────┐     ┌───────────┐     ┌───────────┐\n│ コーディ  │────►│ 参加者A   │────►│ 参加者B   │\n│ ネーター  │     │ 準備OK    │     │ 準備OK    │\n└───────────┘     └───────────┘     └───────────┘\n\nフェーズ2：コミット (Commit)\n┌───────────┐     ┌───────────┐     ┌───────────┐\n│ コーディ  │────►│ 参加者A   │────►│ 参加者B   │\n│ Commit    │     │ コミット済│     │ コミット済│\n└───────────┘     └───────────┘     └───────────┘\n\n課題：\n1. 同期ブロッキング：準備後にコミット指示を待機\n2. 単一障害点：コーディネーターのダウンで全体がブロック\n3. ネットワーク分断：データ不整合の可能性"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Sagaパターン実装",
+      "language": "typescript",
+      "code": "// 注文作成 Saga\nconst orderSaga = [\n  {\n    name: 'createOrder',\n    action: (ctx) => orderService.create(ctx.order),\n    compensate: (ctx) => orderService.cancel(ctx.orderId),\n  },\n  {\n    name: 'reserveInventory',\n    action: (ctx) => inventoryService.reserve(ctx.items),\n    compensate: (ctx) => inventoryService.release(ctx.items),\n  },\n  {\n    name: 'processPayment',\n    action: (ctx) => paymentService.charge(ctx.payment),\n    compensate: (ctx) => paymentService.refund(ctx.paymentId),\n  },\n];\n\n// Saga実行エンジン\nasync function executeSaga(saga, context) {\n  const completed = [];\n  \n  for (const step of saga) {\n    try {\n      await step.action(context);\n      completed.push(step);\n    } catch (error) {\n      // 逆順で補償実行\n      for (const s of completed.reverse()) {\n        await s.compensate(context);\n      }\n      throw error;\n    }\n  }\n}"
+    },
+    {
+      "type": "codeBlock",
+      "title": "TCCパターン実装",
+      "language": "java",
+      "code": "// TCCインターフェース\npublic interface AccountTccService {\n    // Try: 金額を凍結\n    @TwoPhaseBusinessAction(name = \"debit\")\n    boolean tryDebit(\n        @BusinessActionContextParameter(paramName = \"accountId\") String accountId,\n        @BusinessActionContextParameter(paramName = \"amount\") BigDecimal amount\n    );\n    \n    // Confirm: 凍結金額を引き落とし\n    boolean confirmDebit(BusinessActionContext context);\n    \n    // Cancel: 金額を解凍\n    boolean cancelDebit(BusinessActionContext context);\n}\n\n// 実装\n@Service\npublic class AccountTccServiceImpl implements AccountTccService {\n    \n    @Override\n    public boolean tryDebit(String accountId, BigDecimal amount) {\n        // 残高チェックと凍結\n        Account account = accountRepository.findById(accountId);\n        if (account.getBalance().compareTo(amount) < 0) {\n            return false;\n        }\n        account.freeze(amount);  // 凍結のみ、実際の引き落としはしない\n        return true;\n    }\n    \n    @Override\n    public boolean confirmDebit(BusinessActionContext context) {\n        // 凍結金額を実際に引き落とし\n        String accountId = context.getActionContext(\"accountId\");\n        BigDecimal amount = context.getActionContext(\"amount\");\n        accountRepository.confirmDebit(accountId, amount);\n        return true;\n    }\n    \n    @Override\n    public boolean cancelDebit(BusinessActionContext context) {\n        // 金額を解凍\n        accountRepository.unfreeze(context.getActionContext(\"accountId\"));\n        return true;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "方式比較",
+      "highlightFirst": true,
+      "headers": [
+        "方式",
+        "整合性",
+        "性能",
+        "複雑さ",
+        "適用場面"
+      ],
+      "rows": [
+        [
+          "2PC/XA",
+          "強整合",
+          "低",
+          "中",
+          "従来のDBトランザクション"
+        ],
+        [
+          "3PC",
+          "強整合",
+          "低",
+          "高",
+          "ブロッキング軽減版2PC"
+        ],
+        [
+          "Saga",
+          "結果整合",
+          "高",
+          "中",
+          "長期トランザクション、マイクロサービス"
+        ],
+        [
+          "TCC",
+          "結果整合",
+          "中",
+          "高",
+          "高並行、リソース予約"
+        ],
+        [
+          "ローカルメッセージテーブル",
+          "結果整合",
+          "高",
+          "低",
+          "非同期デカップリング"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "選定ガイド",
+      "style": "check",
+      "items": [
+        {
+          "label": "単一DBトランザクション優先",
+          "description": "可能なら分散トランザクションを使わない"
+        },
+        {
+          "label": "Saga優先",
+          "description": "マイクロサービスの第一選択、高性能で実装が簡単"
+        },
+        {
+          "label": "TCCの適用場面",
+          "description": "リソース予約が必要、高並行シナリオ"
+        },
+        {
+          "label": "べき等設計",
+          "description": "すべての操作がべき等であることを保証"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "CAP定理",
+    "マイクロサービス",
+    "メッセージキュー"
+  ]
+}

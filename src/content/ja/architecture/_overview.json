@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "title": "アーキテクチャ",
+    "description": "デザインパターン、分散システム、高可用性とドメイン駆動設計",
+    "icon": "boxes"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "デザインパターン：再利用可能なソリューションテンプレート",
+        "分散システム：CAP 定理と一貫性モデル",
+        "高可用性：冗長化、フォールトトレランス、災害復旧",
+        "DDD：ビジネスドメイン中心の設計手法"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "ソフトウェアアーキテクチャはシステムの骨格であり、スケーラビリティ、保守性、信頼性を決定します。優れたアーキテクチャ設計はパフォーマンス、コスト、複雑さのバランスを取る必要があります。銀の弾丸はなく、具体的なシナリオに対する最適解のみです。"
+    },
+    {
+      "type": "comparison",
+      "title": "アーキテクチャスタイル比較",
+      "columns": [
+        {
+          "title": "モノリス",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            { "label": "特徴", "description": "デプロイ簡単、運用コスト低" },
+            { "label": "適用", "description": "小規模プロジェクト、MVP" },
+            { "label": "課題", "description": "スケール困難、技術固定" }
+          ]
+        },
+        {
+          "title": "マイクロサービス",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "特徴", "description": "独立デプロイ、技術多様" },
+            { "label": "適用", "description": "大規模システム、チーム協業" },
+            { "label": "課題", "description": "運用複雑、分散トランザクション" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "アーキテクチャ決定マトリックス",
+      "highlightFirst": true,
+      "headers": ["観点", "モノリス", "SOA", "マイクロサービス"],
+      "rows": [
+        ["デプロイ複雑度", "低", "中", "高"],
+        ["スケーラビリティ", "垂直", "サービス単位", "細粒度"],
+        ["技術多様性", "単一", "限定的", "柔軟"],
+        ["チーム規模", "小", "中", "大"],
+        ["運用コスト", "低", "中", "高"]
+      ]
+    }
+  ],
+  "relatedTopics": ["マイクロサービス", "クラウドネイティブ", "DevOps"],
+  "articles": [
+    {
+      "slug": "patterns",
+      "title": "デザインパターン",
+      "description": "クラシックパターンとモダンな適用",
+      "priority": "essential"
+    },
+    {
+      "slug": "distributed",
+      "title": "分散システム",
+      "description": "CAP 定理、一貫性と分散トランザクション",
+      "priority": "essential"
+    },
+    {
+      "slug": "high-availability",
+      "title": "高可用性",
+      "description": "冗長化設計、フェイルオーバーと災害復旧",
+      "priority": "recommended"
+    },
+    {
+      "slug": "ddd",
+      "title": "ドメイン駆動設計",
+      "description": "境界づけられたコンテキスト、集約ルートとイベントソーシング",
+      "priority": "important"
+    }
+  ]
+}

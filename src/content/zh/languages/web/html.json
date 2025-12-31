@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "title": "HTML",
+    "description": "HTML5 语义化标签与现代 Web 开发",
+    "order": 1,
+    "tags": ["HTML", "HTML5", "语义化", "Web"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "HTML 是 Web 的结构标记语言",
+        "HTML5 引入语义化标签和新 API",
+        "语义化提升可访问性和 SEO",
+        "与 CSS 和 JavaScript 协同工作"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "语义化标签",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "结构标签",
+          "badge": "布局",
+          "badgeColor": "blue",
+          "points": [
+            "<header> 页眉",
+            "<nav> 导航",
+            "<main> 主内容",
+            "<footer> 页脚"
+          ]
+        },
+        {
+          "title": "内容标签",
+          "badge": "语义",
+          "badgeColor": "green",
+          "points": [
+            "<article> 文章",
+            "<section> 章节",
+            "<aside> 侧边栏",
+            "<figure> 图表"
+          ]
+        },
+        {
+          "title": "文本标签",
+          "badge": "文本",
+          "badgeColor": "purple",
+          "points": [
+            "<time> 时间",
+            "<mark> 高亮",
+            "<details> 折叠",
+            "<summary> 摘要"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "语义化页面结构",
+      "language": "html",
+      "code": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <meta name=\"description\" content=\"页面描述\">\n  <title>页面标题</title>\n</head>\n<body>\n  <header>\n    <nav>\n      <ul>\n        <li><a href=\"/\">首页</a></li>\n        <li><a href=\"/about\">关于</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <article>\n      <header>\n        <h1>文章标题</h1>\n        <time datetime=\"2024-01-01\">2024年1月1日</time>\n      </header>\n      <section>\n        <h2>章节标题</h2>\n        <p>段落内容...</p>\n      </section>\n    </article>\n\n    <aside>\n      <h3>相关链接</h3>\n    </aside>\n  </main>\n\n  <footer>\n    <p>&copy; 2024 版权信息</p>\n  </footer>\n</body>\n</html>"
+    },
+    {
+      "type": "cards",
+      "title": "表单元素",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "输入类型",
+          "badge": "Input",
+          "badgeColor": "amber",
+          "points": [
+            "type=\"email\" 邮箱验证",
+            "type=\"tel\" 电话",
+            "type=\"date\" 日期选择",
+            "type=\"range\" 滑块"
+          ]
+        },
+        {
+          "title": "表单属性",
+          "badge": "Attrs",
+          "badgeColor": "cyan",
+          "points": [
+            "required 必填",
+            "pattern 正则验证",
+            "placeholder 占位符",
+            "autofocus 自动聚焦"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "HTML5 表单",
+      "language": "html",
+      "code": "<form action=\"/submit\" method=\"POST\">\n  <label for=\"email\">邮箱:</label>\n  <input type=\"email\" id=\"email\" name=\"email\" \n         required placeholder=\"user@example.com\">\n\n  <label for=\"phone\">电话:</label>\n  <input type=\"tel\" id=\"phone\" name=\"phone\" \n         pattern=\"[0-9]{11}\" placeholder=\"13800138000\">\n\n  <label for=\"date\">日期:</label>\n  <input type=\"date\" id=\"date\" name=\"date\" \n         min=\"2024-01-01\" max=\"2024-12-31\">\n\n  <label for=\"range\">评分:</label>\n  <input type=\"range\" id=\"range\" name=\"rating\" \n         min=\"1\" max=\"10\" value=\"5\">\n\n  <label for=\"color\">颜色:</label>\n  <input type=\"color\" id=\"color\" name=\"color\" value=\"#3b82f6\">\n\n  <button type=\"submit\">提交</button>\n</form>"
+    },
+    {
+      "type": "table",
+      "title": "HTML5 新 API",
+      "highlightFirst": true,
+      "headers": ["API", "用途", "示例"],
+      "rows": [
+        ["Canvas", "2D 绑图", "<canvas> + JS 绑图"],
+        ["Web Storage", "本地存储", "localStorage/sessionStorage"],
+        ["Geolocation", "地理定位", "navigator.geolocation"],
+        ["Web Workers", "后台线程", "Worker() 多线程计算"],
+        ["WebSocket", "双向通信", "实时消息推送"]
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "标签选择",
+      "columns": [
+        {
+          "title": "语义化标签",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            { "label": "SEO", "description": "搜索引擎更好理解" },
+            { "label": "可访问性", "description": "屏幕阅读器友好" },
+            { "label": "维护性", "description": "代码结构清晰" }
+          ]
+        },
+        {
+          "title": "div 滥用",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            { "label": "SEO", "description": "无语义信息" },
+            { "label": "可访问性", "description": "辅助技术难以识别" },
+            { "label": "维护性", "description": "嵌套混乱" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "响应式图片",
+      "language": "html",
+      "code": "<!-- srcset 不同分辨率 -->\n<img src=\"image-800.jpg\"\n     srcset=\"image-400.jpg 400w,\n             image-800.jpg 800w,\n             image-1200.jpg 1200w\"\n     sizes=\"(max-width: 600px) 400px,\n            (max-width: 900px) 800px,\n            1200px\"\n     alt=\"响应式图片\">\n\n<!-- picture 不同格式 -->\n<picture>\n  <source srcset=\"image.avif\" type=\"image/avif\">\n  <source srcset=\"image.webp\" type=\"image/webp\">\n  <img src=\"image.jpg\" alt=\"现代图片格式\">\n</picture>\n\n<!-- 懒加载 -->\n<img src=\"image.jpg\" loading=\"lazy\" alt=\"延迟加载\">"
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用语义化标签", "description": "header/main/footer 替代 div" },
+        { "label": "合理的标题层级", "description": "h1-h6 按顺序使用，每页一个 h1" },
+        { "label": "图片添加 alt", "description": "提升可访问性和 SEO" },
+        { "label": "表单关联 label", "description": "for 属性关联 input id" },
+        { "label": "响应式 meta", "description": "viewport 设置适配移动端" }
+      ]
+    }
+  ],
+  "relatedTopics": ["CSS", "JavaScript", "可访问性", "SEO"]
+}

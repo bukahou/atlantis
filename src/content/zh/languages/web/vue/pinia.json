@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "title": "Pinia 状态管理",
+    "description": "Vue 官方状态管理库",
+    "order": 2,
+    "tags": ["Vue", "Pinia", "状态管理"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Pinia 是 Vue 官方推荐的状态管理库",
+        "Store 包含 state、getters、actions",
+        "完美支持 TypeScript",
+        "支持组合式和选项式两种风格"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "定义 Store",
+      "language": "ts",
+      "code": "// stores/counter.ts\nimport { defineStore } from 'pinia'\nimport { ref, computed } from 'vue'\n\n// 组合式风格（推荐）\nexport const useCounterStore = defineStore('counter', () => {\n  // state\n  const count = ref(0)\n  \n  // getters\n  const doubleCount = computed(() => count.value * 2)\n  \n  // actions\n  function increment() {\n    count.value++\n  }\n  \n  async function asyncIncrement() {\n    await new Promise(resolve => setTimeout(resolve, 1000))\n    count.value++\n  }\n  \n  return { count, doubleCount, increment, asyncIncrement }\n})\n\n// 选项式风格\nexport const useUserStore = defineStore('user', {\n  state: () => ({\n    name: '',\n    isLoggedIn: false\n  }),\n  getters: {\n    greeting: (state) => `Hello, ${state.name}`\n  },\n  actions: {\n    login(name: string) {\n      this.name = name\n      this.isLoggedIn = true\n    }\n  }\n})"
+    },
+    {
+      "type": "codeBlock",
+      "title": "在组件中使用",
+      "language": "vue",
+      "code": "<script setup lang=\"ts\">\nimport { useCounterStore } from '@/stores/counter'\nimport { storeToRefs } from 'pinia'\n\nconst counterStore = useCounterStore()\n\n// 解构保持响应性\nconst { count, doubleCount } = storeToRefs(counterStore)\n\n// actions 可以直接解构\nconst { increment, asyncIncrement } = counterStore\n</script>\n\n<template>\n  <div>\n    <p>Count: {{ count }}</p>\n    <p>Double: {{ doubleCount }}</p>\n    <button @click=\"increment\">+1</button>\n    <button @click=\"asyncIncrement\">Async +1</button>\n    \n    <!-- 直接访问 store -->\n    <button @click=\"counterStore.$reset()\">Reset</button>\n  </div>\n</template>"
+    },
+    {
+      "type": "cards",
+      "title": "Pinia vs Vuex",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Pinia 优势",
+          "badge": "推荐",
+          "badgeColor": "green",
+          "points": [
+            "更简洁的 API",
+            "完美 TypeScript 支持",
+            "无 mutations 概念",
+            "支持多个 Store"
+          ]
+        },
+        {
+          "title": "Vuex 对比",
+          "badge": "旧版",
+          "badgeColor": "gray",
+          "points": [
+            "需要 mutations",
+            "单一 Store + modules",
+            "TypeScript 支持较弱",
+            "Vue 2 项目使用"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Store API",
+      "highlightFirst": true,
+      "headers": ["方法", "说明"],
+      "rows": [
+        ["$reset()", "重置状态到初始值"],
+        ["$patch()", "批量更新状态"],
+        ["$subscribe()", "订阅状态变化"],
+        ["$onAction()", "订阅 action 调用"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "模块化 Store", "description": "按功能拆分多个 Store" },
+        { "label": "使用 storeToRefs", "description": "解构 state 和 getters 保持响应性" },
+        { "label": "组合式风格", "description": "更好的类型推断和代码组织" },
+        { "label": "持久化插件", "description": "pinia-plugin-persistedstate 持久化状态" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Vue Composition API", "Vue Router", "TypeScript"]
+}

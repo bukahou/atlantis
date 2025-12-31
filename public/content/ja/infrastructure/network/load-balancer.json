@@ -1,15 +1,347 @@
 {
   "slug": "load-balancer",
   "meta": {
-    "title": "ロードバランシング",
-    "description": "ロードバランシングの原理、アルゴリズム、実践設定",
-    "order": 4,
+    "title": "ロードバランサー",
+    "description": "L3/L4/L7 ロードバランシング戦略、アルゴリズムと高可用性アーキテクチャ",
+    "order": 7,
     "tags": [
-      "network",
-      "load-balancer",
-      "nginx",
-      "haproxy"
+      "ロードバランサー",
+      "L3",
+      "L4",
+      "L7",
+      "高可用性"
     ]
   },
-  "content": "<h1>ロードバランシング</h1>\n<h2>ロードバランシングとは</h2>\n<p>ロードバランシングは、ネットワークトラフィックを複数のサーバーに分散する技術で、アプリケーションの可用性、信頼性、パフォーマンスを向上させます。</p>\n<pre><code>                    ┌─────────────┐\n                    │  クライアント │\n                    └──────┬──────┘\n                           │\n                    ┌──────▼──────┐\n                    │ロードバランサー│\n                    └──────┬──────┘\n              ┌────────────┼────────────┐\n              │            │            │\n        ┌─────▼─────┐┌─────▼─────┐┌─────▼─────┐\n        │ サーバー1  ││ サーバー2  ││ サーバー3  │\n        └───────────┘└───────────┘└───────────┘\n</code></pre>\n<h2>ロードバランシングの種類</h2>\n<h3>OSI 階層別</h3>\n<table>\n<thead>\n<tr>\n<th>タイプ</th>\n<th>階層</th>\n<th>特徴</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>L4 ロードバランシング</strong></td>\n<td>トランスポート層</td>\n<td>IP + ポートベース、高性能</td>\n</tr>\n<tr>\n<td><strong>L7 ロードバランシング</strong></td>\n<td>アプリケーション層</td>\n<td>コンテンツベース (URL, Header)、高機能</td>\n</tr>\n</tbody>\n</table>\n<h3>L4 vs L7</h3>\n<pre><code>L4 ロードバランシング:\nクライアント ──TCP──> ロードバランサー ──TCP──> バックエンドサーバー\n                    IP:Port のみ参照\n\nL7 ロードバランシング:\nクライアント ──HTTP──> ロードバランサー ──HTTP──> バックエンドサーバー\n                      URL/Header/Cookie を解析\n</code></pre>\n<h2>ロードバランシングアルゴリズム</h2>\n<h3>ラウンドロビン (Round Robin)</h3>\n<pre><code>リクエストを順番に各サーバーへ分散\n\nリクエスト1 → Server1\nリクエスト2 → Server2\nリクエスト3 → Server3\nリクエスト4 → Server1\n...\n</code></pre>\n<h3>重み付きラウンドロビン (Weighted Round Robin)</h3>\n<pre><code>重み比率に基づいて分散\n\nServer1 (weight=3): 3 リクエスト\nServer2 (weight=2): 2 リクエスト\nServer3 (weight=1): 1 リクエスト\n</code></pre>\n<h3>最小接続 (Least Connections)</h3>\n<pre><code>現在の接続数が最も少ないサーバーを選択\n\nServer1: 10 接続\nServer2: 5 接続  ← 新規リクエスト\nServer3: 8 接続\n</code></pre>\n<h3>IP ハッシュ (IP Hash)</h3>\n<pre><code>同じクライアント IP は常に同じサーバーにアクセス\n\nhash(クライアントIP) % サーバー数 = 対象サーバー\n</code></pre>\n<h3>コンシステントハッシュ (Consistent Hash)</h3>\n<pre><code>サーバー増減時の再分配問題を解決\n\n     0\n    /   \\\n   S1    S3\n  /        \\\n S2 ────── ハッシュリング\n</code></pre>\n<h2>Nginx 設定</h2>\n<h3>基本設定</h3>\n<pre><code class=\"language-nginx\">http {\n    upstream backend {\n        server 192.168.1.101:8080;\n        server 192.168.1.102:8080;\n        server 192.168.1.103:8080;\n    }\n\n    server {\n        listen 80;\n        server_name example.com;\n\n        location / {\n            proxy_pass http://backend;\n            proxy_set_header Host $host;\n            proxy_set_header X-Real-IP $remote_addr;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        }\n    }\n}\n</code></pre>\n<h3>ロードバランシングアルゴリズム</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    # デフォルトはラウンドロビン\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_weighted {\n    # 重み付きラウンドロビン\n    server 192.168.1.101:8080 weight=3;\n    server 192.168.1.102:8080 weight=2;\n    server 192.168.1.103:8080 weight=1;\n}\n\nupstream backend_least_conn {\n    # 最小接続\n    least_conn;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_ip_hash {\n    # IP ハッシュ\n    ip_hash;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\nupstream backend_hash {\n    # コンシステントハッシュ\n    hash $request_uri consistent;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n</code></pre>\n<h3>ヘルスチェック</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    server 192.168.1.101:8080 max_fails=3 fail_timeout=30s;\n    server 192.168.1.102:8080 max_fails=3 fail_timeout=30s;\n    server 192.168.1.103:8080 backup;  # バックアップサーバー\n}\n</code></pre>\n<h3>セッション維持</h3>\n<pre><code class=\"language-nginx\">upstream backend {\n    ip_hash;  # IP ベースのセッション維持\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n\n# または sticky cookie を使用 (nginx-sticky-module が必要)\nupstream backend {\n    sticky cookie srv_id expires=1h;\n    server 192.168.1.101:8080;\n    server 192.168.1.102:8080;\n}\n</code></pre>\n<h2>HAProxy 設定</h2>\n<h3>基本設定</h3>\n<pre><code class=\"language-haproxy\">global\n    daemon\n    maxconn 4096\n\ndefaults\n    mode http\n    timeout connect 5s\n    timeout client 50s\n    timeout server 50s\n\nfrontend http_front\n    bind *:80\n    default_backend http_back\n\nbackend http_back\n    balance roundrobin\n    server server1 192.168.1.101:8080 check\n    server server2 192.168.1.102:8080 check\n    server server3 192.168.1.103:8080 check\n</code></pre>\n<h3>ロードバランシングアルゴリズム</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    # ラウンドロビン\n    balance roundrobin\n\n    # 最小接続\n    balance leastconn\n\n    # ソース IP ハッシュ\n    balance source\n\n    # URI ハッシュ\n    balance uri\n\n    server server1 192.168.1.101:8080 check weight 3\n    server server2 192.168.1.102:8080 check weight 2\n</code></pre>\n<h3>ヘルスチェック</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    option httpchk GET /health\n    http-check expect status 200\n\n    server server1 192.168.1.101:8080 check inter 5s fall 3 rise 2\n    server server2 192.168.1.102:8080 check inter 5s fall 3 rise 2\n</code></pre>\n<h3>セッション維持</h3>\n<pre><code class=\"language-haproxy\">backend http_back\n    balance roundrobin\n    cookie SERVERID insert indirect nocache\n\n    server server1 192.168.1.101:8080 check cookie s1\n    server server2 192.168.1.102:8080 check cookie s2\n</code></pre>\n<h2>クラウドロードバランシング</h2>\n<h3>AWS ALB/NLB</h3>\n<pre><code>ALB (Application Load Balancer):\n- L7 ロードバランシング\n- パスルーティング、ホストルーティング対応\n- WebSocket 対応\n\nNLB (Network Load Balancer):\n- L4 ロードバランシング\n- 超高性能\n- 静的 IP 対応\n</code></pre>\n<h3>GCP Cloud Load Balancing</h3>\n<pre><code>HTTP(S) Load Balancing:\n- グローバル L7 ロードバランシング\n- CDN 統合\n\nTCP/UDP Load Balancing:\n- リージョナル/グローバル L4\n</code></pre>\n<h2>高可用性アーキテクチャ</h2>\n<h3>アクティブ-スタンバイ構成</h3>\n<pre><code>         ┌──────────────┐\n         │   仮想 IP    │\n         │ (Keepalived) │\n         └──────┬───────┘\n          ┌─────┴─────┐\n    ┌─────▼─────┐┌────▼────┐\n    │ LB マスター ││ LB バックアップ │\n    └─────┬─────┘└────┬────┘\n          └─────┬─────┘\n        バックエンドサーバー群\n</code></pre>\n<h3>Keepalived 設定</h3>\n<pre><code class=\"language-bash\"># /etc/keepalived/keepalived.conf\n\nvrrp_instance VI_1 {\n    state MASTER\n    interface eth0\n    virtual_router_id 51\n    priority 100\n    advert_int 1\n\n    authentication {\n        auth_type PASS\n        auth_pass 1234\n    }\n\n    virtual_ipaddress {\n        192.168.1.100\n    }\n}\n</code></pre>\n<h2>監視メトリクス</h2>\n<h3>主要メトリクス</h3>\n<table>\n<thead>\n<tr>\n<th>メトリクス</th>\n<th>説明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>QPS</td>\n<td>秒間クエリ数</td>\n</tr>\n<tr>\n<td>レスポンスタイム</td>\n<td>リクエスト処理時間</td>\n</tr>\n<tr>\n<td>エラー率</td>\n<td>失敗リクエストの割合</td>\n</tr>\n<tr>\n<td>接続数</td>\n<td>現在のアクティブ接続</td>\n</tr>\n<tr>\n<td>バックエンド健全性</td>\n<td>各サーバーの状態</td>\n</tr>\n</tbody>\n</table>\n<h3>Nginx ステータス監視</h3>\n<pre><code class=\"language-nginx\">location /nginx_status {\n    stub_status on;\n    allow 127.0.0.1;\n    deny all;\n}\n</code></pre>\n<pre><code class=\"language-bash\"># 出力例\nActive connections: 291\nserver accepts handled requests\n 16630948 16630948 31070465\nReading: 6 Writing: 179 Waiting: 106\n</code></pre>\n<h2>まとめ</h2>\n<p>ロードバランシングの核心ポイント：</p>\n<ol>\n<li><strong>階層選択</strong>: L4 は高性能、L7 は高機能</li>\n<li><strong>アルゴリズム選択</strong>: ビジネスシナリオに応じて適切なアルゴリズムを選択</li>\n<li><strong>ヘルスチェック</strong>: 障害ノードを自動的に除外</li>\n<li><strong>セッション維持</strong>: 必要に応じてセッションアフィニティを設定</li>\n<li><strong>高可用性</strong>: ロードバランサー自体も冗長化が必要</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "ロードバランサーはトラフィックを複数のバックエンドサーバーに分散",
+        "OSI 層別：L3/L4/L7 ロードバランシング",
+        "複数のアルゴリズム：ラウンドロビン、重み付け、最小接続、ハッシュ",
+        "ヘルスチェックで健全なノードのみにトラフィックを送信"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "ロードバランサー概要",
+      "content": "ロードバランシングはネットワークトラフィックを複数のサーバーに分散する技術です。動作レイヤーによって L3（ネットワーク層、IP ベース）、L4（トランスポート層、IP+ポートベース）、L7（アプリケーション層、コンテンツベース）に分類されます。高可用性分散システム構築の中核コンポーネントです。"
+    },
+    {
+      "type": "table",
+      "title": "ロードバランシングレイヤー比較",
+      "highlightFirst": true,
+      "headers": [
+        "レイヤー",
+        "判断基準",
+        "技術/機器",
+        "特徴"
+      ],
+      "rows": [
+        [
+          "L3 ネットワーク層",
+          "IP アドレス",
+          "DNS ラウンドロビン、ECMP、BGP Anycast",
+          "シンプル高効率、ステートレス"
+        ],
+        [
+          "L4 トランスポート層",
+          "IP + ポート",
+          "LVS、IPVS、NLB",
+          "高性能、L4 転送"
+        ],
+        [
+          "L7 アプリケーション層",
+          "URL/Header/Cookie",
+          "Nginx、HAProxy、ALB",
+          "インテリジェントルーティング、コンテンツ認識"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "L3 ネットワーク層ロードバランシング",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "DNS ラウンドロビン",
+          "badge": "DNS",
+          "badgeColor": "gray",
+          "points": [
+            "1つのドメインに複数の A レコード",
+            "DNS サーバーがラウンドロビンで返却",
+            "シンプルだがサービス状態を認識しない",
+            "TTL キャッシュに依存"
+          ]
+        },
+        {
+          "title": "ECMP",
+          "badge": "ルーティング",
+          "badgeColor": "blue",
+          "points": [
+            "等価マルチパスルーティング",
+            "ルーターレベルでの分散",
+            "フローベースのハッシュ",
+            "高性能データセンター向け"
+          ]
+        },
+        {
+          "title": "BGP Anycast",
+          "badge": "グローバル",
+          "badgeColor": "green",
+          "points": [
+            "複数ノードで同一 IP",
+            "最寄りにルーティング",
+            "CDN で広く使用",
+            "自然な災害対策"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "L4 vs L7 ロードバランシング",
+      "columns": [
+        {
+          "title": "L4 ロードバランサー",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "動作レイヤー",
+              "description": "トランスポート層 (TCP/UDP)"
+            },
+            {
+              "label": "判断基準",
+              "description": "IP + ポート"
+            },
+            {
+              "label": "性能",
+              "description": "非常に高い、カーネル空間転送"
+            },
+            {
+              "label": "機能",
+              "description": "シンプルな転送"
+            },
+            {
+              "label": "代表",
+              "description": "LVS、IPVS、F5"
+            }
+          ]
+        },
+        {
+          "title": "L7 ロードバランサー",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "動作レイヤー",
+              "description": "アプリケーション層 (HTTP)"
+            },
+            {
+              "label": "判断基準",
+              "description": "URL、Header、Cookie"
+            },
+            {
+              "label": "性能",
+              "description": "比較的低い、ユーザー空間"
+            },
+            {
+              "label": "機能",
+              "description": "コンテンツルーティング、SSL 終端"
+            },
+            {
+              "label": "代表",
+              "description": "Nginx、HAProxy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "ロードバランシングアルゴリズム",
+      "highlightFirst": true,
+      "headers": [
+        "アルゴリズム",
+        "原理",
+        "適用シーン"
+      ],
+      "rows": [
+        [
+          "ラウンドロビン",
+          "順番に分散",
+          "サーバー性能が同等の場合"
+        ],
+        [
+          "重み付けラウンドロビン",
+          "重み比率で分散",
+          "サーバー性能が異なる場合"
+        ],
+        [
+          "最小接続",
+          "接続数が最小のサーバーへ",
+          "長時間接続シーン"
+        ],
+        [
+          "IP ハッシュ",
+          "同一 IP を同一サーバーへ",
+          "セッション維持"
+        ],
+        [
+          "コンシステントハッシュ",
+          "リング状ハッシュマッピング",
+          "キャッシュサーバー"
+        ],
+        [
+          "最速応答",
+          "応答が最速のサーバーへ",
+          "パフォーマンス重視シーン"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "マルチレイヤーロードバランシングアーキテクチャ",
+      "subtitle": "典型的なエンタープライズアーキテクチャ",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "L3 DNS",
+          "description": "Anycast/ラウンドロビン",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "L4 LB",
+          "description": "LVS/NLB",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "L7 LB",
+          "description": "Nginx/HAProxy",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "App Server",
+          "description": "アプリケーション",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "主要ロードバランシングソリューション",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "LVS/IPVS",
+          "badge": "L4",
+          "badgeColor": "blue",
+          "points": [
+            "Linux カーネルモジュール",
+            "非常に高い性能",
+            "DR/NAT/TUN モード",
+            "オープンソース無料"
+          ]
+        },
+        {
+          "title": "Nginx",
+          "badge": "L7",
+          "badgeColor": "green",
+          "points": [
+            "HTTP リバースプロキシ",
+            "豊富なルーティングルール",
+            "SSL 終端とキャッシュ",
+            "オープンソース無料"
+          ]
+        },
+        {
+          "title": "HAProxy",
+          "badge": "L4/L7",
+          "badgeColor": "purple",
+          "points": [
+            "プロフェッショナルロードバランサー",
+            "高性能高可用性",
+            "詳細な統計情報",
+            "柔軟なヘルスチェック"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "LVS DR モード設定",
+      "language": "bash",
+      "code": "# Director (ロードバランサー)\nipvsadm -A -t 10.0.0.100:80 -s rr\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.1:80 -g\nipvsadm -a -t 10.0.0.100:80 -r 10.0.0.2:80 -g\n\n# Real Server (バックエンドサーバー)\n# VIP を lo に設定し、ARP を抑制\nip addr add 10.0.0.100/32 dev lo\necho 1 > /proc/sys/net/ipv4/conf/all/arp_ignore\necho 2 > /proc/sys/net/ipv4/conf/all/arp_announce"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Nginx ロードバランシング設定",
+      "language": "nginx",
+      "code": "upstream backend {\n    # 重み付けラウンドロビン\n    server 10.0.0.1:8080 weight=3;\n    server 10.0.0.2:8080 weight=2;\n    server 10.0.0.3:8080 backup;  # バックアップ\n    \n    # ヘルスチェック (Nginx Plus)\n    # health_check interval=5s;\n    \n    keepalive 32;\n}\n\nserver {\n    listen 80;\n    \n    location / {\n        proxy_pass http://backend;\n        proxy_http_version 1.1;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}"
+    },
+    {
+      "type": "cards",
+      "title": "ヘルスチェック",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "アクティブヘルスチェック",
+          "badge": "Active",
+          "badgeColor": "green",
+          "points": [
+            "定期的にプローブリクエストを送信",
+            "TCP ポートチェック",
+            "HTTP ステータスコードチェック",
+            "カスタムヘルスエンドポイント"
+          ]
+        },
+        {
+          "title": "パッシブヘルスチェック",
+          "badge": "Passive",
+          "badgeColor": "amber",
+          "points": [
+            "実際のリクエストを監視",
+            "連続失敗で異常とマーク",
+            "レスポンスタイムアウト検出",
+            "追加オーバーヘッドなし"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "高可用性設計のポイント",
+      "style": "check",
+      "items": [
+        {
+          "label": "ロードバランサーの冗長化",
+          "description": "Keepalived で主従またはクラスター構成"
+        },
+        {
+          "label": "マルチレイヤーロードバランシング",
+          "description": "L3 + L4 + L7 の組み合わせ"
+        },
+        {
+          "label": "適切なヘルスチェック",
+          "description": "チェック間隔と閾値の適切な設定"
+        },
+        {
+          "label": "グレースフルデグラデーション",
+          "description": "バックアップサーバーと縮退戦略の設定"
+        },
+        {
+          "label": "セッション維持",
+          "description": "ビジネス要件に応じた適切な方式を選択"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "L4 トランスポート層",
+    "L7 アプリケーション層",
+    "高可用性アーキテクチャ"
+  ]
 }

@@ -1,4 +1,5 @@
 import { Locale } from "./i18n";
+import { ContentSection } from "./overview";
 
 export interface ContentMeta {
   title: string;
@@ -8,10 +9,13 @@ export interface ContentMeta {
   lastUpdated?: string;
 }
 
+// Article can have either HTML content (from markdown) or sections (modular JSON)
 export interface ContentItem {
   slug: string;
   meta: ContentMeta;
-  content: string;
+  content?: string; // HTML content from markdown
+  sections?: ContentSection[]; // Modular content sections
+  relatedTopics?: string[];
 }
 
 export interface CategoryMeta {
@@ -38,6 +42,7 @@ export interface TableOfContentsItem {
 export interface ContentNavItem {
   slug: string;
   title: string;
+  description?: string;
   href: string;
   order: number;
 }

@@ -1,0 +1,150 @@
+{
+  "slug": "bounded-context",
+  "meta": {
+    "title": "境界づけられたコンテキスト",
+    "description": "ドメイン境界の分割とコンテキストマッピング",
+    "order": 1,
+    "tags": [
+      "DDD",
+      "境界づけられたコンテキスト",
+      "ドメインモデリング"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "境界づけられたコンテキストはモデルの境界、同じ用語が異なるコンテキストで異なる意味を持つ",
+        "各境界づけられたコンテキストには独自のユビキタス言語がある",
+        "コンテキストマップは異なるコンテキスト間の関係を定義",
+        "境界づけられたコンテキストは通常1つのマイクロサービスに対応"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "なぜ境界づけられたコンテキストが必要か",
+      "content": "複雑なシステムでは、統一された大きなモデルを構築しようとすると混乱を招くことがあります。例えば「ユーザー」は異なる場面で異なる意味を持ちます：認証コンテキストでは「アカウント」、注文コンテキストでは「購入者」、配送コンテキストでは「受取人」です。境界づけられたコンテキストにより、各ドメインは独自の明確なモデルを持つことができます。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "コンテキスト境界の例",
+      "language": "text",
+      "code": "ECシステムの境界づけられたコンテキスト分割：\n\n┌─────────────────────────────────────────────────────────────┐\n│                        ECプラットフォーム                    │\n├─────────────┬─────────────┬─────────────┬─────────────────┤\n│ 認証コンテキスト│ 商品コンテキスト│ 注文コンテキスト│  配送コンテキスト  │\n├─────────────┼─────────────┼─────────────┼─────────────────┤\n│  Account    │  Product    │  Order      │   Shipment      │\n│  Credential │  Category   │  OrderItem  │   Package       │\n│  Session    │  Inventory  │  Payment    │   Tracking      │\n│             │  Price      │  Buyer      │   Recipient     │\n└─────────────┴─────────────┴─────────────┴─────────────────┘\n\n「ユーザー」の異なるコンテキストでの表現：\n- 認証コンテキスト：Account（アカウント、パスワード、権限）\n- 注文コンテキスト：Buyer（購入者ID、住所、連絡先）\n- 配送コンテキスト：Recipient（受取人名、電話番号、住所）"
+    },
+    {
+      "type": "cards",
+      "title": "コンテキストマッピングパターン",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "パートナーシップ",
+          "badge": "Partnership",
+          "badgeColor": "blue",
+          "points": [
+            "2チームが共同で進化",
+            "相互依存",
+            "調整が必要"
+          ]
+        },
+        {
+          "title": "顧客-供給者",
+          "badge": "Customer-Supplier",
+          "badgeColor": "green",
+          "points": [
+            "上流・下流関係",
+            "下流が上流に依存",
+            "上流は下流のニーズを満たす"
+          ]
+        },
+        {
+          "title": "腐敗防止層",
+          "badge": "ACL",
+          "badgeColor": "purple",
+          "points": [
+            "外部モデルを隔離",
+            "翻訳/アダプテーション",
+            "コアドメインを保護"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "腐敗防止層の実装",
+      "language": "typescript",
+      "code": "// 外部システムのユーザーモデル（制御不可）\ninterface LegacyUser {\n  user_id: string;\n  full_name: string;\n  email_address: string;\n  phone_number: string;\n  created_at: string;\n}\n\n// 我々のドメインモデル\ninterface Customer {\n  id: CustomerId;\n  name: CustomerName;\n  contact: ContactInfo;\n  registeredAt: Date;\n}\n\n// 腐敗防止層：外部モデルを翻訳\nclass CustomerAntiCorruptionLayer {\n  constructor(private legacyUserService: LegacyUserService) {}\n  \n  async getCustomer(id: string): Promise<Customer> {\n    // 外部システムを呼び出し\n    const legacyUser = await this.legacyUserService.getUser(id);\n    \n    // ドメインモデルに翻訳\n    return {\n      id: new CustomerId(legacyUser.user_id),\n      name: new CustomerName(legacyUser.full_name),\n      contact: new ContactInfo(\n        legacyUser.email_address,\n        legacyUser.phone_number\n      ),\n      registeredAt: new Date(legacyUser.created_at),\n    };\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "コンテキストマッピングパターン",
+      "highlightFirst": true,
+      "headers": [
+        "パターン",
+        "関係",
+        "適用場面"
+      ],
+      "rows": [
+        [
+          "共有カーネル",
+          "一部モデルを共有",
+          "緊密に連携するチーム"
+        ],
+        [
+          "顧客-供給者",
+          "上流・下流依存",
+          "コアドメインとサポートドメイン"
+        ],
+        [
+          "準拠者",
+          "上流に完全準拠",
+          "標準/規格との連携"
+        ],
+        [
+          "腐敗防止層",
+          "隔離と翻訳",
+          "レガシーシステム統合"
+        ],
+        [
+          "公開ホストサービス",
+          "標準APIを提供",
+          "プラットフォームの外部公開"
+        ],
+        [
+          "別々の道",
+          "依存なし",
+          "独立したサブシステム"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "実践上のアドバイス",
+      "style": "check",
+      "items": [
+        {
+          "label": "ビジネス境界から出発",
+          "description": "境界づけられたコンテキストはビジネス機能に対応すべき"
+        },
+        {
+          "label": "チーム整合",
+          "description": "1つのコンテキストは1つのチームが担当するのが理想"
+        },
+        {
+          "label": "明確なインターフェース",
+          "description": "コンテキスト間は明確なAPI/イベントで通信"
+        },
+        {
+          "label": "継続的な進化",
+          "description": "境界はビジネスの変化に応じて調整される"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "マイクロサービス",
+    "ドメインモデリング",
+    "イベント駆動"
+  ]
+}

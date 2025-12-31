@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "title": "CSS スタイル",
+    "description": "モダン CSS 技術、レイアウトシステムとスタイルフレームワーク",
+    "icon": "layout"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "重要ポイント",
+      "items": [
+        "Flexbox と Grid レイアウト",
+        "レスポンシブデザインとメディアクエリ",
+        "CSS 変数とテーマカスタマイズ",
+        "Tailwind CSS アトミック方式"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概要",
+      "content": "モダン CSS は強力なレイアウトシステムとエンジニアリング方式に発展しました。Flexbox、Grid レイアウトは従来のレイアウトの課題を解決し、Tailwind CSS などのアトミックフレームワークはスタイルの書き方を変えました。"
+    },
+    {
+      "type": "comparison",
+      "title": "Flexbox vs Grid",
+      "columns": [
+        {
+          "title": "Flexbox",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "次元", "description": "1次元レイアウト（行または列）" },
+            { "label": "適用場面", "description": "ナビゲーション、カード配列" },
+            { "label": "揃え", "description": "強力な揃え制御" },
+            { "label": "互換性", "description": "広くサポート" }
+          ]
+        },
+        {
+          "title": "Grid",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            { "label": "次元", "description": "2次元レイアウト（行+列）" },
+            { "label": "適用場面", "description": "ページレイアウト、複雑グリッド" },
+            { "label": "揃え", "description": "領域分割能力" },
+            { "label": "互換性", "description": "モダンブラウザ" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "スタイル方式",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Tailwind CSS",
+          "badge": "推奨",
+          "badgeColor": "green",
+          "points": [
+            "アトミック CSS クラス",
+            "高度なカスタマイズ性",
+            "本番ビルド最適化"
+          ]
+        },
+        {
+          "title": "CSS Modules",
+          "badge": "コンポーネント化",
+          "badgeColor": "blue",
+          "points": [
+            "ローカルスコープ",
+            "名前衝突回避",
+            "フレームワーク統合"
+          ]
+        },
+        {
+          "title": "CSS-in-JS",
+          "badge": "動的",
+          "badgeColor": "amber",
+          "points": [
+            "Styled Components",
+            "Emotion",
+            "動的スタイル計算"
+          ]
+        },
+        {
+          "title": "プリプロセッサ",
+          "badge": "拡張",
+          "badgeColor": "purple",
+          "points": [
+            "Sass/SCSS",
+            "変数とミックスイン",
+            "ネスト構文"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "よく使うプロパティ",
+      "highlightFirst": true,
+      "headers": ["プロパティ", "用途", "例"],
+      "rows": [
+        ["display", "レイアウトモード", "flex, grid, block"],
+        ["position", "位置指定", "relative, absolute, fixed"],
+        ["gap", "間隔制御", "gap: 1rem"],
+        ["transition", "トランジション", "transition: all 0.3s"],
+        ["transform", "変形効果", "scale, rotate, translate"]
+      ]
+    }
+  ],
+  "relatedTopics": ["レスポンシブデザイン", "アニメーション", "デザインシステム"],
+  "articles": [
+    {
+      "slug": "tailwind",
+      "title": "Tailwind CSS",
+      "description": "Tailwind CSS 設定とベストプラクティス",
+      "priority": "recommended"
+    },
+    {
+      "slug": "responsive",
+      "title": "レスポンシブデザイン",
+      "description": "モバイルファーストとブレイクポイント設計戦略",
+      "priority": "essential"
+    },
+    {
+      "slug": "animation",
+      "title": "CSS アニメーション",
+      "description": "トランジション、キーフレームアニメーションとパフォーマンス最適化",
+      "priority": "important"
+    }
+  ]
+}

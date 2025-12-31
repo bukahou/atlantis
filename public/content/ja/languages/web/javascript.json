@@ -5,11 +5,190 @@
     "description": "JavaScript コア構文、ES6+ 機能と非同期プログラミング",
     "order": 2,
     "tags": [
-      "javascript",
-      "web",
-      "frontend",
-      "dynamic"
+      "JavaScript",
+      "ES6+",
+      "非同期プログラミング"
     ]
   },
-  "content": "<h1>JavaScript 言語基礎</h1>\n<h2>JavaScript 概要</h2>\n<p>JavaScript は Web 開発のコア言語で、オブジェクト指向、関数型、イベント駆動プログラミングパラダイムをサポートし、ブラウザと Node.js 環境で動作します。</p>\n<pre><code>JavaScript の特徴\n├── 動的型付け - 実行時の型チェック\n├── プロトタイプ継承 - プロトタイプベースのオブジェクトシステム\n├── イベント駆動 - 非同期ノンブロッキングモデル\n├── クロスプラットフォーム - ブラウザ + Node.js\n└── 豊富なエコシステム - npm 最大のパッケージエコシステム\n</code></pre>\n<h2>基本構文</h2>\n<h3>変数とデータ型</h3>\n<pre><code class=\"language-javascript\">// 変数宣言\nvar oldStyle = \"使用を避ける\";\nlet mutable = \"可変\";\nconst immutable = \"不変の参照\";\n\n// プリミティブ型\nconst str = \"Hello\";           // String\nconst num = 42;                // Number\nconst bigInt = 9007199254740991n;  // BigInt\nconst bool = true;             // Boolean\nconst undef = undefined;       // Undefined\nconst nul = null;              // Null\nconst sym = Symbol(\"id\");      // Symbol\n\n// typeof チェック\ntypeof str;      // \"string\"\ntypeof num;      // \"number\"\ntypeof bool;     // \"boolean\"\ntypeof undef;    // \"undefined\"\ntypeof nul;      // \"object\" (歴史的な問題)\ntypeof sym;      // \"symbol\"\n\n// 型変換\nString(42);      // \"42\"\nNumber(\"42\");    // 42\nBoolean(0);      // false\nparseInt(\"42px\"); // 42\nparseFloat(\"3.14\"); // 3.14\n</code></pre>\n<h3>文字列</h3>\n<pre><code class=\"language-javascript\">// テンプレート文字列\nconst name = \"World\";\nconst greeting = `Hello, ${name}!`;\nconst multiline = `\n  Line 1\n  Line 2\n`;\n\n// 文字列メソッド\nstr.length;\nstr.charAt(0);\nstr.includes(\"ll\");\nstr.startsWith(\"He\");\nstr.endsWith(\"lo\");\nstr.indexOf(\"l\");\nstr.slice(0, 5);\nstr.split(\",\");\nstr.trim();\nstr.padStart(10, \"0\");\nstr.repeat(3);\nstr.replace(\"old\", \"new\");\nstr.replaceAll(\"a\", \"b\");\nstr.toLowerCase();\nstr.toUpperCase();\n</code></pre>\n<h3>配列</h3>\n<pre><code class=\"language-javascript\">// 配列の作成\nconst arr = [1, 2, 3, 4, 5];\nconst arr2 = Array.from(\"hello\");\nconst arr3 = Array.of(1, 2, 3);\nconst arr4 = new Array(5).fill(0);\n\n// 配列メソッド\narr.push(6);           // 末尾に追加\narr.pop();             // 末尾から削除\narr.unshift(0);        // 先頭に追加\narr.shift();           // 先頭から削除\narr.splice(1, 2);      // 削除/挿入\narr.slice(1, 3);       // スライス\narr.concat([6, 7]);    // 結合\narr.includes(3);       // 含む\narr.indexOf(3);        // インデックス\narr.find(x => x > 2);  // 検索\narr.findIndex(x => x > 2);\n\n// 反復メソッド\narr.forEach(x => console.log(x));\narr.map(x => x * 2);\narr.filter(x => x > 2);\narr.reduce((acc, x) => acc + x, 0);\narr.some(x => x > 3);\narr.every(x => x > 0);\narr.flat();\narr.flatMap(x => [x, x * 2]);\n\n// ソート\narr.sort((a, b) => a - b);\narr.reverse();\n\n// スプレッド演算子\nconst newArr = [...arr, 6, 7];\nconst [first, ...rest] = arr;\n</code></pre>\n<h3>オブジェクト</h3>\n<pre><code class=\"language-javascript\">// オブジェクト作成\nconst obj = {\n    name: \"Alice\",\n    age: 30,\n    greet() {\n        return `Hello, ${this.name}`;\n    }\n};\n\n// プロパティアクセス\nobj.name;\nobj[\"name\"];\nobj?.address?.city;  // オプショナルチェーン\n\n// プロパティ操作\nobj.email = \"alice@example.com\";\ndelete obj.age;\n\"name\" in obj;\nObject.keys(obj);\nObject.values(obj);\nObject.entries(obj);\n\n// オブジェクトメソッド\nObject.assign({}, obj, { age: 31 });\nObject.freeze(obj);     // 変更不可\nObject.seal(obj);       // 追加削除不可\nObject.getOwnPropertyNames(obj);\n\n// スプレッド演算子\nconst newObj = { ...obj, age: 31 };\nconst { name, ...rest } = obj;\n\n// 計算プロパティ名\nconst key = \"dynamicKey\";\nconst dynamic = { [key]: \"value\" };\n\n// 省略記法\nconst x = 1, y = 2;\nconst point = { x, y };  // { x: 1, y: 2 }\n</code></pre>\n<h2>関数</h2>\n<h3>関数宣言</h3>\n<pre><code class=\"language-javascript\">// 関数宣言\nfunction add(a, b) {\n    return a + b;\n}\n\n// 関数式\nconst multiply = function(a, b) {\n    return a * b;\n};\n\n// アロー関数\nconst subtract = (a, b) => a - b;\nconst square = x => x * x;\nconst greet = () => \"Hello\";\n\n// デフォルト引数\nfunction greet(name = \"World\") {\n    return `Hello, ${name}!`;\n}\n\n// 残余引数\nfunction sum(...numbers) {\n    return numbers.reduce((a, b) => a + b, 0);\n}\n\n// 分割代入引数\nfunction createUser({ name, age, role = \"user\" }) {\n    return { name, age, role };\n}\n</code></pre>\n<h3>高階関数</h3>\n<pre><code class=\"language-javascript\">// 関数を引数として\nfunction map(arr, fn) {\n    return arr.map(fn);\n}\n\n// 関数を戻り値として\nfunction multiplier(factor) {\n    return x => x * factor;\n}\n\nconst double = multiplier(2);\ndouble(5);  // 10\n\n// クロージャ\nfunction counter() {\n    let count = 0;\n    return {\n        increment: () => ++count,\n        decrement: () => --count,\n        get: () => count\n    };\n}\n\n// カリー化\nconst curry = fn => a => b => fn(a, b);\nconst curriedAdd = curry((a, b) => a + b);\ncurriedAdd(1)(2);  // 3\n\n// 合成\nconst compose = (...fns) => x =>\n    fns.reduceRight((acc, fn) => fn(acc), x);\n</code></pre>\n<h2>クラスとプロトタイプ</h2>\n<h3>ES6 クラス</h3>\n<pre><code class=\"language-javascript\">class Person {\n    // プライベートフィールド\n    #secret = \"hidden\";\n\n    // 静的プロパティ\n    static count = 0;\n\n    constructor(name, age) {\n        this.name = name;\n        this.age = age;\n        Person.count++;\n    }\n\n    // メソッド\n    greet() {\n        return `Hello, I'm ${this.name}`;\n    }\n\n    // getter/setter\n    get info() {\n        return `${this.name}, ${this.age}`;\n    }\n\n    set info(value) {\n        [this.name, this.age] = value.split(\",\");\n    }\n\n    // 静的メソッド\n    static create(name, age) {\n        return new Person(name, age);\n    }\n}\n\n// 継承\nclass Employee extends Person {\n    constructor(name, age, department) {\n        super(name, age);\n        this.department = department;\n    }\n\n    greet() {\n        return `${super.greet()}, from ${this.department}`;\n    }\n}\n</code></pre>\n<h3>プロトタイプ</h3>\n<pre><code class=\"language-javascript\">// プロトタイプチェーン\nfunction Animal(name) {\n    this.name = name;\n}\n\nAnimal.prototype.speak = function() {\n    console.log(`${this.name} makes a sound`);\n};\n\n// プロトタイプ継承\nfunction Dog(name, breed) {\n    Animal.call(this, name);\n    this.breed = breed;\n}\n\nDog.prototype = Object.create(Animal.prototype);\nDog.prototype.constructor = Dog;\n\n// プロトタイプメソッド\nObject.getPrototypeOf(obj);\nObject.setPrototypeOf(obj, proto);\nobj.hasOwnProperty(\"name\");\n</code></pre>\n<h2>非同期プログラミング</h2>\n<h3>Promise</h3>\n<pre><code class=\"language-javascript\">// Promise の作成\nconst promise = new Promise((resolve, reject) => {\n    setTimeout(() => {\n        resolve(\"Success\");\n        // reject(new Error(\"Failed\"));\n    }, 1000);\n});\n\n// Promise チェーン\npromise\n    .then(result => {\n        console.log(result);\n        return \"Next\";\n    })\n    .then(result => console.log(result))\n    .catch(error => console.error(error))\n    .finally(() => console.log(\"Done\"));\n\n// Promise 静的メソッド\nPromise.all([p1, p2, p3]);        // すべて成功\nPromise.allSettled([p1, p2]);     // すべて完了\nPromise.race([p1, p2]);           // 最初に完了\nPromise.any([p1, p2]);            // 最初に成功\n\n// 解決済み Promise の作成\nPromise.resolve(\"value\");\nPromise.reject(new Error(\"error\"));\n</code></pre>\n<h3>async/await</h3>\n<pre><code class=\"language-javascript\">// async 関数\nasync function fetchData() {\n    try {\n        const response = await fetch(\"/api/data\");\n        const data = await response.json();\n        return data;\n    } catch (error) {\n        console.error(\"Error:\", error);\n        throw error;\n    }\n}\n\n// 並列実行\nasync function parallel() {\n    const [result1, result2] = await Promise.all([\n        fetchData1(),\n        fetchData2()\n    ]);\n    return { result1, result2 };\n}\n\n// 順次実行\nasync function sequential() {\n    const result1 = await fetchData1();\n    const result2 = await fetchData2(result1);\n    return result2;\n}\n\n// エラー処理\nasync function withErrorHandling() {\n    const result = await fetchData().catch(e => null);\n    return result ?? \"default\";\n}\n</code></pre>\n<h3>イベントループ</h3>\n<pre><code class=\"language-javascript\">// マクロタスク vs マイクロタスク\nconsole.log(\"1\");\n\nsetTimeout(() => console.log(\"2\"), 0);  // マクロタスク\n\nPromise.resolve().then(() => console.log(\"3\"));  // マイクロタスク\n\nconsole.log(\"4\");\n\n// 出力: 1, 4, 3, 2\n\n// queueMicrotask\nqueueMicrotask(() => {\n    console.log(\"Microtask\");\n});\n</code></pre>\n<h2>モジュールシステム</h2>\n<h3>ES Modules</h3>\n<pre><code class=\"language-javascript\">// エクスポート\nexport const VERSION = \"1.0.0\";\nexport function helper() { }\nexport class Utils { }\nexport default class App { }\n\n// 名前付きエクスポート\nexport { a, b, c };\nexport { original as renamed };\n\n// インポート\nimport App from \"./app.js\";\nimport { helper, Utils } from \"./utils.js\";\nimport * as Utils from \"./utils.js\";\nimport { original as renamed } from \"./module.js\";\n\n// 動的インポート\nconst module = await import(\"./module.js\");\n\n// 再エクスポート\nexport { default } from \"./module.js\";\nexport * from \"./utils.js\";\n</code></pre>\n<h2>ES6+ 新機能</h2>\n<h3>分割代入</h3>\n<pre><code class=\"language-javascript\">// 配列の分割代入\nconst [a, b, c] = [1, 2, 3];\nconst [first, ...rest] = [1, 2, 3, 4];\nconst [x = 0, y = 0] = [1];\n\n// オブジェクトの分割代入\nconst { name, age } = user;\nconst { name: userName, age: userAge } = user;\nconst { address: { city } = {} } = user;\n\n// 関数引数の分割代入\nfunction process({ name, options = {} }) {\n    console.log(name, options);\n}\n</code></pre>\n<h3>イテレータとジェネレータ</h3>\n<pre><code class=\"language-javascript\">// イテレータ\nconst iterable = {\n    [Symbol.iterator]() {\n        let i = 0;\n        return {\n            next() {\n                return i &#x3C; 3\n                    ? { value: i++, done: false }\n                    : { done: true };\n            }\n        };\n    }\n};\n\n// ジェネレータ\nfunction* generator() {\n    yield 1;\n    yield 2;\n    yield 3;\n}\n\n// 非同期ジェネレータ\nasync function* asyncGenerator() {\n    yield await fetchData1();\n    yield await fetchData2();\n}\n\nfor await (const data of asyncGenerator()) {\n    console.log(data);\n}\n</code></pre>\n<h3>Proxy と Reflect</h3>\n<pre><code class=\"language-javascript\">// Proxy\nconst handler = {\n    get(target, prop) {\n        console.log(`Getting ${prop}`);\n        return target[prop];\n    },\n    set(target, prop, value) {\n        console.log(`Setting ${prop} = ${value}`);\n        target[prop] = value;\n        return true;\n    }\n};\n\nconst proxy = new Proxy({}, handler);\n\n// Reflect\nReflect.get(obj, \"name\");\nReflect.set(obj, \"name\", \"Alice\");\nReflect.has(obj, \"name\");\nReflect.deleteProperty(obj, \"name\");\n</code></pre>\n<h3>その他の機能</h3>\n<pre><code class=\"language-javascript\">// オプショナルチェーン\nobj?.property;\nobj?.[expression];\nobj?.method?.();\n\n// Null 合体演算子\nconst value = null ?? \"default\";\n\n// 論理代入\nx ||= y;  // x = x || y\nx &#x26;&#x26;= y;  // x = x &#x26;&#x26; y\nx ??= y;  // x = x ?? y\n\n// 配列 at()\narr.at(-1);  // 最後の要素\n\n// Object.fromEntries\nObject.fromEntries([[\"a\", 1], [\"b\", 2]]);\n\n// 数値セパレータ\nconst billion = 1_000_000_000;\n</code></pre>\n<h2>まとめ</h2>\n<p>JavaScript のポイント：</p>\n<ol>\n<li><strong>動的型付け</strong> - 柔軟だが型変換に注意</li>\n<li><strong>プロトタイプ継承</strong> - ユニークなオブジェクトシステム</li>\n<li><strong>非同期プログラミング</strong> - Promise + async/await</li>\n<li><strong>関数型</strong> - 高階関数、クロージャ</li>\n<li><strong>継続的進化</strong> - 毎年新機能 (ES6+)</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "JavaScript は Web 開発のコア言語",
+        "動的型付け、プロトタイプ継承",
+        "イベント駆動、非同期ノンブロッキング",
+        "ブラウザ + Node.js クロスプラットフォーム実行"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "基本構文",
+      "language": "javascript",
+      "code": "// 変数宣言\nlet mutable = \"可変\";\nconst immutable = \"不変参照\";\n\n// テンプレート文字列\nconst name = \"World\";\nconst greeting = `Hello, ${name}!`;\n\n// 配列\nconst arr = [1, 2, 3];\narr.map(x => x * 2);\narr.filter(x => x > 1);\narr.reduce((acc, x) => acc + x, 0);\n\n// オブジェクト\nconst obj = { name, age: 30 };\nconst { name: userName } = obj;  // 分割代入"
+    },
+    {
+      "type": "cards",
+      "title": "データ型",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "プリミティブ型",
+          "badge": "Primitive",
+          "badgeColor": "blue",
+          "points": [
+            "string, number",
+            "boolean, null",
+            "undefined, symbol"
+          ]
+        },
+        {
+          "title": "参照型",
+          "badge": "Reference",
+          "badgeColor": "green",
+          "points": [
+            "Object, Array",
+            "Function, Date",
+            "RegExp, Map, Set"
+          ]
+        },
+        {
+          "title": "ES6+ 機能",
+          "badge": "Modern",
+          "badgeColor": "purple",
+          "points": [
+            "let/const",
+            "アロー関数",
+            "分割代入"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "非同期プログラミング",
+      "language": "javascript",
+      "code": "// Promise\nfetch('/api/data')\n    .then(res => res.json())\n    .then(data => console.log(data))\n    .catch(err => console.error(err));\n\n// async/await\nasync function fetchData() {\n    try {\n        const res = await fetch('/api/data');\n        const data = await res.json();\n        return data;\n    } catch (error) {\n        console.error(error);\n    }\n}\n\n// 並列実行\nconst [r1, r2] = await Promise.all([fetch1(), fetch2()]);"
+    },
+    {
+      "type": "comparison",
+      "title": "Promise 静的メソッド",
+      "columns": [
+        {
+          "title": "Promise.all",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "動作",
+              "description": "全て成功で成功"
+            },
+            {
+              "label": "失敗",
+              "description": "一つでも失敗で失敗"
+            }
+          ]
+        },
+        {
+          "title": "Promise.allSettled",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "動作",
+              "description": "全て完了を待つ"
+            },
+            {
+              "label": "戻り値",
+              "description": "各結果のステータス"
+            }
+          ]
+        },
+        {
+          "title": "Promise.race",
+          "color": "from-purple-500 to-pink-500",
+          "items": [
+            {
+              "label": "動作",
+              "description": "最初の完了"
+            },
+            {
+              "label": "用途",
+              "description": "タイムアウト制御"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "ES6+ クラス",
+      "language": "javascript",
+      "code": "class Person {\n    #secret = \"hidden\";  // プライベートフィールド\n    static count = 0;    // 静的プロパティ\n    \n    constructor(name, age) {\n        this.name = name;\n        this.age = age;\n    }\n    \n    greet() {\n        return `Hello, I'm ${this.name}`;\n    }\n    \n    get info() {\n        return `${this.name}, ${this.age}`;\n    }\n}\n\nclass Employee extends Person {\n    constructor(name, age, dept) {\n        super(name, age);\n        this.dept = dept;\n    }\n}"
+    },
+    {
+      "type": "table",
+      "title": "ES6+ 新機能",
+      "highlightFirst": true,
+      "headers": [
+        "機能",
+        "構文",
+        "用途"
+      ],
+      "rows": [
+        [
+          "オプショナルチェーン",
+          "obj?.prop",
+          "安全なアクセス"
+        ],
+        [
+          "Null 合体演算子",
+          "a ?? b",
+          "デフォルト値"
+        ],
+        [
+          "スプレッド演算子",
+          "...arr",
+          "展開/収集"
+        ],
+        [
+          "分割代入",
+          "{ a, b } = obj",
+          "プロパティ抽出"
+        ],
+        [
+          "at()",
+          "arr.at(-1)",
+          "負のインデックス"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        {
+          "label": "const を使用",
+          "description": "const を優先、変更が必要な場合は let"
+        },
+        {
+          "label": "アロー関数",
+          "description": "簡潔な構文、this のバインド"
+        },
+        {
+          "label": "async/await",
+          "description": "Promise チェーンより明確"
+        },
+        {
+          "label": "オプショナルチェーン",
+          "description": "ネストしたプロパティへの安全なアクセス"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "TypeScript",
+    "Node.js",
+    "React"
+  ]
 }

@@ -1,0 +1,103 @@
+{
+  "slug": "rbac",
+  "meta": {
+    "title": "RBAC",
+    "description": "基于角色的访问控制模型",
+    "order": 3,
+    "tags": [
+      "RBAC",
+      "权限",
+      "访问控制"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "RBAC：用户 → 角色 → 权限 的映射关系",
+        "角色是权限的集合，简化权限管理",
+        "支持角色继承和互斥",
+        "RBAC0/1/2/3：不同复杂度的模型"
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "RBAC 模型",
+      "language": "text",
+      "code": "RBAC0 (基础模型)\n┌──────────┐     ┌──────────┐     ┌──────────┐\n│   用户   │────►│   角色   │────►│   权限   │\n└──────────┘     └──────────┘     └──────────┘\n   User            Role           Permission\n\nRBAC1 (角色继承)\n┌──────────┐\n│ 管理员   │\n└────┬─────┘\n     │ 继承\n┌────▼─────┐\n│ 普通用户 │\n└──────────┘\n\nRBAC2 (约束)\n- 互斥角色：不能同时拥有（如：出纳 和 审计）\n- 基数约束：角色最大用户数\n- 先决条件：必须先有 A 角色才能分配 B 角色"
+    },
+    {
+      "type": "codeBlock",
+      "title": "数据库设计",
+      "language": "sql",
+      "code": "-- 用户表\nCREATE TABLE users (\n    id BIGINT PRIMARY KEY,\n    username VARCHAR(50) UNIQUE NOT NULL,\n    email VARCHAR(100) UNIQUE NOT NULL\n);\n\n-- 角色表\nCREATE TABLE roles (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(50) UNIQUE NOT NULL,\n    description TEXT,\n    parent_id BIGINT REFERENCES roles(id)  -- 角色继承\n);\n\n-- 权限表\nCREATE TABLE permissions (\n    id BIGINT PRIMARY KEY,\n    resource VARCHAR(100) NOT NULL,  -- 资源：article, user, order\n    action VARCHAR(50) NOT NULL,     -- 操作：create, read, update, delete\n    UNIQUE(resource, action)\n);\n\n-- 用户-角色关联\nCREATE TABLE user_roles (\n    user_id BIGINT REFERENCES users(id),\n    role_id BIGINT REFERENCES roles(id),\n    PRIMARY KEY (user_id, role_id)\n);\n\n-- 角色-权限关联\nCREATE TABLE role_permissions (\n    role_id BIGINT REFERENCES roles(id),\n    permission_id BIGINT REFERENCES permissions(id),\n    PRIMARY KEY (role_id, permission_id)\n);"
+    },
+    {
+      "type": "codeBlock",
+      "title": "权限检查实现",
+      "language": "typescript",
+      "code": "// 权限服务\nclass PermissionService {\n  constructor(\n    private userRepository: UserRepository,\n    private cache: Cache\n  ) {}\n  \n  // 获取用户所有权限（含角色继承）\n  async getUserPermissions(userId: string): Promise<Set<string>> {\n    const cacheKey = `user:${userId}:permissions`;\n    const cached = await this.cache.get(cacheKey);\n    if (cached) return new Set(JSON.parse(cached));\n    \n    const permissions = await this.userRepository.getUserPermissions(userId);\n    const permSet = new Set(permissions.map(p => `${p.resource}:${p.action}`));\n    \n    await this.cache.set(cacheKey, JSON.stringify([...permSet]), 300);\n    return permSet;\n  }\n  \n  // 检查权限\n  async hasPermission(\n    userId: string,\n    resource: string,\n    action: string\n  ): Promise<boolean> {\n    const permissions = await this.getUserPermissions(userId);\n    return permissions.has(`${resource}:${action}`);\n  }\n}\n\n// 装饰器方式\nfunction RequirePermission(resource: string, action: string) {\n  return function(target: any, key: string, descriptor: PropertyDescriptor) {\n    const original = descriptor.value;\n    descriptor.value = async function(...args: any[]) {\n      const userId = this.context.userId;\n      const hasPermission = await permissionService.hasPermission(\n        userId, resource, action\n      );\n      if (!hasPermission) {\n        throw new ForbiddenError(`No permission: ${resource}:${action}`);\n      }\n      return original.apply(this, args);\n    };\n  };\n}\n\n// 使用\nclass ArticleController {\n  @RequirePermission('article', 'delete')\n  async deleteArticle(id: string) {\n    // 有权限才能执行\n  }\n}"
+    },
+    {
+      "type": "table",
+      "title": "常见权限模型对比",
+      "highlightFirst": true,
+      "headers": [
+        "模型",
+        "特点",
+        "适用场景"
+      ],
+      "rows": [
+        [
+          "ACL",
+          "直接用户-资源权限",
+          "文件系统、简单系统"
+        ],
+        [
+          "RBAC",
+          "用户-角色-权限",
+          "企业应用（主流）"
+        ],
+        [
+          "ABAC",
+          "基于属性的动态规则",
+          "复杂条件访问控制"
+        ],
+        [
+          "ReBAC",
+          "基于关系的权限",
+          "社交应用、协作系统"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "最小权限原则",
+          "description": "只分配必要的权限"
+        },
+        {
+          "label": "权限缓存",
+          "description": "避免每次请求都查询数据库"
+        },
+        {
+          "label": "权限审计",
+          "description": "记录权限变更和访问日志"
+        },
+        {
+          "label": "定期review",
+          "description": "定期审查用户角色分配"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "ABAC",
+    "ACL",
+    "最小权限"
+  ]
+}

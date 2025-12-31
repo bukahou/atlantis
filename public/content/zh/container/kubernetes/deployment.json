@@ -1,14 +1,238 @@
 {
   "slug": "deployment",
   "meta": {
-    "title": "Kubernetes Deployment 详解",
-    "description": "Deployment 配置、更新策略与滚动发布实践",
+    "title": "Deployment 部署",
+    "description": "声明式部署、滚动更新与回滚",
     "order": 3,
     "tags": [
-      "kubernetes",
-      "deployment",
-      "rolling-update"
+      "Kubernetes",
+      "Deployment",
+      "部署"
     ]
   },
-  "content": "<h1>Kubernetes Deployment 详解</h1>\n<h2>Deployment 概念</h2>\n<p>Deployment 是管理 ReplicaSet 和 Pod 的高级控制器，提供声明式更新、滚动发布和回滚能力。</p>\n<pre><code>Deployment 层级关系\n┌─────────────────────────────────────────┐\n│ Deployment                              │\n│   replicas: 3                           │\n│   strategy: RollingUpdate               │\n│                                         │\n│   ┌─────────────────────────────────┐   │\n│   │ ReplicaSet (current)            │   │\n│   │   replicas: 3                   │   │\n│   │   ┌─────┐ ┌─────┐ ┌─────┐       │   │\n│   │   │Pod 1│ │Pod 2│ │Pod 3│       │   │\n│   │   └─────┘ └─────┘ └─────┘       │   │\n│   └─────────────────────────────────┘   │\n└─────────────────────────────────────────┘\n</code></pre>\n<h2>基础配置</h2>\n<h3>完整示例</h3>\n<pre><code class=\"language-yaml\">apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp\n  namespace: production\n  labels:\n    app: webapp\nspec:\n  replicas: 3\n\n  # Pod 选择器\n  selector:\n    matchLabels:\n      app: webapp\n\n  # 更新策略\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1        # 最多超出期望数\n      maxUnavailable: 0  # 最多不可用数\n\n  # 最小就绪时间\n  minReadySeconds: 10\n\n  # 历史版本保留数\n  revisionHistoryLimit: 10\n\n  # Pod 模板\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: v1\n      annotations:\n        prometheus.io/scrape: \"true\"\n        prometheus.io/port: \"9090\"\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n          ports:\n            - name: http\n              containerPort: 8080\n\n          env:\n            - name: ENV\n              value: production\n            - name: DB_HOST\n              valueFrom:\n                configMapKeyRef:\n                  name: app-config\n                  key: db_host\n\n          resources:\n            requests:\n              cpu: 100m\n              memory: 128Mi\n            limits:\n              cpu: 500m\n              memory: 256Mi\n\n          livenessProbe:\n            httpGet:\n              path: /health\n              port: 8080\n            initialDelaySeconds: 15\n            periodSeconds: 10\n\n          readinessProbe:\n            httpGet:\n              path: /ready\n              port: 8080\n            initialDelaySeconds: 5\n            periodSeconds: 5\n\n          volumeMounts:\n            - name: config\n              mountPath: /etc/app/config\n\n      volumes:\n        - name: config\n          configMap:\n            name: app-config\n\n      # 调度约束\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n            - weight: 100\n              podAffinityTerm:\n                labelSelector:\n                  matchLabels:\n                    app: webapp\n                topologyKey: kubernetes.io/hostname\n</code></pre>\n<h2>更新策略</h2>\n<h3>RollingUpdate (滚动更新)</h3>\n<pre><code class=\"language-yaml\">spec:\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 25%        # 或具体数值如 1\n      maxUnavailable: 25%  # 或具体数值如 0\n</code></pre>\n<pre><code>滚动更新过程 (replicas=3, maxSurge=1, maxUnavailable=0)\n\n初始状态:\n  RS-old: [v1] [v1] [v1]  (3 pods)\n  RS-new: []              (0 pods)\n\nStep 1 - 创建新 Pod:\n  RS-old: [v1] [v1] [v1]  (3 pods)\n  RS-new: [v2]            (1 pod) ← 新建\n\nStep 2 - 新 Pod 就绪后删除旧 Pod:\n  RS-old: [v1] [v1]       (2 pods) ← 删除1个\n  RS-new: [v2] [v2]       (2 pods) ← 新建1个\n\nStep 3 - 继续:\n  RS-old: [v1]            (1 pod)\n  RS-new: [v2] [v2] [v2]  (3 pods)\n\nStep 4 - 完成:\n  RS-old: []              (0 pods)\n  RS-new: [v2] [v2] [v2]  (3 pods)\n</code></pre>\n<h3>Recreate (重建)</h3>\n<pre><code class=\"language-yaml\">spec:\n  strategy:\n    type: Recreate\n</code></pre>\n<pre><code>重建过程 (先删除所有旧 Pod，再创建新 Pod)\n\nStep 1: [v1] [v1] [v1] → 删除全部\nStep 2: [] → 等待删除完成\nStep 3: [v2] [v2] [v2] → 创建新版本\n\n⚠️ 会导致服务中断，适用于不能多版本并存的场景\n</code></pre>\n<h2>滚动更新实战</h2>\n<h3>触发更新</h3>\n<pre><code class=\"language-bash\"># 方式1: 修改镜像\nkubectl set image deployment/webapp webapp=myapp:2.0.0\n\n# 方式2: 编辑 Deployment\nkubectl edit deployment webapp\n\n# 方式3: 应用新配置\nkubectl apply -f deployment.yaml\n\n# 方式4: 使用 patch\nkubectl patch deployment webapp -p \\\n  '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"webapp\",\"image\":\"myapp:2.0.0\"}]}}}}'\n</code></pre>\n<h3>监控更新过程</h3>\n<pre><code class=\"language-bash\"># 查看更新状态\nkubectl rollout status deployment/webapp\n\n# 查看更新历史\nkubectl rollout history deployment/webapp\nkubectl rollout history deployment/webapp --revision=2\n\n# 暂停更新\nkubectl rollout pause deployment/webapp\n\n# 恢复更新\nkubectl rollout resume deployment/webapp\n</code></pre>\n<h3>回滚</h3>\n<pre><code class=\"language-bash\"># 回滚到上一版本\nkubectl rollout undo deployment/webapp\n\n# 回滚到指定版本\nkubectl rollout undo deployment/webapp --to-revision=2\n\n# 回滚前查看版本差异\nkubectl rollout history deployment/webapp --revision=3\n</code></pre>\n<h2>扩缩容</h2>\n<h3>手动扩缩容</h3>\n<pre><code class=\"language-bash\"># 扩容\nkubectl scale deployment webapp --replicas=5\n\n# 缩容\nkubectl scale deployment webapp --replicas=2\n\n# 条件扩缩容\nkubectl scale deployment webapp --replicas=5 --current-replicas=3\n</code></pre>\n<h3>HPA 自动扩缩容</h3>\n<pre><code class=\"language-yaml\">apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: webapp-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: webapp\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    # CPU 使用率\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 70\n    # 内存使用率\n    - type: Resource\n      resource:\n        name: memory\n        target:\n          type: Utilization\n          averageUtilization: 80\n    # 自定义指标\n    - type: Pods\n      pods:\n        metric:\n          name: requests_per_second\n        target:\n          type: AverageValue\n          averageValue: 1000\n  behavior:\n    scaleDown:\n      stabilizationWindowSeconds: 300\n      policies:\n        - type: Percent\n          value: 10\n          periodSeconds: 60\n    scaleUp:\n      stabilizationWindowSeconds: 0\n      policies:\n        - type: Percent\n          value: 100\n          periodSeconds: 15\n        - type: Pods\n          value: 4\n          periodSeconds: 15\n      selectPolicy: Max\n</code></pre>\n<pre><code class=\"language-bash\"># 创建 HPA (简化方式)\nkubectl autoscale deployment webapp --min=2 --max=10 --cpu-percent=70\n\n# 查看 HPA\nkubectl get hpa\nkubectl describe hpa webapp-hpa\n</code></pre>\n<h2>蓝绿部署</h2>\n<pre><code class=\"language-yaml\"># Blue Deployment (当前版本)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-blue\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: webapp\n      version: blue\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: blue\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n---\n# Green Deployment (新版本)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-green\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: webapp\n      version: green\n  template:\n    metadata:\n      labels:\n        app: webapp\n        version: green\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:2.0.0\n---\n# Service 切换流量\napiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp\n    version: blue  # 切换到 green 即可完成发布\n  ports:\n    - port: 80\n      targetPort: 8080\n</code></pre>\n<pre><code class=\"language-bash\"># 切换流量到 green\nkubectl patch service webapp -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'\n\n# 验证后删除 blue\nkubectl delete deployment webapp-blue\n</code></pre>\n<h2>金丝雀发布</h2>\n<pre><code class=\"language-yaml\"># 主 Deployment (90% 流量)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-stable\nspec:\n  replicas: 9\n  selector:\n    matchLabels:\n      app: webapp\n      track: stable\n  template:\n    metadata:\n      labels:\n        app: webapp\n        track: stable\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:1.0.0\n---\n# 金丝雀 Deployment (10% 流量)\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: webapp-canary\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: webapp\n      track: canary\n  template:\n    metadata:\n      labels:\n        app: webapp\n        track: canary\n    spec:\n      containers:\n        - name: webapp\n          image: myapp:2.0.0\n---\n# Service 同时路由到两个版本\napiVersion: v1\nkind: Service\nmetadata:\n  name: webapp\nspec:\n  selector:\n    app: webapp  # 匹配所有 track\n  ports:\n    - port: 80\n      targetPort: 8080\n</code></pre>\n<h2>ConfigMap 和 Secret 更新</h2>\n<h3>自动触发更新</h3>\n<pre><code class=\"language-yaml\">spec:\n  template:\n    metadata:\n      annotations:\n        # 改变此值会触发重新部署\n        configmap-version: \"v2\"\n        # 或使用 checksum\n        checksum/config: \"abc123...\"\n</code></pre>\n<h3>使用 Reloader</h3>\n<pre><code class=\"language-yaml\">metadata:\n  annotations:\n    reloader.stakater.com/auto: \"true\"\n</code></pre>\n<h2>常用命令</h2>\n<pre><code class=\"language-bash\"># 创建\nkubectl apply -f deployment.yaml\nkubectl create deployment nginx --image=nginx --replicas=3\n\n# 查看\nkubectl get deployments\nkubectl get deploy webapp -o yaml\nkubectl describe deploy webapp\n\n# 查看 ReplicaSet\nkubectl get rs\nkubectl describe rs webapp-xxx\n\n# 更新\nkubectl set image deploy/webapp webapp=myapp:2.0\nkubectl set env deploy/webapp ENV=staging\nkubectl set resources deploy/webapp -c=webapp --limits=cpu=500m\n\n# 扩缩容\nkubectl scale deploy/webapp --replicas=5\n\n# 回滚\nkubectl rollout undo deploy/webapp\nkubectl rollout history deploy/webapp\n\n# 重启 (触发滚动更新)\nkubectl rollout restart deploy/webapp\n\n# 删除\nkubectl delete deploy webapp\n</code></pre>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>设置资源限制</strong> - 确保 requests 和 limits</li>\n<li><strong>配置健康检查</strong> - livenessProbe 和 readinessProbe</li>\n<li><strong>使用 Pod 反亲和</strong> - 分散 Pod 到不同节点</li>\n<li><strong>保留足够历史版本</strong> - revisionHistoryLimit</li>\n<li><strong>设置 minReadySeconds</strong> - 确保新 Pod 稳定后再继续</li>\n<li><strong>使用 PodDisruptionBudget</strong> - 保证最小可用数</li>\n<li><strong>版本化镜像标签</strong> - 避免使用 latest</li>\n<li><strong>使用 HPA</strong> - 根据负载自动扩缩容</li>\n</ol>\n<pre><code class=\"language-yaml\"># PodDisruptionBudget 示例\napiVersion: policy/v1\nkind: PodDisruptionBudget\nmetadata:\n  name: webapp-pdb\nspec:\n  minAvailable: 2  # 或 maxUnavailable: 1\n  selector:\n    matchLabels:\n      app: webapp\n</code></pre>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Deployment 管理 Pod 的副本和更新",
+        "声明式配置，自动调谐到期望状态",
+        "支持滚动更新和回滚",
+        "通过 ReplicaSet 实现副本管理"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Deployment",
+      "content": "Deployment 是 Kubernetes 中最常用的工作负载控制器，它提供声明式的 Pod 更新能力。你只需要描述期望的状态，Deployment Controller 会自动将实际状态调谐到期望状态，支持滚动更新、回滚等高级特性。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Deployment 配置示例",
+      "language": "yaml",
+      "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1        # 最多超出期望副本数\n      maxUnavailable: 0  # 最多不可用副本数\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n      - name: web\n        image: nginx:1.24\n        ports:\n        - containerPort: 80\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 200m\n            memory: 256Mi"
+    },
+    {
+      "type": "flow",
+      "title": "滚动更新过程",
+      "subtitle": "逐步替换旧 Pod",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "v1: 3 Pods",
+          "description": "当前状态",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "v2: 1 Pod",
+          "description": "创建新版本",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "v1: 2 + v2: 1",
+          "description": "逐步替换",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "v1: 1 + v2: 2",
+          "description": "继续替换",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "v2: 3 Pods",
+          "description": "完成更新",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "更新策略",
+      "columns": [
+        {
+          "title": "RollingUpdate",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "逐步更新"
+            },
+            {
+              "label": "中断",
+              "description": "零停机"
+            },
+            {
+              "label": "参数",
+              "description": "maxSurge, maxUnavailable"
+            },
+            {
+              "label": "推荐",
+              "description": "生产环境首选"
+            }
+          ]
+        },
+        {
+          "title": "Recreate",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "方式",
+              "description": "先删后建"
+            },
+            {
+              "label": "中断",
+              "description": "有停机时间"
+            },
+            {
+              "label": "参数",
+              "description": "无"
+            },
+            {
+              "label": "推荐",
+              "description": "不支持多版本共存"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Deployment 操作命令",
+      "highlightFirst": true,
+      "headers": [
+        "命令",
+        "说明"
+      ],
+      "rows": [
+        [
+          "kubectl apply -f deployment.yaml",
+          "创建/更新 Deployment"
+        ],
+        [
+          "kubectl scale deploy/web --replicas=5",
+          "扩缩容"
+        ],
+        [
+          "kubectl set image deploy/web web=nginx:1.25",
+          "更新镜像"
+        ],
+        [
+          "kubectl rollout status deploy/web",
+          "查看更新状态"
+        ],
+        [
+          "kubectl rollout history deploy/web",
+          "查看更新历史"
+        ],
+        [
+          "kubectl rollout undo deploy/web",
+          "回滚到上一版本"
+        ],
+        [
+          "kubectl rollout undo deploy/web --to-revision=2",
+          "回滚到指定版本"
+        ]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "关键配置",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "副本管理",
+          "badge": "Replicas",
+          "badgeColor": "blue",
+          "points": [
+            "replicas - 期望副本数",
+            "kubectl scale 动态调整",
+            "HPA 自动扩缩容"
+          ]
+        },
+        {
+          "title": "更新策略",
+          "badge": "Strategy",
+          "badgeColor": "green",
+          "points": [
+            "maxSurge - 最大超额",
+            "maxUnavailable - 最大不可用",
+            "minReadySeconds - 就绪等待"
+          ]
+        },
+        {
+          "title": "回滚机制",
+          "badge": "Rollback",
+          "badgeColor": "amber",
+          "points": [
+            "revisionHistoryLimit - 历史版本数",
+            "rollout undo - 快速回滚",
+            "自动保存 ReplicaSet"
+          ]
+        },
+        {
+          "title": "标签选择",
+          "badge": "Selector",
+          "badgeColor": "purple",
+          "points": [
+            "matchLabels - 精确匹配",
+            "matchExpressions - 表达式",
+            "不可变，创建后无法修改"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "设置资源配额",
+          "description": "为所有容器配置 requests 和 limits"
+        },
+        {
+          "label": "配置健康检查",
+          "description": "确保新 Pod 就绪后才接收流量"
+        },
+        {
+          "label": "保留更新历史",
+          "description": "设置合适的 revisionHistoryLimit"
+        },
+        {
+          "label": "使用金丝雀发布",
+          "description": "配合 Service 实现流量灰度"
+        },
+        {
+          "label": "监控更新过程",
+          "description": "使用 kubectl rollout status 跟踪"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "ReplicaSet",
+    "HPA",
+    "Service"
+  ]
 }

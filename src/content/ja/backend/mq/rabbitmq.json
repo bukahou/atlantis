@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "title": "RabbitMQ",
+    "description": "信頼性の高いメッセージブローカー",
+    "order": 2,
+    "tags": ["メッセージキュー", "RabbitMQ", "AMQP"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "コアコンセプト",
+      "items": [
+        "RabbitMQ は AMQP プロトコルを実装",
+        "Exchange がメッセージを Queue にルーティング",
+        "柔軟なルーティングルール",
+        "メッセージ確認と永続化をサポート"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Exchange タイプ",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Direct",
+          "badge": "ダイレクト",
+          "badgeColor": "blue",
+          "points": [
+            "routing key の完全一致",
+            "一対一ルーティング",
+            "最もシンプルなモード"
+          ]
+        },
+        {
+          "title": "Fanout",
+          "badge": "ブロードキャスト",
+          "badgeColor": "green",
+          "points": [
+            "routing key を無視",
+            "バインドされた全キューにブロードキャスト",
+            "Pub/Sub パターン"
+          ]
+        },
+        {
+          "title": "Topic",
+          "badge": "トピック",
+          "badgeColor": "amber",
+          "points": [
+            "ワイルドカードマッチ",
+            "* は1ワードにマッチ",
+            "# は複数ワードにマッチ"
+          ]
+        },
+        {
+          "title": "Headers",
+          "badge": "ヘッダー",
+          "badgeColor": "purple",
+          "points": [
+            "メッセージヘッダー属性に基づく",
+            "routing key を使用しない",
+            "複雑なマッチングルール"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "メッセージフロー",
+      "direction": "horizontal",
+      "steps": [
+        { "label": "Producer", "description": "メッセージ送信", "color": "bg-blue-500" },
+        { "label": "Exchange", "description": "メッセージルーティング", "color": "bg-purple-500" },
+        { "label": "Queue", "description": "メッセージ保存", "color": "bg-cyan-500" },
+        { "label": "Consumer", "description": "メッセージ消費", "color": "bg-green-500" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "信頼性保証",
+      "highlightFirst": true,
+      "headers": ["メカニズム", "説明"],
+      "rows": [
+        ["永続化", "Exchange/Queue/Message すべて永続化可能"],
+        ["パブリッシャー確認", "Publisher Confirms で Broker 到達を確認"],
+        ["コンシューマー確認", "Consumer Ack で処理完了を確認"],
+        ["デッドレターキュー", "処理失敗メッセージのフォールバックキュー"]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "ベストプラクティス",
+      "style": "check",
+      "items": [
+        { "label": "永続化を有効化", "description": "Queue と Message 両方に永続化を設定" },
+        { "label": "手動確認", "description": "処理完了後に Ack、メッセージロスを回避" },
+        { "label": "デッドレターキュー", "description": "DLX を設定して失敗メッセージを処理" },
+        { "label": "コネクションプール", "description": "接続とチャンネルを再利用し、オーバーヘッドを削減" }
+      ]
+    }
+  ],
+  "relatedTopics": ["メッセージキュー", "AMQP", "マイクロサービス"]
+}

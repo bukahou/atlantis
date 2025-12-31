@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "认证授权",
+    "description": "OAuth 2.0、JWT 与 RBAC 访问控制",
+    "icon": "key"
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "认证（Authentication）：验证用户身份",
+        "授权（Authorization）：验证访问权限",
+        "OAuth 2.0：第三方授权协议",
+        "RBAC：基于角色的访问控制"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "概述",
+      "content": "认证确认用户是谁，授权确认用户能做什么。OAuth 2.0 是目前最流行的授权框架，JWT 是常用的令牌格式，RBAC 是企业常用的权限管理模型。安全的认证授权系统是应用安全的第一道防线。"
+    },
+    {
+      "type": "comparison",
+      "title": "认证方式对比",
+      "columns": [
+        {
+          "title": "Session",
+          "color": "from-gray-500 to-slate-500",
+          "items": [
+            { "label": "存储", "description": "服务端存储会话" },
+            { "label": "优点", "description": "可控、易撤销" },
+            { "label": "缺点", "description": "扩展困难" }
+          ]
+        },
+        {
+          "title": "JWT",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            { "label": "存储", "description": "客户端存储令牌" },
+            { "label": "优点", "description": "无状态、易扩展" },
+            { "label": "缺点", "description": "撤销困难" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "JWT 结构",
+      "language": "text",
+      "code": "Header.Payload.Signature\n\n// Header (算法和类型)\n{\n  \"alg\": \"HS256\",\n  \"typ\": \"JWT\"\n}\n\n// Payload (声明)\n{\n  \"sub\": \"1234567890\",\n  \"name\": \"John Doe\",\n  \"exp\": 1516239022\n}\n\n// Signature (签名)\nHMACSHA256(base64(header) + \".\" + base64(payload), secret)"
+    },
+    {
+      "type": "table",
+      "title": "OAuth 2.0 授权模式",
+      "highlightFirst": true,
+      "headers": ["模式", "适用场景", "安全级别"],
+      "rows": [
+        ["授权码模式", "Web 应用", "高"],
+        ["授权码 + PKCE", "移动/SPA 应用", "高"],
+        ["客户端凭证", "服务间通信", "中"],
+        ["隐式模式", "已废弃", "低"]
+      ]
+    }
+  ],
+  "relatedTopics": ["OAuth", "OIDC", "SSO"],
+  "articles": [
+    {
+      "slug": "oauth",
+      "title": "OAuth 2.0",
+      "description": "授权码模式、PKCE 与最佳实践",
+      "priority": "essential"
+    },
+    {
+      "slug": "jwt",
+      "title": "JWT",
+      "description": "令牌结构、签名与安全使用",
+      "priority": "essential"
+    },
+    {
+      "slug": "rbac",
+      "title": "RBAC",
+      "description": "基于角色的访问控制模型",
+      "priority": "recommended"
+    }
+  ]
+}

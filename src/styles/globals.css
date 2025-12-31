@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -7,13 +10,11 @@
   --border-color: #e2e8f0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --sidebar-bg: #1a1a1a;
-    --border-color: #2d2d2d;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --sidebar-bg: #1a1a1a;
+  --border-color: #2d2d2d;
 }
 
 body {
@@ -41,13 +42,11 @@ body {
   background: #94a3b8;
 }
 
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: #475569;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-  }
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Article content styles */
@@ -113,10 +112,8 @@ body {
   font-size: 0.875em;
 }
 
-@media (prefers-color-scheme: dark) {
-  .article-content :not(pre) > code {
-    background: #334155;
-  }
+.dark .article-content :not(pre) > code {
+  background: #334155;
 }
 
 .article-content table {
@@ -137,10 +134,8 @@ body {
   font-weight: 600;
 }
 
-@media (prefers-color-scheme: dark) {
-  .article-content th {
-    background: #1e293b;
-  }
+.dark .article-content th {
+  background: #1e293b;
 }
 
 .article-content blockquote {

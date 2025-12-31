@@ -1,14 +1,235 @@
 {
   "slug": "pod",
   "meta": {
-    "title": "Kubernetes Pod 详解",
-    "description": "Pod 概念、生命周期、配置与最佳实践",
+    "title": "Pod 详解",
+    "description": "Pod 的生命周期、配置与调度策略",
     "order": 1,
     "tags": [
-      "kubernetes",
-      "pod",
-      "container"
+      "Kubernetes",
+      "Pod",
+      "容器"
     ]
   },
-  "content": "<h1>Kubernetes Pod 详解</h1>\n<h2>Pod 概念</h2>\n<p>Pod 是 Kubernetes 中最小的可部署单元，包含一个或多个容器，共享网络和存储资源。</p>\n<pre><code>Pod 结构\n┌─────────────────────────────────────────┐\n│ Pod                                     │\n│  ┌─────────────┐  ┌─────────────┐       │\n│  │ Container 1 │  │ Container 2 │       │\n│  │  (App)      │  │  (Sidecar)  │       │\n│  └──────┬──────┘  └──────┬──────┘       │\n│         │                │              │\n│  ┌──────┴────────────────┴──────┐       │\n│  │     Shared Network (localhost)│       │\n│  │     Shared Volumes            │       │\n│  └───────────────────────────────┘       │\n│                                         │\n│  IP: 10.244.1.5                         │\n└─────────────────────────────────────────┘\n</code></pre>\n<h2>Pod 基础配置</h2>\n<h3>最简单的 Pod</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx-pod\n  labels:\n    app: nginx\nspec:\n  containers:\n    - name: nginx\n      image: nginx:1.25\n      ports:\n        - containerPort: 80\n</code></pre>\n<h3>完整配置示例</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: webapp\n  namespace: production\n  labels:\n    app: webapp\n    version: v1\n  annotations:\n    description: \"Web application pod\"\nspec:\n  # 容器配置\n  containers:\n    - name: webapp\n      image: myapp:1.0\n      ports:\n        - name: http\n          containerPort: 8080\n          protocol: TCP\n\n      # 环境变量\n      env:\n        - name: DB_HOST\n          value: \"mysql.default.svc.cluster.local\"\n        - name: DB_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: db-secret\n              key: password\n        - name: POD_NAME\n          valueFrom:\n            fieldRef:\n              fieldPath: metadata.name\n\n      # 资源限制\n      resources:\n        requests:\n          memory: \"128Mi\"\n          cpu: \"100m\"\n        limits:\n          memory: \"256Mi\"\n          cpu: \"500m\"\n\n      # 探针配置\n      livenessProbe:\n        httpGet:\n          path: /health\n          port: 8080\n        initialDelaySeconds: 15\n        periodSeconds: 10\n\n      readinessProbe:\n        httpGet:\n          path: /ready\n          port: 8080\n        initialDelaySeconds: 5\n        periodSeconds: 5\n\n      # 卷挂载\n      volumeMounts:\n        - name: config-volume\n          mountPath: /etc/config\n        - name: data-volume\n          mountPath: /data\n\n  # 卷定义\n  volumes:\n    - name: config-volume\n      configMap:\n        name: app-config\n    - name: data-volume\n      persistentVolumeClaim:\n        claimName: app-pvc\n\n  # 调度配置\n  nodeSelector:\n    disktype: ssd\n\n  # 重启策略\n  restartPolicy: Always\n\n  # 服务账号\n  serviceAccountName: webapp-sa\n</code></pre>\n<h2>Pod 生命周期</h2>\n<h3>生命周期阶段</h3>\n<pre><code>Pod Phases\n├── Pending   - 等待调度或拉取镜像\n├── Running   - 至少一个容器运行中\n├── Succeeded - 所有容器成功终止\n├── Failed    - 至少一个容器失败\n└── Unknown   - 无法获取状态\n</code></pre>\n<h3>容器状态</h3>\n<pre><code class=\"language-yaml\"># 查看容器状态\nkubectl get pod webapp -o jsonpath='{.status.containerStatuses[*]}'\n</code></pre>\n<pre><code>Container States\n├── Waiting    - 等待启动\n│   └── reason: ContainerCreating, ImagePullBackOff, CrashLoopBackOff\n├── Running    - 正在运行\n│   └── startedAt: 2024-01-01T00:00:00Z\n└── Terminated - 已终止\n    └── reason: Completed, Error, OOMKilled\n</code></pre>\n<h3>生命周期钩子</h3>\n<pre><code class=\"language-yaml\">spec:\n  containers:\n    - name: app\n      image: myapp:1.0\n      lifecycle:\n        postStart:\n          exec:\n            command: [\"/bin/sh\", \"-c\", \"echo 'Started' >> /var/log/app.log\"]\n        preStop:\n          httpGet:\n            path: /shutdown\n            port: 8080\n          # 或执行命令\n          # exec:\n          #   command: [\"/bin/sh\", \"-c\", \"nginx -s quit\"]\n</code></pre>\n<h2>探针详解</h2>\n<h3>三种探针类型</h3>\n<pre><code class=\"language-yaml\">spec:\n  containers:\n    - name: app\n      image: myapp:1.0\n\n      # 存活探针 - 检测容器是否运行\n      livenessProbe:\n        httpGet:\n          path: /healthz\n          port: 8080\n          httpHeaders:\n            - name: X-Custom-Header\n              value: Awesome\n        initialDelaySeconds: 15\n        periodSeconds: 10\n        timeoutSeconds: 3\n        failureThreshold: 3\n        successThreshold: 1\n\n      # 就绪探针 - 检测是否可以接收流量\n      readinessProbe:\n        tcpSocket:\n          port: 8080\n        initialDelaySeconds: 5\n        periodSeconds: 5\n\n      # 启动探针 - 检测应用是否启动完成\n      startupProbe:\n        exec:\n          command:\n            - cat\n            - /tmp/healthy\n        initialDelaySeconds: 0\n        periodSeconds: 5\n        failureThreshold: 30  # 允许 150 秒启动时间\n</code></pre>\n<h3>探针配置参数</h3>\n<table>\n<thead>\n<tr>\n<th>参数</th>\n<th>说明</th>\n<th>默认值</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>initialDelaySeconds</code></td>\n<td>首次探测前等待时间</td>\n<td>0</td>\n</tr>\n<tr>\n<td><code>periodSeconds</code></td>\n<td>探测间隔</td>\n<td>10</td>\n</tr>\n<tr>\n<td><code>timeoutSeconds</code></td>\n<td>探测超时时间</td>\n<td>1</td>\n</tr>\n<tr>\n<td><code>successThreshold</code></td>\n<td>成功阈值</td>\n<td>1</td>\n</tr>\n<tr>\n<td><code>failureThreshold</code></td>\n<td>失败阈值</td>\n<td>3</td>\n</tr>\n</tbody>\n</table>\n<h2>多容器 Pod 模式</h2>\n<h3>Sidecar 模式</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-with-sidecar\nspec:\n  containers:\n    # 主容器\n    - name: app\n      image: myapp:1.0\n      volumeMounts:\n        - name: logs\n          mountPath: /var/log/app\n\n    # Sidecar: 日志收集\n    - name: log-collector\n      image: fluentd:latest\n      volumeMounts:\n        - name: logs\n          mountPath: /var/log/app\n          readOnly: true\n\n  volumes:\n    - name: logs\n      emptyDir: {}\n</code></pre>\n<h3>Ambassador 模式</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-with-ambassador\nspec:\n  containers:\n    # 主容器\n    - name: app\n      image: myapp:1.0\n      env:\n        - name: DB_HOST\n          value: \"localhost\"\n        - name: DB_PORT\n          value: \"5432\"\n\n    # Ambassador: 数据库代理\n    - name: db-proxy\n      image: cloudproxy:latest\n      ports:\n        - containerPort: 5432\n      env:\n        - name: DB_INSTANCE\n          value: \"project:region:instance\"\n</code></pre>\n<h3>Adapter 模式</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-with-adapter\nspec:\n  containers:\n    # 主容器 - 输出非标准格式\n    - name: app\n      image: legacy-app:1.0\n      volumeMounts:\n        - name: logs\n          mountPath: /var/log\n\n    # Adapter: 格式转换\n    - name: log-adapter\n      image: log-transformer:latest\n      volumeMounts:\n        - name: logs\n          mountPath: /var/log\n          readOnly: true\n      ports:\n        - containerPort: 9090  # Prometheus metrics\n\n  volumes:\n    - name: logs\n      emptyDir: {}\n</code></pre>\n<h2>Init Containers</h2>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-with-init\nspec:\n  # Init 容器按顺序执行\n  initContainers:\n    # 1. 等待数据库就绪\n    - name: wait-for-db\n      image: busybox:1.36\n      command: ['sh', '-c',\n        'until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done']\n\n    # 2. 初始化配置\n    - name: init-config\n      image: busybox:1.36\n      command: ['sh', '-c', 'cp /config-template/* /config/']\n      volumeMounts:\n        - name: config-template\n          mountPath: /config-template\n        - name: config\n          mountPath: /config\n\n    # 3. 数据库迁移\n    - name: db-migrate\n      image: myapp:1.0\n      command: ['./migrate', '--up']\n      env:\n        - name: DB_HOST\n          value: mysql\n\n  # 主容器\n  containers:\n    - name: app\n      image: myapp:1.0\n      volumeMounts:\n        - name: config\n          mountPath: /etc/app\n\n  volumes:\n    - name: config-template\n      configMap:\n        name: app-config\n    - name: config\n      emptyDir: {}\n</code></pre>\n<h2>资源管理</h2>\n<h3>CPU 和内存</h3>\n<pre><code class=\"language-yaml\">spec:\n  containers:\n    - name: app\n      image: myapp:1.0\n      resources:\n        # 请求量 - 调度依据\n        requests:\n          memory: \"256Mi\"\n          cpu: \"250m\"      # 0.25 核\n        # 限制量 - 硬性上限\n        limits:\n          memory: \"512Mi\"\n          cpu: \"1\"         # 1 核\n</code></pre>\n<h3>QoS 类别</h3>\n<pre><code>QoS Classes (服务质量)\n├── Guaranteed - requests = limits (优先保障)\n├── Burstable  - requests &#x3C; limits (弹性)\n└── BestEffort - 无资源配置 (尽力而为，最先被驱逐)\n</code></pre>\n<h3>资源配额</h3>\n<pre><code class=\"language-yaml\">apiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: pod-quota\n  namespace: production\nspec:\n  hard:\n    pods: \"10\"\n    requests.cpu: \"4\"\n    requests.memory: \"8Gi\"\n    limits.cpu: \"8\"\n    limits.memory: \"16Gi\"\n</code></pre>\n<h2>调度控制</h2>\n<h3>Node Selector</h3>\n<pre><code class=\"language-yaml\">spec:\n  nodeSelector:\n    disktype: ssd\n    zone: asia-northeast1-a\n</code></pre>\n<h3>Node Affinity</h3>\n<pre><code class=\"language-yaml\">spec:\n  affinity:\n    nodeAffinity:\n      # 硬性要求\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: kubernetes.io/arch\n                operator: In\n                values:\n                  - amd64\n                  - arm64\n      # 软性偏好\n      preferredDuringSchedulingIgnoredDuringExecution:\n        - weight: 100\n          preference:\n            matchExpressions:\n              - key: disktype\n                operator: In\n                values:\n                  - ssd\n</code></pre>\n<h3>Pod Affinity / Anti-Affinity</h3>\n<pre><code class=\"language-yaml\">spec:\n  affinity:\n    # Pod 亲和性 - 与特定 Pod 同节点\n    podAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        - labelSelector:\n            matchLabels:\n              app: cache\n          topologyKey: kubernetes.io/hostname\n\n    # Pod 反亲和性 - 避免与特定 Pod 同节点\n    podAntiAffinity:\n      preferredDuringSchedulingIgnoredDuringExecution:\n        - weight: 100\n          podAffinityTerm:\n            labelSelector:\n              matchLabels:\n                app: webapp\n            topologyKey: kubernetes.io/hostname\n</code></pre>\n<h3>Taints 和 Tolerations</h3>\n<pre><code class=\"language-bash\"># 给节点添加污点\nkubectl taint nodes node1 dedicated=gpu:NoSchedule\n</code></pre>\n<pre><code class=\"language-yaml\">spec:\n  # 容忍污点\n  tolerations:\n    - key: \"dedicated\"\n      operator: \"Equal\"\n      value: \"gpu\"\n      effect: \"NoSchedule\"\n    - key: \"node.kubernetes.io/not-ready\"\n      operator: \"Exists\"\n      effect: \"NoExecute\"\n      tolerationSeconds: 300\n</code></pre>\n<h2>常用命令</h2>\n<pre><code class=\"language-bash\"># 创建 Pod\nkubectl apply -f pod.yaml\n\n# 查看 Pod\nkubectl get pods -o wide\nkubectl get pods -l app=nginx\nkubectl get pods --all-namespaces\n\n# 查看详情\nkubectl describe pod nginx-pod\n\n# 查看日志\nkubectl logs nginx-pod\nkubectl logs nginx-pod -c sidecar  # 多容器\nkubectl logs nginx-pod --previous  # 上一个容器\nkubectl logs -f nginx-pod          # 实时跟踪\n\n# 进入容器\nkubectl exec -it nginx-pod -- /bin/bash\nkubectl exec -it nginx-pod -c sidecar -- /bin/sh\n\n# 端口转发\nkubectl port-forward nginx-pod 8080:80\n\n# 删除 Pod\nkubectl delete pod nginx-pod\nkubectl delete pod nginx-pod --grace-period=0 --force\n</code></pre>\n<h2>最佳实践</h2>\n<ol>\n<li><strong>始终设置资源限制</strong> - 防止资源耗尽</li>\n<li><strong>配置健康检查</strong> - 确保服务可用性</li>\n<li><strong>使用标签组织</strong> - 便于管理和选择</li>\n<li><strong>避免使用 latest 标签</strong> - 确保可重复部署</li>\n<li><strong>使用 Init Container</strong> - 分离初始化逻辑</li>\n<li><strong>配置 Pod 反亲和</strong> - 提高可用性</li>\n<li><strong>设置适当的重启策略</strong> - 根据工作负载类型选择</li>\n</ol>\n"
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Pod 是 Kubernetes 最小的调度单元",
+        "一个 Pod 可以包含多个容器",
+        "Pod 内容器共享网络和存储",
+        "Pod 是临时的，随时可能被重建"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是 Pod",
+      "content": "Pod 是 Kubernetes 中最小的可部署单元，它封装了一个或多个容器、存储资源、网络 IP 以及容器运行选项。Pod 中的容器总是被调度到同一节点，共享网络命名空间（IP 和端口）。"
+    },
+    {
+      "type": "codeBlock",
+      "title": "Pod 配置示例",
+      "language": "yaml",
+      "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web-app\n  labels:\n    app: web\nspec:\n  containers:\n  - name: nginx\n    image: nginx:1.24\n    ports:\n    - containerPort: 80\n    resources:\n      requests:\n        memory: \"64Mi\"\n        cpu: \"100m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"200m\"\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 80\n      initialDelaySeconds: 10\n      periodSeconds: 5\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 80\n      initialDelaySeconds: 5\n      periodSeconds: 3"
+    },
+    {
+      "type": "flow",
+      "title": "Pod 生命周期",
+      "subtitle": "从创建到终止的状态变化",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Pending",
+          "description": "等待调度",
+          "color": "bg-gray-500"
+        },
+        {
+          "label": "Creating",
+          "description": "创建容器",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Running",
+          "description": "运行中",
+          "color": "bg-green-500"
+        },
+        {
+          "label": "Succeeded/Failed",
+          "description": "终止",
+          "color": "bg-yellow-500"
+        }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "Pod 配置项",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "资源配置",
+          "badge": "Resources",
+          "badgeColor": "blue",
+          "points": [
+            "requests - 最小资源需求",
+            "limits - 最大资源限制",
+            "QoS: Guaranteed/Burstable/BestEffort"
+          ]
+        },
+        {
+          "title": "健康检查",
+          "badge": "Probes",
+          "badgeColor": "green",
+          "points": [
+            "livenessProbe - 存活检查",
+            "readinessProbe - 就绪检查",
+            "startupProbe - 启动检查"
+          ]
+        },
+        {
+          "title": "环境配置",
+          "badge": "Env",
+          "badgeColor": "amber",
+          "points": [
+            "env - 环境变量",
+            "envFrom - 从 ConfigMap/Secret",
+            "volumeMounts - 挂载卷"
+          ]
+        },
+        {
+          "title": "调度配置",
+          "badge": "Schedule",
+          "badgeColor": "purple",
+          "points": [
+            "nodeSelector - 节点选择",
+            "affinity - 亲和性规则",
+            "tolerations - 容忍污点"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comparison",
+      "title": "健康检查类型",
+      "columns": [
+        {
+          "title": "Liveness Probe",
+          "color": "from-red-500 to-orange-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "检测容器是否存活"
+            },
+            {
+              "label": "失败行为",
+              "description": "重启容器"
+            },
+            {
+              "label": "场景",
+              "description": "检测死锁、无响应"
+            }
+          ]
+        },
+        {
+          "title": "Readiness Probe",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "检测容器是否就绪"
+            },
+            {
+              "label": "失败行为",
+              "description": "从 Service 移除"
+            },
+            {
+              "label": "场景",
+              "description": "预热、依赖检查"
+            }
+          ]
+        },
+        {
+          "title": "Startup Probe",
+          "color": "from-blue-500 to-cyan-500",
+          "items": [
+            {
+              "label": "用途",
+              "description": "检测容器是否启动"
+            },
+            {
+              "label": "失败行为",
+              "description": "重启容器"
+            },
+            {
+              "label": "场景",
+              "description": "慢启动应用"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Pod 调试命令",
+      "highlightFirst": true,
+      "headers": [
+        "命令",
+        "说明"
+      ],
+      "rows": [
+        [
+          "kubectl get pods -o wide",
+          "查看 Pod 列表和节点"
+        ],
+        [
+          "kubectl describe pod <name>",
+          "查看 Pod 详情和事件"
+        ],
+        [
+          "kubectl logs <pod> -c <container>",
+          "查看容器日志"
+        ],
+        [
+          "kubectl exec -it <pod> -- bash",
+          "进入 Pod 执行命令"
+        ],
+        [
+          "kubectl top pod <name>",
+          "查看 Pod 资源使用"
+        ]
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "设置资源限制",
+          "description": "始终配置 requests 和 limits"
+        },
+        {
+          "label": "配置健康检查",
+          "description": "所有生产 Pod 都应有探针"
+        },
+        {
+          "label": "使用标签",
+          "description": "合理使用 labels 便于管理和选择"
+        },
+        {
+          "label": "避免直接创建 Pod",
+          "description": "使用 Deployment 等控制器管理"
+        },
+        {
+          "label": "优雅终止",
+          "description": "设置 terminationGracePeriodSeconds"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "Deployment",
+    "Service",
+    "ConfigMap"
+  ]
 }

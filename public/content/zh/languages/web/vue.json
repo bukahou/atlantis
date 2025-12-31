@@ -1,0 +1,256 @@
+{
+  "slug": "vue",
+  "meta": {
+    "title": "Vue",
+    "description": "Vue 3 组合式 API 与现代开发实践",
+    "order": 5,
+    "tags": [
+      "Vue",
+      "Vue 3",
+      "组合式 API",
+      "响应式"
+    ]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "Vue 是渐进式 JavaScript 框架",
+        "响应式系统自动追踪依赖",
+        "组合式 API 提供更好的逻辑复用",
+        "单文件组件 (SFC) 整合模板/脚本/样式"
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "组合式 API",
+      "layout": "grid",
+      "columns": 3,
+      "items": [
+        {
+          "title": "ref",
+          "badge": "响应式",
+          "badgeColor": "blue",
+          "points": [
+            "包装基本类型",
+            ".value 访问值",
+            "模板自动解包"
+          ]
+        },
+        {
+          "title": "reactive",
+          "badge": "响应式",
+          "badgeColor": "green",
+          "points": [
+            "包装对象/数组",
+            "深层响应式",
+            "直接访问属性"
+          ]
+        },
+        {
+          "title": "computed",
+          "badge": "计算",
+          "badgeColor": "purple",
+          "points": [
+            "派生状态",
+            "自动缓存",
+            "依赖追踪"
+          ]
+        },
+        {
+          "title": "watch",
+          "badge": "侦听",
+          "badgeColor": "amber",
+          "points": [
+            "侦听响应式数据",
+            "执行副作用",
+            "深度/立即选项"
+          ]
+        },
+        {
+          "title": "provide/inject",
+          "badge": "依赖注入",
+          "badgeColor": "cyan",
+          "points": [
+            "跨层级传值",
+            "避免 Props 穿透",
+            "插件/主题"
+          ]
+        },
+        {
+          "title": "生命周期",
+          "badge": "Hooks",
+          "badgeColor": "red",
+          "points": [
+            "onMounted",
+            "onUpdated",
+            "onUnmounted"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "组合式 API 基础",
+      "language": "vue",
+      "code": "<script setup lang=\"ts\">\nimport { ref, computed, onMounted } from 'vue';\n\ninterface User {\n  id: number;\n  name: string;\n}\n\n// Props\nconst props = defineProps<{\n  userId: number;\n}>();\n\n// Emits\nconst emit = defineEmits<{\n  (e: 'update', user: User): void;\n}>();\n\n// 响应式状态\nconst user = ref<User | null>(null);\nconst loading = ref(true);\n\n// 计算属性\nconst displayName = computed(() => \n  user.value?.name ?? 'Unknown'\n);\n\n// 生命周期\nonMounted(async () => {\n  const res = await fetch(`/api/users/${props.userId}`);\n  user.value = await res.json();\n  loading.value = false;\n});\n\n// 方法\nfunction handleUpdate() {\n  if (user.value) {\n    emit('update', user.value);\n  }\n}\n</script>\n\n<template>\n  <div v-if=\"loading\">Loading...</div>\n  <div v-else>\n    <h1>{{ displayName }}</h1>\n    <button @click=\"handleUpdate\">Update</button>\n  </div>\n</template>"
+    },
+    {
+      "type": "codeBlock",
+      "title": "组合式函数 (Composables)",
+      "language": "ts",
+      "code": "// composables/useFetch.ts\nimport { ref, watchEffect } from 'vue';\n\nexport function useFetch<T>(url: string | (() => string)) {\n  const data = ref<T | null>(null);\n  const loading = ref(true);\n  const error = ref<Error | null>(null);\n\n  async function doFetch(fetchUrl: string) {\n    loading.value = true;\n    error.value = null;\n    \n    try {\n      const res = await fetch(fetchUrl);\n      data.value = await res.json();\n    } catch (e) {\n      error.value = e as Error;\n    } finally {\n      loading.value = false;\n    }\n  }\n\n  watchEffect(() => {\n    const fetchUrl = typeof url === 'function' ? url() : url;\n    doFetch(fetchUrl);\n  });\n\n  return { data, loading, error, refetch: () => doFetch(typeof url === 'function' ? url() : url) };\n}\n\n// 使用\n// const { data: users, loading } = useFetch<User[]>('/api/users');"
+    },
+    {
+      "type": "comparison",
+      "title": "选项式 vs 组合式",
+      "columns": [
+        {
+          "title": "选项式 API",
+          "color": "from-amber-500 to-orange-500",
+          "items": [
+            {
+              "label": "组织",
+              "description": "按选项分组 (data/methods)"
+            },
+            {
+              "label": "适用",
+              "description": "简单组件/入门学习"
+            },
+            {
+              "label": "复用",
+              "description": "Mixins (有命名冲突风险)"
+            }
+          ]
+        },
+        {
+          "title": "组合式 API",
+          "color": "from-green-500 to-emerald-500",
+          "items": [
+            {
+              "label": "组织",
+              "description": "按逻辑关注点分组"
+            },
+            {
+              "label": "适用",
+              "description": "复杂组件/大型项目"
+            },
+            {
+              "label": "复用",
+              "description": "Composables (类型安全)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "Pinia 状态管理",
+      "language": "ts",
+      "code": "// stores/user.ts\nimport { defineStore } from 'pinia';\nimport { ref, computed } from 'vue';\n\nexport const useUserStore = defineStore('user', () => {\n  // State\n  const user = ref<User | null>(null);\n  const token = ref<string | null>(null);\n\n  // Getters\n  const isLoggedIn = computed(() => !!token.value);\n  const userName = computed(() => user.value?.name ?? 'Guest');\n\n  // Actions\n  async function login(email: string, password: string) {\n    const res = await fetch('/api/login', {\n      method: 'POST',\n      body: JSON.stringify({ email, password }),\n    });\n    const data = await res.json();\n    user.value = data.user;\n    token.value = data.token;\n  }\n\n  function logout() {\n    user.value = null;\n    token.value = null;\n  }\n\n  return { user, token, isLoggedIn, userName, login, logout };\n});\n\n// 组件中使用\n// const userStore = useUserStore();\n// userStore.login(email, password);"
+    },
+    {
+      "type": "table",
+      "title": "Vue 生态",
+      "highlightFirst": true,
+      "headers": [
+        "类别",
+        "推荐方案",
+        "用途"
+      ],
+      "rows": [
+        [
+          "路由",
+          "Vue Router",
+          "SPA 路由"
+        ],
+        [
+          "状态",
+          "Pinia",
+          "全局状态"
+        ],
+        [
+          "构建",
+          "Vite",
+          "开发/构建"
+        ],
+        [
+          "UI 库",
+          "Element Plus / Naive UI",
+          "组件库"
+        ],
+        [
+          "SSR",
+          "Nuxt 3",
+          "全栈框架"
+        ],
+        [
+          "测试",
+          "Vitest + Vue Test Utils",
+          "单元/组件测试"
+        ]
+      ]
+    },
+    {
+      "type": "flow",
+      "title": "Vue 响应式原理",
+      "direction": "horizontal",
+      "steps": [
+        {
+          "label": "Proxy 拦截",
+          "description": "getter/setter",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "依赖收集",
+          "description": "track()",
+          "color": "bg-purple-500"
+        },
+        {
+          "label": "触发更新",
+          "description": "trigger()",
+          "color": "bg-cyan-500"
+        },
+        {
+          "label": "重新渲染",
+          "description": "patch DOM",
+          "color": "bg-green-500"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "最佳实践",
+      "style": "check",
+      "items": [
+        {
+          "label": "使用 <script setup>",
+          "description": "更简洁的组合式 API 语法"
+        },
+        {
+          "label": "抽取 Composables",
+          "description": "复用逻辑封装成组合式函数"
+        },
+        {
+          "label": "ref vs reactive",
+          "description": "基本类型用 ref，对象用 reactive"
+        },
+        {
+          "label": "避免解构响应式",
+          "description": "使用 toRefs 保持响应性"
+        },
+        {
+          "label": "Pinia 替代 Vuex",
+          "description": "更好的 TypeScript 支持"
+        }
+      ]
+    }
+  ],
+  "relatedTopics": [
+    "TypeScript",
+    "Nuxt",
+    "Pinia",
+    "组件设计"
+  ]
+}

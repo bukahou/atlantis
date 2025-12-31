@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "title": "容器镜像详解",
+    "description": "容器镜像原理：分层存储、UnionFS、镜像构建与优化",
+    "order": 2,
+    "tags": ["容器", "镜像", "UnionFS", "OverlayFS", "Dockerfile"]
+  },
+  "sections": [
+    {
+      "type": "keyPoints",
+      "title": "核心概念",
+      "items": [
+        "镜像是只读的分层文件系统",
+        "UnionFS 将多层合并为统一视图",
+        "每条 Dockerfile 指令创建一个新层",
+        "容器运行时在镜像上添加可写层"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "什么是容器镜像",
+      "content": "容器镜像是一个只读的模板，包含运行应用所需的代码、运行时、库、环境变量和配置文件。镜像采用分层存储架构，每一层都是前一层的增量变更。这种设计使得镜像可以高效共享基础层，大幅节省存储空间和传输时间。"
+    },
+    {
+      "type": "flow",
+      "title": "镜像分层结构",
+      "direction": "vertical",
+      "steps": [
+        { "label": "Container Layer", "description": "可写层 (容器运行时)", "color": "bg-red-500" },
+        { "label": "Layer N", "description": "COPY app.jar", "color": "bg-blue-500" },
+        { "label": "Layer 3", "description": "RUN apt-get install", "color": "bg-cyan-500" },
+        { "label": "Layer 2", "description": "RUN apt-get update", "color": "bg-purple-500" },
+        { "label": "Layer 1 (Base)", "description": "FROM ubuntu:22.04", "color": "bg-gray-500" }
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "UnionFS 联合文件系统",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "OverlayFS",
+          "badge": "主流",
+          "badgeColor": "blue",
+          "points": [
+            "Linux 内核原生支持 (3.18+)",
+            "Docker/containerd 默认驱动",
+            "性能好，稳定性高",
+            "分为 lower/upper/merged 层"
+          ]
+        },
+        {
+          "title": "其他实现",
+          "badge": "历史",
+          "badgeColor": "gray",
+          "points": [
+            "AUFS: Docker 早期使用",
+            "Device Mapper: RHEL/CentOS",
+            "Btrfs: 需要 Btrfs 文件系统",
+            "ZFS: 企业级存储场景"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "OverlayFS 原理",
+      "language": "bash",
+      "code": "# OverlayFS 挂载结构\n# lower: 只读层 (可多个，用 : 分隔)\n# upper: 可写层\n# work: 工作目录 (OverlayFS 内部使用)\n# merged: 合并后的统一视图\n\nmkdir -p /tmp/overlay/{lower,upper,work,merged}\necho 'base file' > /tmp/overlay/lower/file.txt\n\nsudo mount -t overlay overlay \\\n  -o lowerdir=/tmp/overlay/lower,upperdir=/tmp/overlay/upper,workdir=/tmp/overlay/work \\\n  /tmp/overlay/merged\n\n# 查看合并后的文件\nls /tmp/overlay/merged/\ncat /tmp/overlay/merged/file.txt\n\n# 修改文件 (写入 upper 层，lower 层不变)\necho 'modified' > /tmp/overlay/merged/file.txt\ncat /tmp/overlay/upper/file.txt  # modified\ncat /tmp/overlay/lower/file.txt  # base file (不变)"
+    },
+    {
+      "type": "codeBlock",
+      "title": "查看镜像分层",
+      "language": "bash",
+      "code": "# 查看镜像历史 (每层对应一条指令)\ndocker history nginx:alpine\n\n# 查看镜像详细信息\ndocker inspect nginx:alpine\n\n# 查看镜像层存储位置\nls /var/lib/docker/overlay2/\n\n# 查看容器的 OverlayFS 挂载\ndocker inspect <container> | grep -A 10 GraphDriver\n\n# 分析镜像各层大小\ndocker history --no-trunc nginx:alpine | awk '{print $1, $NF}'"
+    },
+    {
+      "type": "table",
+      "title": "基础镜像对比",
+      "highlightFirst": true,
+      "headers": ["镜像", "大小", "包管理器", "C 库", "适用场景"],
+      "rows": [
+        ["scratch", "0 MB", "无", "无", "静态编译程序 (Go/Rust)"],
+        ["alpine", "~5 MB", "apk", "musl", "生产环境、轻量应用"],
+        ["distroless", "~20 MB", "无", "glibc", "安全敏感生产环境"],
+        ["debian-slim", "~80 MB", "apt", "glibc", "需要 glibc 兼容性"],
+        ["ubuntu", "~80 MB", "apt", "glibc", "开发调试、完整工具链"],
+        ["centos/rocky", "~200 MB", "yum/dnf", "glibc", "企业级 RHEL 兼容"]
+      ]
+    },
+    {
+      "type": "cards",
+      "title": "基础镜像选择",
+      "layout": "grid",
+      "columns": 2,
+      "items": [
+        {
+          "title": "Alpine Linux",
+          "badge": "轻量",
+          "badgeColor": "green",
+          "points": [
+            "镜像极小 (~5MB)",
+            "使用 musl libc (非 glibc)",
+            "apk 包管理器",
+            "注意: 部分程序可能不兼容 musl"
+          ]
+        },
+        {
+          "title": "Distroless",
+          "badge": "安全",
+          "badgeColor": "red",
+          "points": [
+            "Google 维护",
+            "无 shell、无包管理器",
+            "仅包含应用运行时",
+            "攻击面最小化"
+          ]
+        },
+        {
+          "title": "Scratch",
+          "badge": "空",
+          "badgeColor": "gray",
+          "points": [
+            "完全空白镜像",
+            "适合静态编译程序",
+            "Go: CGO_ENABLED=0",
+            "最小化镜像大小"
+          ]
+        },
+        {
+          "title": "Debian/Ubuntu",
+          "badge": "通用",
+          "badgeColor": "blue",
+          "points": [
+            "完整 glibc 支持",
+            "apt 包管理器",
+            "丰富的软件包",
+            "开发调试友好"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "不同基础镜像示例",
+      "language": "dockerfile",
+      "code": "# === Alpine (轻量) ===\nFROM alpine:3.19\nRUN apk add --no-cache python3 py3-pip\nCOPY app.py /app/\nCMD [\"python3\", \"/app/app.py\"]\n\n# === Distroless (安全) ===\n# 多阶段构建: 先用完整镜像构建，再复制到 distroless\nFROM golang:1.21 AS builder\nWORKDIR /app\nCOPY . .\nRUN CGO_ENABLED=0 go build -o /app/server\n\nFROM gcr.io/distroless/static-debian12\nCOPY --from=builder /app/server /\nCMD [\"/server\"]\n\n# === Scratch (最小) ===\nFROM golang:1.21 AS builder\nWORKDIR /app\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s -w' -o /app/server\n\nFROM scratch\nCOPY --from=builder /app/server /server\nCOPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/\nENTRYPOINT [\"/server\"]"
+    },
+    {
+      "type": "codeBlock",
+      "title": "镜像层优化技巧",
+      "language": "dockerfile",
+      "code": "# ❌ 不好: 每条 RUN 创建一层，缓存效率低\nFROM ubuntu:22.04\nRUN apt-get update\nRUN apt-get install -y python3\nRUN apt-get install -y python3-pip\nRUN rm -rf /var/lib/apt/lists/*\n\n# ✅ 好: 合并 RUN 指令，减少层数\nFROM ubuntu:22.04\nRUN apt-get update && \\\n    apt-get install -y --no-install-recommends \\\n      python3 \\\n      python3-pip && \\\n    rm -rf /var/lib/apt/lists/*\n\n# ✅ 利用缓存: 不常变的放前面\nFROM python:3.11-slim\nWORKDIR /app\n\n# 依赖不常变，先复制\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# 代码常变，后复制\nCOPY . .\nCMD [\"python\", \"app.py\"]"
+    },
+    {
+      "type": "table",
+      "title": "Dockerfile 指令与分层",
+      "highlightFirst": true,
+      "headers": ["指令", "是否创建新层", "说明"],
+      "rows": [
+        ["FROM", "是", "设置基础镜像"],
+        ["RUN", "是", "执行命令并创建层"],
+        ["COPY/ADD", "是", "复制文件创建层"],
+        ["ENV", "是", "设置环境变量创建层"],
+        ["WORKDIR", "是", "设置工作目录创建层"],
+        ["CMD/ENTRYPOINT", "否", "仅设置元数据"],
+        ["EXPOSE", "否", "仅声明端口"],
+        ["LABEL", "是", "添加元数据创建层"]
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "title": "镜像分析工具",
+      "language": "bash",
+      "code": "# dive: 交互式分析镜像层\ndive nginx:alpine\n\n# 查看每层的文件变更\ndocker history --no-trunc <image>\n\n# 导出镜像分析内容\ndocker save nginx:alpine | tar -xvf -\nls  # 每个目录是一个层\n\n# 检查镜像安全漏洞\ntrivy image nginx:alpine\ngrype nginx:alpine"
+    },
+    {
+      "type": "list",
+      "title": "镜像最佳实践",
+      "style": "check",
+      "items": [
+        { "label": "使用轻量基础镜像", "description": "生产环境优先 Alpine 或 Distroless" },
+        { "label": "多阶段构建", "description": "构建和运行分离，减小最终镜像" },
+        { "label": "合并 RUN 指令", "description": "减少层数，同一层内清理临时文件" },
+        { "label": "利用构建缓存", "description": "不常变的内容放在 Dockerfile 前面" },
+        { "label": "使用 .dockerignore", "description": "排除不需要的文件，加速构建" },
+        { "label": "定期扫描漏洞", "description": "使用 Trivy/Grype 检查镜像安全" }
+      ]
+    }
+  ],
+  "relatedTopics": ["Docker", "Kubernetes", "多阶段构建", "镜像安全"]
+}

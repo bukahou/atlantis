@@ -2,10 +2,38 @@
   "items": [
     {
       "slug": "basics",
-      "title": "Docker 基础入门",
-      "description": "Docker 容器技术核心概念与基本操作",
+      "title": "Docker 基础",
+      "description": "Docker 核心概念、安装配置与基本操作",
       "href": "/container/docker/basics",
       "order": 1
+    },
+    {
+      "slug": "networking",
+      "title": "Docker 网络",
+      "description": "Docker 网络模式、容器通信与网络配置",
+      "href": "/container/docker/networking",
+      "order": 2
+    },
+    {
+      "slug": "multistage",
+      "title": "多阶段构建",
+      "description": "Docker 多阶段构建优化镜像体积与安全性",
+      "href": "/container/docker/multistage",
+      "order": 3
+    },
+    {
+      "slug": "storage",
+      "title": "Docker 存储",
+      "description": "Docker 数据持久化：Volume、Bind Mount 与存储驱动",
+      "href": "/container/docker/storage",
+      "order": 4
+    },
+    {
+      "slug": "compose",
+      "title": "Docker Compose",
+      "description": "Docker Compose 多容器编排：服务定义、网络与部署",
+      "href": "/container/docker/compose",
+      "order": 5
     }
   ]
 }
